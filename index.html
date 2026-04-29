@@ -1008,9 +1008,9 @@ async function loadData(){
       trySheet('reincidentes',        FALLBACK.reincidentes),
       trySheet('impacto_7d',          FALLBACK.impacto),
       trySheet('cs_agentes',          FALLBACK.cs),
-      trySheet('cs_agentes_hoje',     FALLBACK.cs),
+      trySheet('cs_agentes_hoje',     []),
       trySheet('retencao_resultado',  FALLBACK.retencao),
-      trySheet('retencao_hoje',       FALLBACK.retencao),
+      trySheet('retencao_hoje',       []),
     ]);
 
     // Se as abas do CS vieram do Sheets, usa dados reais; senão fallback
