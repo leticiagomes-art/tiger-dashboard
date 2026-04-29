@@ -962,39 +962,65 @@ function switchCS(view, btn) {
 // ═══════════════════════════════════════════════════════
 //  LOAD DATA
 // ═══════════════════════════════════════════════════════
-async function loadData(){
-  let offline = false;
+// Busca uma aba com timeout de 8s — nunca trava o resto
+async function trySheet(name, fallback, timeoutMs=8000){
   try {
-    let cfg, kpi_rows, ir, icb, hgp, top, afil, vamp, rc, imp, cs_semana, cs_hoje, ret_semana, ret_hoje;
-    try {
-      [cfg,kpi_rows,ir,icb,hgp,top,afil,vamp,rc,imp,cs_semana,cs_hoje,ret_semana,ret_hoje] = await Promise.all([
-        fetchSheet('config'),fetchSheet('kpi_reembolso'),fetchSheet('intervalos_reimb'),
-        fetchSheet('intervalos_cb'),fetchSheet('hg_produtos'),fetchSheet('tiger_produtos'),
-        fetchSheet('afiliados_7d'),fetchSheet('vamp'),fetchSheet('reincidentes'),
-        fetchSheet('impacto_7d'),fetchSheet('cs_agentes'),fetchSheet('cs_agentes_hoje'),
-        fetchSheet('retencao_resultado'),fetchSheet('retencao_hoje')
-      ]);
-      CS_DATA = { semana: cs_semana, hoje: cs_hoje, ret_semana: ret_semana, ret_hoje: ret_hoje };
-    } catch(e){
-      offline = true;
-      cfg=FALLBACK.config; kpi_rows=null; ir=FALLBACK.intervalos_reimb; icb=FALLBACK.intervalos_cb;
-      hgp=FALLBACK.hg_produtos; top=FALLBACK.tiger_produtos; afil=FALLBACK.afiliados;
-      vamp=FALLBACK.vamp; rc=FALLBACK.reincidentes; imp=FALLBACK.impacto;
-      CS_DATA = { semana: FALLBACK.cs, hoje: FALLBACK.cs, ret_semana: FALLBACK.retencao, ret_hoje: FALLBACK.retencao };
-    }
+    const result = await Promise.race([
+      fetchSheet(name),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),timeoutMs))
+    ]);
+    return { data: result, ok: true };
+  } catch(e) {
+    return { data: fallback, ok: false };
+  }
+}
+
+async function loadData(){
+  try {
+    // Busca todas em paralelo — cada uma tem seu próprio fallback
+    const [rCfg,rKpi,rIr,rIcb,rHgp,rTop,rAfil,rVamp,rRc,rImp,rCs,rCsH,rRet,rRetH] = await Promise.all([
+      trySheet('config',              FALLBACK.config),
+      trySheet('kpi_reembolso',       null),
+      trySheet('intervalos_reimb',    FALLBACK.intervalos_reimb),
+      trySheet('intervalos_cb',       FALLBACK.intervalos_cb),
+      trySheet('hg_produtos',         FALLBACK.hg_produtos),
+      trySheet('tiger_produtos',      FALLBACK.tiger_produtos),
+      trySheet('afiliados_7d',        FALLBACK.afiliados),
+      trySheet('vamp',                FALLBACK.vamp),
+      trySheet('reincidentes',        FALLBACK.reincidentes),
+      trySheet('impacto_7d',          FALLBACK.impacto),
+      trySheet('cs_agentes',          FALLBACK.cs),
+      trySheet('cs_agentes_hoje',     FALLBACK.cs),
+      trySheet('retencao_resultado',  FALLBACK.retencao),
+      trySheet('retencao_hoje',       FALLBACK.retencao),
+    ]);
+
+    // Se as abas do CS vieram do Sheets, usa dados reais; senão fallback
+    CS_DATA = {
+      semana:      rCs.data,
+      hoje:        rCsH.data,
+      ret_semana:  rRet.data,
+      ret_hoje:    rRetH.data,
+    };
+
+    // Checa se alguma aba importante veio offline
+    const offline = !rCs.ok && !rRet.ok;
 
     // config
-    const cfgMap = Object.fromEntries(cfg.map(r=>[r.chave,r.valor]));
+    const cfgMap = Object.fromEntries(rCfg.data.map(r=>[r.chave,r.valor]));
     $('hdr-semana').textContent = cfgMap.semana||'—';
     $('hdr-data').textContent = cfgMap.data_atualizacao||'—';
     $('footer-periodo').textContent = cfgMap.periodo||'—';
 
     // kpi
     let kpi = FALLBACK.kpi;
-    if(kpi_rows){
-      const km = Object.fromEntries(kpi_rows.map(r=>[r.metrica,r.valor]));
+    if(rKpi.ok && rKpi.data){
+      const km = Object.fromEntries(rKpi.data.map(r=>[r.metrica,r.valor]));
       kpi = {vendas:km.vendas_bg,reimb:km.reembolso_total,cb:km.chargeback_total,taxa_reimb:km.taxa_reembolso,taxa_cb:km.taxa_chargeback,taxa_geral:km.taxa_geral,retido_hg:km.retido_hg,retido_tiger:km.retido_tiger,ret_tiger:km.retemcoes_tiger,ret_hg:km.retemcoes_hg,full_ref_hg:km.full_refunds_hg_7d,tx_tiger:km.tx_retencao_tiger,tx_hg:km.tx_retencao_hg,med_reimb:km.mediana_reimb_dias,avg_reimb:km.media_reimb_dias,med_cb:km.mediana_cb_dias,avg_cb:km.media_cb_dias};
     }
+
+    const ir  = rIr.data;
+    const icb = rIcb.data;
 
     renderKPI(kpi);
     renderConsolidada(kpi);
@@ -1022,18 +1048,16 @@ async function loadData(){
       if($(`${id}-v`)) $(`${id}-v`).textContent = `$${fmt((+rv.valor||0)+(+cv.valor||0))}`;
     });
 
-    renderHGProd(hgp); renderTOProd(top);
-    renderScores(afil); renderDiag(afil); renderAfilTable(afil);
-    renderVamp(vamp); renderReincidentes(rc); renderImpacto(imp);
+    renderHGProd(rHgp.data); renderTOProd(rTop.data);
+    renderScores(rAfil.data); renderDiag(rAfil.data); renderAfilTable(rAfil.data);
+    renderVamp(rVamp.data); renderReincidentes(rRc.data); renderImpacto(rImp.data);
     renderCS(CS_DATA[CS_VIEW] || FALLBACK.cs);
     renderRetencao(CS_DATA['ret_'+CS_VIEW] || FALLBACK.retencao);
     $('cs-periodo-label').textContent = CS_VIEW === 'hoje' ? '(tickets de hoje)' : '(tickets desta semana)';
 
     if(offline){
       $('err-banner').classList.add('show');
-      $('err-msg').textContent = SHEET_ID==='SEU_SHEET_ID_AQUI'
-        ? 'Modo offline — conecte um Google Sheet para atualização automática (veja as instruções).'
-        : 'Não foi possível carregar dados do Google Sheets. Exibindo dados da última versão salva.';
+      $('err-msg').textContent = 'CS carregado do Sheets ✅ — Dados de Reembolso/Afiliados em modo offline (planilhas manuais não conectadas).';
     }
   } finally {
     $('loading').classList.add('hidden');
