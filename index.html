@@ -469,13 +469,24 @@ footer{border-top:1px solid var(--border);padding:14px 40px;background:#fff;disp
 
 <!-- ══════════ CS TIGER ══════════ -->
 <div class="sec" id="s-cs">
+
+  <!-- TOGGLE HOJE / SEMANA -->
+  <div class="cs-toggle-wrap">
+    <span class="cs-toggle-label">Período:</span>
+    <div class="cs-toggle">
+      <button class="cs-toggle-btn hoje" onclick="switchCS('hoje',this)">📅 Hoje</button>
+      <button class="cs-toggle-btn semana active" onclick="switchCS('semana',this)">📆 Esta Semana</button>
+    </div>
+    <span id="cs-periodo-label" style="font-size:11px;color:var(--t3);margin-left:4px">(tickets desta semana)</span>
+  </div>
+
   <div class="kpi-row">
-    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-total">—</div><div class="kpi-sub">Natália + Heitor + Neythan + Yasmin</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Retenções Completas</div><div class="kpi-val">250</div><div class="kpi-sub">196 RETIDO + 54 reclassif.</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val">$32,9K</div><div class="kpi-sub">$28.831 + $4.162 parciais</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Maior Retenção em $</div><div class="kpi-val">$15,7K</div><div class="kpi-sub">Natália — 45 retidos</div></div>
-    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val">329</div><div class="kpi-sub">Neythan — 105 propostas</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Taxa Retenção Tiger</div><div class="kpi-val">16,8%</div><div class="kpi-sub">vs HelpGrid 13,3% ✅</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-total">—</div><div class="kpi-sub" id="cs-agentes-sub">—</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Retenções Completas</div><div class="kpi-val" id="cs-ret-compl">—</div><div class="kpi-sub" id="cs-ret-sub">—</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val" id="cs-valor-total">—</div><div class="kpi-sub" id="cs-valor-sub">—</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Maior Retenção em $</div><div class="kpi-val" id="cs-top-val">—</div><div class="kpi-sub" id="cs-top-sub">—</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-mais-ativo">—</div><div class="kpi-sub" id="cs-mais-ativo-sub">—</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Taxa Retenção Tiger</div><div class="kpi-val" id="cs-taxa">—</div><div class="kpi-sub">vs HelpGrid 13,3%</div></div>
   </div>
 
   <div class="ag-grid" id="ag-grid"></div>
@@ -942,20 +953,6 @@ function animateBars(){
 //  LOAD DATA
 // ═══════════════════════════════════════════════════════
 async function loadData(){
-  // ─── Estado CS ───────────────────────────────────────
-  let CS_DATA = { semana: null, hoje: null, ret_semana: null, ret_hoje: null };
-  let CS_VIEW = 'semana';
-
-  function switchCS(view, btn) {
-    CS_VIEW = view;
-    document.querySelectorAll('.cs-toggle-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderCS((CS_DATA[view]||[]).filter(r=>r.agente&&r.agente.toString().trim()!=='').length ? CS_DATA[view] : (view==='hoje'?[]:FALLBACK.cs));
-    renderRetencao(CS_DATA['ret_'+view]||[]);
-    $('cs-periodo-label').textContent = view==='hoje'?'(tickets de hoje)':'(tickets desta semana)';
-    setTimeout(animateBars, 100);
-  }
-
   // ─── trySheet helper ──────────────────────────────────
   async function trySheet(name, fallback, ms=8000){
     try {
@@ -1038,30 +1035,12 @@ async function loadData(){
     renderScores(rAfil.data); renderDiag(rAfil.data); renderAfilTable(rAfil.data);
     renderVamp(rVamp.data); renderReincidentes(rRc.data); renderImpacto(rImp.data);
 
-    // CS com toggle
-    renderCS(CS_DATA.semana);
-    renderRetencao(CS_DATA.ret_semana);
-    $('cs-periodo-label').textContent = '(tickets desta semana)';
-
-    // Adiciona toggle ao HTML do CS se ainda não existir
-    if(!document.getElementById('cs-toggle-wrap-injected')){
-      const secCS = document.getElementById('s-cs');
-      if(secCS){
-        const toggleHTML = `<div id="cs-toggle-wrap-injected" class="cs-toggle-wrap">
-          <span class="cs-toggle-label">Período:</span>
-          <div class="cs-toggle">
-            <button class="cs-toggle-btn hoje" onclick="switchCS('hoje',this)">📅 Hoje</button>
-            <button class="cs-toggle-btn semana active" onclick="switchCS('semana',this)">📆 Esta Semana</button>
-          </div>
-          <span id="cs-periodo-label" style="font-size:11px;color:var(--t3);margin-left:4px">(tickets desta semana)</span>
-        </div>`;
-        secCS.insertAdjacentHTML('afterbegin', toggleHTML);
-      }
-    }
+    renderCS(window._CS_DATA.semana);
+    renderRetencao(window._CS_DATA.ret_semana);
 
     if(offline){
       $('err-banner').classList.add('show');
-      $('err-msg').textContent = 'CS em modo offline — verifique a URL do Apps Script ou a conexão com o Sheets.';
+      $('err-msg').textContent = 'CS em modo offline — verifique a URL do Apps Script.';
     }
   } finally {
     $('loading').classList.add('hidden');
