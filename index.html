@@ -93,16 +93,6 @@ tbody td{padding:9px 10px;font-size:12px;color:var(--t2)}
 td.r{text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px}
 td.c{text-align:center}.td-b{font-weight:700;color:var(--t1)}
 
-/* CS TOGGLE */
-.cs-toggle-wrap{display:flex;align-items:center;gap:8px;margin-bottom:18px}
-.cs-toggle-label{font-size:12px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.4px}
-.cs-toggle{display:flex;background:#F1F5F9;border-radius:8px;padding:3px;gap:2px}
-.cs-toggle-btn{padding:6px 18px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--t3);background:transparent;transition:all .15s;letter-spacing:.2px}
-.cs-toggle-btn.active{background:#fff;color:var(--t1);box-shadow:0 1px 4px rgba(0,0,0,.1)}
-.cs-toggle-btn.hoje.active{color:var(--orange)}
-.cs-toggle-btn.semana.active{color:var(--blue)}
-.cs-no-data{text-align:center;padding:40px;color:var(--t4);font-size:13px}
-
 /* PILLS */
 .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.4px}
 .p-crit{background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA}
@@ -479,24 +469,13 @@ footer{border-top:1px solid var(--border);padding:14px 40px;background:#fff;disp
 
 <!-- ══════════ CS TIGER ══════════ -->
 <div class="sec" id="s-cs">
-
-  <!-- TOGGLE HOJE / SEMANA -->
-  <div class="cs-toggle-wrap">
-    <span class="cs-toggle-label">Período:</span>
-    <div class="cs-toggle">
-      <button class="cs-toggle-btn hoje" onclick="switchCS('hoje',this)">📅 Hoje</button>
-      <button class="cs-toggle-btn semana active" onclick="switchCS('semana',this)">📆 Esta Semana</button>
-    </div>
-    <span id="cs-periodo-label" style="font-size:11px;color:var(--t3);margin-left:4px"></span>
-  </div>
-
   <div class="kpi-row">
-    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-total">—</div><div class="kpi-sub" id="cs-agentes-sub">—</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Retenções Completas</div><div class="kpi-val" id="cs-ret-compl">—</div><div class="kpi-sub" id="cs-ret-sub">—</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val" id="cs-valor-total">—</div><div class="kpi-sub" id="cs-valor-sub">—</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Maior Retenção em $</div><div class="kpi-val" id="cs-top-val">—</div><div class="kpi-sub" id="cs-top-sub">—</div></div>
-    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-mais-ativo">—</div><div class="kpi-sub" id="cs-mais-ativo-sub">—</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Taxa Retenção Tiger</div><div class="kpi-val" id="cs-taxa">—</div><div class="kpi-sub">vs HelpGrid 13,3%</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-total">—</div><div class="kpi-sub">Natália + Heitor + Neythan + Yasmin</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Retenções Completas</div><div class="kpi-val">250</div><div class="kpi-sub">196 RETIDO + 54 reclassif.</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val">$32,9K</div><div class="kpi-sub">$28.831 + $4.162 parciais</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Maior Retenção em $</div><div class="kpi-val">$15,7K</div><div class="kpi-sub">Natália — 45 retidos</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val">329</div><div class="kpi-sub">Neythan — 105 propostas</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Taxa Retenção Tiger</div><div class="kpi-val">16,8%</div><div class="kpi-sub">vs HelpGrid 13,3% ✅</div></div>
   </div>
 
   <div class="ag-grid" id="ag-grid"></div>
@@ -546,13 +525,14 @@ footer{border-top:1px solid var(--border);padding:14px 40px;background:#fff;disp
 // ═══════════════════════════════════════════════════════
 const SHEET_ID = '1u8dhtbT8NODgdbzOJfJTwE04vFLE79K3hP-zm9nfT7Y';
 const BASE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
-
-// ← Cole aqui a URL do Web App após reimplantar o Apps Script
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcysOaDI3YN_cectk-lWMhDY27SwqyYdItnZd0YlMzboiCfjybFfYuHx4fkn-epJPDnA/exec';
 
-// Busca tudo de uma vez via Apps Script (sem cache)
+// Data de hoje formatada em pt-BR
+const HOJE_STR = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'});
+const HOJE_HORA = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+
+// Busca dados frescos via Apps Script
 async function fetchCSData() {
-  if (APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbzcysOaDI3YN_cectk-lWMhDY27SwqyYdItnZd0YlMzboiCfjybFfYuHx4fkn-epJPDnA/exec') throw new Error('no-url');
   const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { cache: 'no-store' });
   if (!r.ok) throw new Error(r.status);
   return r.json();
@@ -616,8 +596,7 @@ function parseCSV(text){
 //  FETCH FROM SHEETS (with fallback)
 // ═══════════════════════════════════════════════════════
 async function fetchSheet(name){
-  if(SHEET_ID==='SEU_SHEET_ID_AQUI') throw new Error('no-id');
-  const url = BASE + encodeURIComponent(name) + '&t=' + Date.now(); // evita cache
+  const url = BASE + encodeURIComponent(name) + '&t=' + Date.now();
   const r = await fetch(url, { cache: 'no-store' });
   if(!r.ok) throw new Error(r.status);
   return parseCSV(await r.text());
@@ -853,7 +832,6 @@ function renderImpacto(rows){
 }
 
 function renderCS(rows){
-  // Filtra linhas sem agente (CSV vazio vira [{agente:''}])
   rows = (rows||[]).filter(r => r.agente && r.agente.toString().trim() !== '');
 
   if(!rows.length){
@@ -863,42 +841,32 @@ function renderCS(rows){
         <div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:6px">Nenhuma resposta registrada neste período</div>
         <div style="font-size:12px;color:var(--t3)">Os tickets aparecerão aqui assim que o time preencher o formulário hoje.</div>
       </div>`;
-    $('tbl-cs').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--t4);font-size:13px">📭 Sem registros neste período</td></tr>`;
-    $('cs-total').textContent = '0';
-    $('cs-agentes-sub').textContent = '—';
-    $('cs-ret-compl').textContent = '0';
-    $('cs-ret-sub').textContent = '—';
-    $('cs-valor-total').textContent = '$0';
-    $('cs-valor-sub').textContent = '—';
-    $('cs-top-val').textContent = '—';
-    $('cs-top-sub').textContent = '—';
-    $('cs-mais-ativo').textContent = '—';
-    $('cs-mais-ativo-sub').textContent = '—';
-    $('cs-taxa').textContent = '—';
+    $('tbl-cs').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--t4)">📭 Sem registros neste período</td></tr>`;
+    ['cs-total','cs-ret-compl'].forEach(id=>$(id).textContent='0');
+    ['cs-agentes-sub','cs-ret-sub','cs-valor-sub','cs-top-sub','cs-mais-ativo-sub'].forEach(id=>$(id).textContent='—');
+    $('cs-valor-total').textContent='$0'; $('cs-top-val').textContent='—'; $('cs-mais-ativo').textContent='—'; $('cs-taxa').textContent='—';
     return;
   }
   const perf_colors = {EXCELENTE:'var(--green)',BOM:'var(--blue)',EM_RAMP:'var(--yellow)'};
 
   // KPIs dinâmicos
-  const totalTick = rows.reduce((s,r)=>s+(+r.tickets_tab||0),0);
-  const totalRetCompl = rows.reduce((s,r)=>s+(+r.retidos_qtd||0)+(+r.parcial_compl_qtd||0),0);
-  const totalValorRet = rows.reduce((s,r)=>s+(+r.total_retido||0),0);
-  const topAgente = [...rows].sort((a,b)=>(+b.total_retido||0)-(+a.total_retido||0))[0]||{};
-  const maisAtivo = [...rows].sort((a,b)=>(+b.tickets_tab||0)-(+a.tickets_tab||0))[0]||{};
-  const taxaTiger = totalTick>0?(totalRetCompl/totalTick*100).toFixed(1):'0.0';
-  const nomes = rows.map(r=>r.agente).join(' · ');
-
-  $('cs-total').textContent = totalTick;
-  $('cs-agentes-sub').textContent = nomes;
-  $('cs-ret-compl').textContent = totalRetCompl;
-  $('cs-ret-sub').textContent = rows.reduce((s,r)=>s+(+r.retidos_qtd||0),0)+' ret + '+rows.reduce((s,r)=>s+(+r.parcial_compl_qtd||0),0)+' reclassif.';
-  $('cs-valor-total').textContent = fmtM(totalValorRet);
-  $('cs-valor-sub').textContent = '$'+fmt(rows.reduce((s,r)=>s+(+r.retido_reembolso_valor||0),0))+' + $'+fmt(rows.reduce((s,r)=>s+(+r.parcial_valor||0),0))+' parciais';
-  $('cs-top-val').textContent = fmtM(+topAgente.total_retido||0);
-  $('cs-top-sub').textContent = (topAgente.agente||'—')+' — '+(topAgente.retidos_qtd||0)+' retidos';
-  $('cs-mais-ativo').textContent = maisAtivo.tickets_tab||'—';
-  $('cs-mais-ativo-sub').textContent = (maisAtivo.agente||'—')+' — '+(maisAtivo.propostas_env||0)+' propostas';
-  $('cs-taxa').textContent = taxaTiger+'%';
+  const totalTick=rows.reduce((s,r)=>s+(+r.tickets_tab||0),0);
+  const totalRetCompl=rows.reduce((s,r)=>s+(+r.retidos_qtd||0)+(+r.parcial_compl_qtd||0),0);
+  const totalValorRet=rows.reduce((s,r)=>s+(+r.total_retido||0),0);
+  const topAgente=[...rows].sort((a,b)=>(+b.total_retido||0)-(+a.total_retido||0))[0]||{};
+  const maisAtivo=[...rows].sort((a,b)=>(+b.tickets_tab||0)-(+a.tickets_tab||0))[0]||{};
+  const taxaTiger=totalTick>0?(totalRetCompl/totalTick*100).toFixed(1):'0.0';
+  $('cs-total').textContent=totalTick;
+  $('cs-agentes-sub').textContent=rows.map(r=>r.agente).join(' · ');
+  $('cs-ret-compl').textContent=totalRetCompl;
+  $('cs-ret-sub').textContent=rows.reduce((s,r)=>s+(+r.retidos_qtd||0),0)+' ret + '+rows.reduce((s,r)=>s+(+r.parcial_compl_qtd||0),0)+' reclassif.';
+  $('cs-valor-total').textContent=fmtM(totalValorRet);
+  $('cs-valor-sub').textContent='$'+fmt(rows.reduce((s,r)=>s+(+r.retido_reembolso_valor||0),0))+' + $'+fmt(rows.reduce((s,r)=>s+(+r.parcial_valor||0),0))+' parciais';
+  $('cs-top-val').textContent=fmtM(+topAgente.total_retido||0);
+  $('cs-top-sub').textContent=(topAgente.agente||'—')+' — '+(topAgente.retidos_qtd||0)+' retidos';
+  $('cs-mais-ativo').textContent=maisAtivo.tickets_tab||'—';
+  $('cs-mais-ativo-sub').textContent=(maisAtivo.agente||'—')+' — '+(maisAtivo.propostas_env||0)+' propostas';
+  $('cs-taxa').textContent=taxaTiger+'%';
 
   const cards_html = rows.map(r=>{
     const c = perf_colors[r.performance.replace(' ','_')]||'var(--t4)';
@@ -971,49 +939,40 @@ function animateBars(){
 }
 
 // ═══════════════════════════════════════════════════════
-//  ESTADO CS (hoje / semana)
-// ═══════════════════════════════════════════════════════
-let CS_DATA = { hoje: null, semana: null, ret_hoje: null, ret_semana: null };
-let CS_VIEW = 'semana';
-
-function switchCS(view, btn) {
-  CS_VIEW = view;
-  document.querySelectorAll('.cs-toggle-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const d = CS_DATA[view] || FALLBACK.cs;
-  const r = CS_DATA['ret_'+view] || FALLBACK.retencao;
-  renderCS(d);
-  renderRetencao(r);
-  $('cs-periodo-label').textContent = view === 'hoje' ? '(tickets de hoje)' : '(tickets desta semana)';
-  setTimeout(animateBars, 100);
-}
-
-// ═══════════════════════════════════════════════════════
 //  LOAD DATA
 // ═══════════════════════════════════════════════════════
-// Busca uma aba com timeout de 8s — nunca trava o resto
-async function trySheet(name, fallback, timeoutMs=8000){
-  try {
-    const result = await Promise.race([
-      fetchSheet(name),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),timeoutMs))
-    ]);
-    return { data: result, ok: true };
-  } catch(e) {
-    return { data: fallback, ok: false };
-  }
-}
-
 async function loadData(){
+  // ─── Estado CS ───────────────────────────────────────
+  let CS_DATA = { semana: null, hoje: null, ret_semana: null, ret_hoje: null };
+  let CS_VIEW = 'semana';
+
+  function switchCS(view, btn) {
+    CS_VIEW = view;
+    document.querySelectorAll('.cs-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCS((CS_DATA[view]||[]).filter(r=>r.agente&&r.agente.toString().trim()!=='').length ? CS_DATA[view] : (view==='hoje'?[]:FALLBACK.cs));
+    renderRetencao(CS_DATA['ret_'+view]||[]);
+    $('cs-periodo-label').textContent = view==='hoje'?'(tickets de hoje)':'(tickets desta semana)';
+    setTimeout(animateBars, 100);
+  }
+
+  // ─── trySheet helper ──────────────────────────────────
+  async function trySheet(name, fallback, ms=8000){
+    try {
+      return { data: await Promise.race([fetchSheet(name), new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]), ok: true };
+    } catch(e) { return { data: fallback, ok: false }; }
+  }
+
+  let offline = false;
   try {
-    // Busca dados CS via Apps Script (sempre frescos) + resto via CSV
+    // 1. Busca CS via Apps Script (sem cache)
     let csPayload = null;
     try {
       csPayload = await Promise.race([
         fetchCSData(),
-        new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 15000))
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),20000))
       ]);
-    } catch(e) { csPayload = null; }
+    } catch(e) { offline = true; }
 
     CS_DATA = {
       semana:     csPayload ? csPayload.cs_agentes         : FALLBACK.cs,
@@ -1021,31 +980,29 @@ async function loadData(){
       ret_semana: csPayload ? csPayload.retencao_resultado : FALLBACK.retencao,
       ret_hoje:   csPayload ? csPayload.retencao_hoje      : [],
     };
+    window._CS_DATA = CS_DATA;
 
+    // 2. Resto das abas via CSV (com fallback individual)
     const [rKpi,rIr,rIcb,rHgp,rTop,rAfil,rVamp,rRc,rImp] = await Promise.all([
-      trySheet('kpi_reembolso',       null),
-      trySheet('intervalos_reimb',    FALLBACK.intervalos_reimb),
-      trySheet('intervalos_cb',       FALLBACK.intervalos_cb),
-      trySheet('hg_produtos',         FALLBACK.hg_produtos),
-      trySheet('tiger_produtos',      FALLBACK.tiger_produtos),
-      trySheet('afiliados_7d',        FALLBACK.afiliados),
-      trySheet('vamp',                FALLBACK.vamp),
-      trySheet('reincidentes',        FALLBACK.reincidentes),
-      trySheet('impacto_7d',          FALLBACK.impacto),
+      trySheet('kpi_reembolso',    null),
+      trySheet('intervalos_reimb', FALLBACK.intervalos_reimb),
+      trySheet('intervalos_cb',    FALLBACK.intervalos_cb),
+      trySheet('hg_produtos',      FALLBACK.hg_produtos),
+      trySheet('tiger_produtos',   FALLBACK.tiger_produtos),
+      trySheet('afiliados_7d',     FALLBACK.afiliados),
+      trySheet('vamp',             FALLBACK.vamp),
+      trySheet('reincidentes',     FALLBACK.reincidentes),
+      trySheet('impacto_7d',       FALLBACK.impacto),
     ]);
 
-    // config vem do Apps Script se disponível, senão fallback
+    // 3. Config — data sempre mostra hoje
     const cfgRows = csPayload ? csPayload.config : FALLBACK.config;
     const cfgMap = Object.fromEntries(cfgRows.map(r=>[r.chave, r.valor]));
-
-    const offline = !csPayload;
-
-    // config
     $('hdr-semana').textContent = cfgMap.semana||'—';
-    $('hdr-data').textContent = cfgMap.data_atualizacao||'—';
+    $('hdr-data').textContent = HOJE_HORA;         // sempre a data/hora atual
     $('footer-periodo').textContent = cfgMap.periodo||'—';
 
-    // kpi
+    // 4. KPI
     let kpi = FALLBACK.kpi;
     if(rKpi.ok && rKpi.data){
       const km = Object.fromEntries(rKpi.data.map(r=>[r.metrica,r.valor]));
@@ -1060,37 +1017,51 @@ async function loadData(){
     renderIntervalBars('reimb-interval-bars', ir, 'reimb');
     renderIntervalBars('cb-interval-bars', icb, 'cb');
 
-    // chips from ir/icb
-    const ir0 = ir.find(r=>r.intervalo==='0-3d')||{};
-    const icb815 = icb.find(r=>r.intervalo==='8-15d')||{};
-    const totalReim = ir.reduce((s,r)=>s+(+r.qtd||0),0);
-    const totalCB   = icb.reduce((s,r)=>s+(+r.qtd||0),0);
-    $('bdg-reimb-total').textContent = `${totalReim} REEMBOLSOS`;
-    $('bdg-cb-total').textContent = `${totalCB} CHARGEBACKS`;
-    $('chip-pct-03').textContent = ir0.pct||'49,6';
-    $('chip-pct-03-lbl').textContent = `${ir0.qtd||195} de ${totalReim||394} → AFILIADO`;
-    $('chip-cb-peak').textContent = icb815.pct||'57';
-    $('chip-cb-peak-lbl').textContent = `${icb815.qtd||12} de ${totalCB||21} → SUPORTE`;
-    // matriz
-    const rzMap = Object.fromEntries(ir.map(r=>[r.intervalo,r]));
-    const czMap = Object.fromEntries(icb.map(r=>[r.intervalo,r]));
+    const ir0=ir.find(r=>r.intervalo==='0-3d')||{}, icb815=icb.find(r=>r.intervalo==='8-15d')||{};
+    const totalReim=ir.reduce((s,r)=>s+(+r.qtd||0),0), totalCB=icb.reduce((s,r)=>s+(+r.qtd||0),0);
+    $('bdg-reimb-total').textContent=`${totalReim} REEMBOLSOS`;
+    $('bdg-cb-total').textContent=`${totalCB} CHARGEBACKS`;
+    $('chip-pct-03').textContent=ir0.pct||'49,6';
+    $('chip-pct-03-lbl').textContent=`${ir0.qtd||195} de ${totalReim||394} → AFILIADO`;
+    $('chip-cb-peak').textContent=icb815.pct||'57';
+    $('chip-cb-peak-lbl').textContent=`${icb815.qtd||12} de ${totalCB||21} → SUPORTE`;
+    const rzMap=Object.fromEntries(ir.map(r=>[r.intervalo,r]));
+    const czMap=Object.fromEntries(icb.map(r=>[r.intervalo,r]));
     [['mz-03','0-3d'],['mz-47','4-7d'],['mz-815','8-15d'],['mz-1630','16-30d']].forEach(([id,bkt])=>{
-      const rv=rzMap[bkt]||{}, cv=czMap[bkt]||{};
-      if($(`${id}-r`)) $(`${id}-r`).textContent = rv.qtd||0;
-      if($(`${id}-c`)) $(`${id}-c`).textContent = cv.qtd||0;
-      if($(`${id}-v`)) $(`${id}-v`).textContent = `$${fmt((+rv.valor||0)+(+cv.valor||0))}`;
+      const rv=rzMap[bkt]||{},cv=czMap[bkt]||{};
+      if($(`${id}-r`))$(`${id}-r`).textContent=rv.qtd||0;
+      if($(`${id}-c`))$(`${id}-c`).textContent=cv.qtd||0;
+      if($(`${id}-v`))$(`${id}-v`).textContent=`$${fmt((+rv.valor||0)+(+cv.valor||0))}`;
     });
 
     renderHGProd(rHgp.data); renderTOProd(rTop.data);
     renderScores(rAfil.data); renderDiag(rAfil.data); renderAfilTable(rAfil.data);
     renderVamp(rVamp.data); renderReincidentes(rRc.data); renderImpacto(rImp.data);
-    renderCS(CS_DATA[CS_VIEW] || FALLBACK.cs);
-    renderRetencao(CS_DATA['ret_'+CS_VIEW] || FALLBACK.retencao);
-    $('cs-periodo-label').textContent = CS_VIEW === 'hoje' ? '(tickets de hoje)' : '(tickets desta semana)';
+
+    // CS com toggle
+    renderCS(CS_DATA.semana);
+    renderRetencao(CS_DATA.ret_semana);
+    $('cs-periodo-label').textContent = '(tickets desta semana)';
+
+    // Adiciona toggle ao HTML do CS se ainda não existir
+    if(!document.getElementById('cs-toggle-wrap-injected')){
+      const secCS = document.getElementById('s-cs');
+      if(secCS){
+        const toggleHTML = `<div id="cs-toggle-wrap-injected" class="cs-toggle-wrap">
+          <span class="cs-toggle-label">Período:</span>
+          <div class="cs-toggle">
+            <button class="cs-toggle-btn hoje" onclick="switchCS('hoje',this)">📅 Hoje</button>
+            <button class="cs-toggle-btn semana active" onclick="switchCS('semana',this)">📆 Esta Semana</button>
+          </div>
+          <span id="cs-periodo-label" style="font-size:11px;color:var(--t3);margin-left:4px">(tickets desta semana)</span>
+        </div>`;
+        secCS.insertAdjacentHTML('afterbegin', toggleHTML);
+      }
+    }
 
     if(offline){
       $('err-banner').classList.add('show');
-      $('err-msg').textContent = 'CS carregado do Sheets ✅ — Dados de Reembolso/Afiliados em modo offline (planilhas manuais não conectadas).';
+      $('err-msg').textContent = 'CS em modo offline — verifique a URL do Apps Script ou a conexão com o Sheets.';
     }
   } finally {
     $('loading').classList.add('hidden');
@@ -1101,6 +1072,20 @@ async function loadData(){
 // ═══════════════════════════════════════════════════════
 //  TAB + INIT
 // ═══════════════════════════════════════════════════════
+// switchCS é chamado pelo toggle — precisa ser global
+function switchCS(view, btn) {
+  window._CS_VIEW = view;
+  document.querySelectorAll('.cs-toggle-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const CS_DATA = window._CS_DATA || {};
+  const rows = (CS_DATA[view]||[]).filter(r=>r.agente&&r.agente.toString().trim()!=='');
+  renderCS(rows.length ? rows : (view==='hoje' ? [] : FALLBACK.cs));
+  renderRetencao((CS_DATA['ret_'+view]||[]));
+  const lbl = document.getElementById('cs-periodo-label');
+  if(lbl) lbl.textContent = view==='hoje'?'(tickets de hoje)':'(tickets desta semana)';
+  setTimeout(animateBars, 100);
+}
+
 function show(id, el){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
