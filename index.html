@@ -971,13 +971,12 @@ async function loadData(){
       ]);
     } catch(e) { offline = true; }
 
-    CS_DATA = {
+    window._CS_DATA = {
       semana:     csPayload ? csPayload.cs_agentes         : FALLBACK.cs,
       hoje:       csPayload ? csPayload.cs_agentes_hoje    : [],
       ret_semana: csPayload ? csPayload.retencao_resultado : FALLBACK.retencao,
       ret_hoje:   csPayload ? csPayload.retencao_hoje      : [],
     };
-    window._CS_DATA = CS_DATA;
 
     // 2. Resto das abas via CSV (com fallback individual)
     const [rKpi,rIr,rIcb,rHgp,rTop,rAfil,rVamp,rRc,rImp] = await Promise.all([
@@ -1035,8 +1034,9 @@ async function loadData(){
     renderScores(rAfil.data); renderDiag(rAfil.data); renderAfilTable(rAfil.data);
     renderVamp(rVamp.data); renderReincidentes(rRc.data); renderImpacto(rImp.data);
 
-    renderCS(window._CS_DATA.semana);
-    renderRetencao(window._CS_DATA.ret_semana);
+    renderCS(window._CS_DATA.semana || FALLBACK.cs);
+    renderRetencao(window._CS_DATA.ret_semana || FALLBACK.retencao);
+    $('cs-periodo-label').textContent = '(tickets desta semana)';
 
     if(offline){
       $('err-banner').classList.add('show');
