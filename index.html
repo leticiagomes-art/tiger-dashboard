@@ -93,6 +93,26 @@ tbody td{padding:9px 10px;font-size:12px;color:var(--t2)}
 td.r{text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px}
 td.c{text-align:center}.td-b{font-weight:700;color:var(--t1)}
 
+/* CS TOGGLE */
+.cs-toggle-wrap{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.cs-toggle-label{font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.7px}
+.cs-toggle{display:flex;background:#EEF2F7;border-radius:14px;padding:4px;gap:3px;box-shadow:inset 0 1px 4px rgba(0,0,0,.08)}
+.cs-toggle-btn{
+  padding:9px 22px;border-radius:11px;border:none;cursor:pointer;
+  font-size:12px;font-weight:600;color:var(--t3);background:transparent;
+  transition:all .22s cubic-bezier(.4,0,.2,1);letter-spacing:.2px;
+  display:flex;align-items:center;gap:6px;white-space:nowrap
+}
+.cs-toggle-btn:hover:not(.active){background:rgba(255,255,255,.55);color:var(--t2)}
+.cs-toggle-btn.active{color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.14)}
+.cs-toggle-btn.hoje.active{background:linear-gradient(135deg,#F97316 0%,#FB923C 100%)}
+.cs-toggle-btn.semana.active{background:linear-gradient(135deg,#3B82F6 0%,#60A5FA 100%)}
+#cs-periodo-label{
+  font-size:10px;font-weight:600;color:var(--t4);
+  background:#F8FAFC;border:1px solid var(--border);
+  border-radius:20px;padding:3px 10px;margin-left:2px
+}
+
 /* PILLS */
 .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.4px}
 .p-crit{background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA}
@@ -475,7 +495,7 @@ footer{border-top:1px solid var(--border);padding:14px 40px;background:#fff;disp
     <span class="cs-toggle-label">Período:</span>
     <div class="cs-toggle">
       <button class="cs-toggle-btn hoje" onclick="switchCS('hoje',this)">📅 Hoje</button>
-      <button class="cs-toggle-btn semana active" onclick="switchCS('semana',this)">📆 Esta Semana</button>
+      <button class="cs-toggle-btn semana active" onclick="switchCS('semana',this)">📆 Semana passada </button>
     </div>
     <span id="cs-periodo-label" style="font-size:11px;color:var(--t3);margin-left:4px">(tickets desta semana)</span>
   </div>
