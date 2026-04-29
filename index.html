@@ -547,6 +547,17 @@ footer{border-top:1px solid var(--border);padding:14px 40px;background:#fff;disp
 const SHEET_ID = '1u8dhtbT8NODgdbzOJfJTwE04vFLE79K3hP-zm9nfT7Y';
 const BASE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
 
+// ← Cole aqui a URL do Web App após reimplantar o Apps Script
+const APPS_SCRIPT_URL = 'SUA_URL_AQUI';
+
+// Busca tudo de uma vez via Apps Script (sem cache)
+async function fetchCSData() {
+  if (APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbzcysOaDI3YN_cectk-lWMhDY27SwqyYdItnZd0YlMzboiCfjybFfYuHx4fkn-epJPDnA/exec') throw new Error('no-url');
+  const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { cache: 'no-store' });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
 // ═══════════════════════════════════════════════════════
 //  DADOS DE FALLBACK (offline / antes de conectar sheets)
 // ═══════════════════════════════════════════════════════
@@ -995,9 +1006,23 @@ async function trySheet(name, fallback, timeoutMs=8000){
 
 async function loadData(){
   try {
-    // Busca todas em paralelo — cada uma tem seu próprio fallback
-    const [rCfg,rKpi,rIr,rIcb,rHgp,rTop,rAfil,rVamp,rRc,rImp,rCs,rCsH,rRet,rRetH] = await Promise.all([
-      trySheet('config',              FALLBACK.config),
+    // Busca dados CS via Apps Script (sempre frescos) + resto via CSV
+    let csPayload = null;
+    try {
+      csPayload = await Promise.race([
+        fetchCSData(),
+        new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 15000))
+      ]);
+    } catch(e) { csPayload = null; }
+
+    CS_DATA = {
+      semana:     csPayload ? csPayload.cs_agentes         : FALLBACK.cs,
+      hoje:       csPayload ? csPayload.cs_agentes_hoje    : [],
+      ret_semana: csPayload ? csPayload.retencao_resultado : FALLBACK.retencao,
+      ret_hoje:   csPayload ? csPayload.retencao_hoje      : [],
+    };
+
+    const [rKpi,rIr,rIcb,rHgp,rTop,rAfil,rVamp,rRc,rImp] = await Promise.all([
       trySheet('kpi_reembolso',       null),
       trySheet('intervalos_reimb',    FALLBACK.intervalos_reimb),
       trySheet('intervalos_cb',       FALLBACK.intervalos_cb),
@@ -1007,25 +1032,15 @@ async function loadData(){
       trySheet('vamp',                FALLBACK.vamp),
       trySheet('reincidentes',        FALLBACK.reincidentes),
       trySheet('impacto_7d',          FALLBACK.impacto),
-      trySheet('cs_agentes',          FALLBACK.cs),
-      trySheet('cs_agentes_hoje',     []),
-      trySheet('retencao_resultado',  FALLBACK.retencao),
-      trySheet('retencao_hoje',       []),
     ]);
 
-    // Se as abas do CS vieram do Sheets, usa dados reais; senão fallback
-    CS_DATA = {
-      semana:      rCs.data,
-      hoje:        rCsH.data,
-      ret_semana:  rRet.data,
-      ret_hoje:    rRetH.data,
-    };
+    // config vem do Apps Script se disponível, senão fallback
+    const cfgRows = csPayload ? csPayload.config : FALLBACK.config;
+    const cfgMap = Object.fromEntries(cfgRows.map(r=>[r.chave, r.valor]));
 
-    // Checa se alguma aba importante veio offline
-    const offline = !rCs.ok && !rRet.ok;
+    const offline = !csPayload;
 
     // config
-    const cfgMap = Object.fromEntries(rCfg.data.map(r=>[r.chave,r.valor]));
     $('hdr-semana').textContent = cfgMap.semana||'—';
     $('hdr-data').textContent = cfgMap.data_atualizacao||'—';
     $('footer-periodo').textContent = cfgMap.periodo||'—';
