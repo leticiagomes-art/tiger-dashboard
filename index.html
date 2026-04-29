@@ -606,8 +606,8 @@ function parseCSV(text){
 // ═══════════════════════════════════════════════════════
 async function fetchSheet(name){
   if(SHEET_ID==='SEU_SHEET_ID_AQUI') throw new Error('no-id');
-  const url = BASE + encodeURIComponent(name);
-  const r = await fetch(url);
+  const url = BASE + encodeURIComponent(name) + '&t=' + Date.now(); // evita cache
+  const r = await fetch(url, { cache: 'no-store' });
   if(!r.ok) throw new Error(r.status);
   return parseCSV(await r.text());
 }
