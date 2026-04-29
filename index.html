@@ -842,10 +842,28 @@ function renderImpacto(rows){
 }
 
 function renderCS(rows){
-  if(!rows||!rows.length){
-    $('ag-grid').innerHTML = '<div class="cs-no-data">Nenhum ticket registrado neste período.</div>';
-    $('tbl-cs').innerHTML = '';
+  // Filtra linhas sem agente (CSV vazio vira [{agente:''}])
+  rows = (rows||[]).filter(r => r.agente && r.agente.toString().trim() !== '');
+
+  if(!rows.length){
+    $('ag-grid').innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:48px 24px;background:#fff;border:1px solid var(--border);border-radius:12px">
+        <div style="font-size:32px;margin-bottom:12px">📭</div>
+        <div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:6px">Nenhuma resposta registrada neste período</div>
+        <div style="font-size:12px;color:var(--t3)">Os tickets aparecerão aqui assim que o time preencher o formulário hoje.</div>
+      </div>`;
+    $('tbl-cs').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--t4);font-size:13px">📭 Sem registros neste período</td></tr>`;
     $('cs-total').textContent = '0';
+    $('cs-agentes-sub').textContent = '—';
+    $('cs-ret-compl').textContent = '0';
+    $('cs-ret-sub').textContent = '—';
+    $('cs-valor-total').textContent = '$0';
+    $('cs-valor-sub').textContent = '—';
+    $('cs-top-val').textContent = '—';
+    $('cs-top-sub').textContent = '—';
+    $('cs-mais-ativo').textContent = '—';
+    $('cs-mais-ativo-sub').textContent = '—';
+    $('cs-taxa').textContent = '—';
     return;
   }
   const perf_colors = {EXCELENTE:'var(--green)',BOM:'var(--blue)',EM_RAMP:'var(--yellow)'};
