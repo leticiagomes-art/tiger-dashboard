@@ -710,37 +710,50 @@ function parseCSV(text) {
   });
 }
 
+// ─── FETCH TODAY CS ──────────────────────────
 async function fetchTodayCS() {
-  const SHEET_ID = '1u8dhtbT8NODgdbzOJfJTwE04vFLE79K3hP-zm9nfT7Y';
-  const BASE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
-  
   try {
-    const rows = await (async () => {
-      // Cria uma query string única para burlar o cache do navegador
-      const antiCache = `&_=${Date.now()}`;
-      
-      // Concatena o antiCache na URL final
-      const r = await fetch(BASE + 'cs_hoje' + antiCache);
-      
-      if (!r.ok) throw new Error(r.status);
-      return parseCSV(await r.text());
-    })();
+    // 1. Usa o URL do seu Web App + parâmetro anti-cache
+    const url = APPS_SCRIPT_URL + "?_=" + Date.now();
+    const r = await fetch(url);
     
-    if (rows && rows.length) {
-      const tot = rows.reduce((s,r) => s+(+r.tickets||0), 0);
-      const retV = rows.reduce((s,r) => s+(+r.retido_valor||0), 0);
-      const retQ = rows.reduce((s,r) => s+(+r.retidos_qtd||0), 0);
-      const taxa = tot>0 ? retQ/tot*100 : 0;
+    if (!r.ok) throw new Error("Erro HTTP: " + r.status);
+    
+    // 2. O seu doGet retorna um JSON, não um CSV
+    const data = await r.json();
+    
+    // 3. Puxa especificamente os dados de 'hoje'
+    const rowsHoje = data.cs_agentes_hoje;
+    
+    if (rowsHoje && rowsHoje.length) {
+      // 4. Calcula os totais com base nas colunas do seu Apps Script
+      const tot = rowsHoje.reduce((s, r) => s + (+r.tickets_tab || 0), 0);
+      const retV = rowsHoje.reduce((s, r) => s + (+r.retido_reembolso_valor || 0) + (+r.parcial_valor || 0), 0);
+      const retQ = rowsHoje.reduce((s, r) => s + (+r.retidos_qtd || 0) + (+r.parcial_compl_qtd || 0), 0);
+      const taxa = tot > 0 ? (retQ / tot) * 100 : 0;
       
+      // 5. Atualiza o DOM
       $('cs-hoje-tickets').textContent = tot;
       $('cs-hoje-retido').textContent = fmtM(retV);
-      $('cs-hoje-taxa').textContent = fmt(taxa,1)+'%';
+      $('cs-hoje-taxa').textContent = fmt(taxa, 1) + '%';
+      
+      // Bônus: Atualiza a data no painel
+      if (data.config && data.config.length > 0) {
+         const dataAtualizacaoRow = data.config.find(c => c.chave === 'data_atualizacao');
+         if (dataAtualizacaoRow) {
+             $('cs-hoje-data').textContent = dataAtualizacaoRow.valor;
+         }
+      }
+    } else {
+      $('cs-hoje-tickets').textContent = '0';
+      $('cs-hoje-retido').textContent = '$0';
+      $('cs-hoje-taxa').textContent = '0%';
     }
   } catch(e) {
-    console.error("Erro ao buscar dados da planilha:", e);
-    $('cs-hoje-tickets').textContent = '~172';
-    $('cs-hoje-retido').textContent = '~$4.7K';
-    $('cs-hoje-taxa').textContent = '16,8%';
+    console.error("Erro ao buscar dados do Apps Script:", e);
+    $('cs-hoje-tickets').textContent = 'Erro';
+    $('cs-hoje-retido').textContent = '—';
+    $('cs-hoje-taxa').textContent = '—';
   }
 }
 
