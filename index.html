@@ -93,26 +93,6 @@ tbody td{padding:9px 10px;font-size:12px;color:var(--t2)}
 td.r{text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px}
 td.c{text-align:center}.td-b{font-weight:700;color:var(--t1)}
 
-/* CS TOGGLE */
-.cs-toggle-wrap{display:flex;align-items:center;gap:10px;margin-bottom:22px}
-.cs-toggle-label{font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.7px}
-.cs-toggle{display:flex;background:#EEF2F7;border-radius:14px;padding:4px;gap:3px;box-shadow:inset 0 1px 4px rgba(0,0,0,.08)}
-.cs-toggle-btn{
-  padding:9px 22px;border-radius:11px;border:none;cursor:pointer;
-  font-size:12px;font-weight:600;color:var(--t3);background:transparent;
-  transition:all .22s cubic-bezier(.4,0,.2,1);letter-spacing:.2px;
-  display:flex;align-items:center;gap:6px;white-space:nowrap
-}
-.cs-toggle-btn:hover:not(.active){background:rgba(255,255,255,.55);color:var(--t2)}
-.cs-toggle-btn.active{color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.14)}
-.cs-toggle-btn.hoje.active{background:linear-gradient(135deg,#F97316 0%,#FB923C 100%)}
-.cs-toggle-btn.semana.active{background:linear-gradient(135deg,#3B82F6 0%,#60A5FA 100%)}
-#cs-periodo-label{
-  font-size:10px;font-weight:600;color:var(--t4);
-  background:#F8FAFC;border:1px solid var(--border);
-  border-radius:20px;padding:3px 10px;margin-left:2px
-}
-
 /* PILLS */
 .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.4px}
 .p-crit{background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA}
@@ -242,6 +222,26 @@ footer{border-top:1px solid var(--border);padding:14px 40px;background:#fff;disp
   .kpi-row{grid-template-columns:1fr 1fr}
   .impact-name{width:110px}
 }
+
+/* ── DATE PICKER ── */
+.dp-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.dp-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dp-label{font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+.dp-presets{display:flex;gap:4px;flex-wrap:wrap}
+.dp-btn{padding:6px 13px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.dp-btn:hover{background:#F8FAFC;border-color:var(--border-s)}
+.dp-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.dp-inputs{display:flex;align-items:center;gap:7px;margin-left:auto;flex-wrap:wrap}
+.dp-input-wrap{display:flex;align-items:center;gap:5px;background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:5px 10px}
+.dp-date{border:none;background:transparent;font-size:12px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;outline:none;cursor:pointer;min-width:105px}
+.dp-apply{padding:6px 14px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:12px;font-weight:700;cursor:pointer}
+.dp-apply:hover{background:var(--blue-d)}
+.dp-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;background:var(--blue-l);border:1px solid #BFDBFE;border-radius:20px;font-size:11px;font-weight:700;color:var(--blue-d)}
+/* ── TREND CHART ── */
+.trend-wrap{overflow:hidden;border-radius:8px}
+.trend-svg{display:block;width:100%}
+.aff-note{font-size:10px;color:var(--t4);margin-top:6px;font-style:italic}
+
 </style>
 </head>
 <body>
@@ -285,136 +285,149 @@ footer{border-top:1px solid var(--border);padding:14px 40px;background:#fff;disp
 
 <!-- ══════════ REEMBOLSO ══════════ -->
 <div class="sec active" id="s-reimb">
-  <div class="kpi-row" id="kpi-reimb-row">
-    <div class="kpi yl"><div class="kpi-lbl">Vendas BuyGoods (30d)</div><div class="kpi-val" id="k-vendas">—</div><div class="kpi-sub">Receita bruta</div></div>
-    <div class="kpi rd"><div class="kpi-lbl">Total Reembolsado</div><div class="kpi-val" id="k-reimb">—</div><div class="kpi-sub" id="k-reimb-sub">—</div></div>
-    <div class="kpi rd"><div class="kpi-lbl">Total Chargeback</div><div class="kpi-val" id="k-cb">—</div><div class="kpi-sub" id="k-cb-sub">—</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Taxa Geral (Reimb+CB)</div><div class="kpi-val" id="k-taxa">—</div><div class="kpi-sub">⚠️ Benchmark ideal ≤ 8%</div></div>
-    <div class="kpi bl"><div class="kpi-lbl">HelpGrid — Retido</div><div class="kpi-val" id="k-hg-ret">—</div><div class="kpi-sub" id="k-hg-ret-sub">—</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Tiger — Total Retido</div><div class="kpi-val" id="k-to-ret">—</div><div class="kpi-sub" id="k-to-ret-sub">—</div></div>
+
+  <!-- DATE PICKER -->
+  <div class="dp-wrap">
+    <div class="dp-row">
+      <span class="dp-label">Período:</span>
+      <div class="dp-presets">
+        <button class="dp-btn" onclick="dpSet('last7',this)">Últimos 7d</button>
+        <button class="dp-btn" onclick="dpSet('last14',this)">Últimos 14d</button>
+        <button class="dp-btn" onclick="dpSet('marco',this)">Março 2026</button>
+        <button class="dp-btn" onclick="dpSet('abril',this)">Abril 2026</button>
+        <button class="dp-btn active" onclick="dpSet('all',this)">Todo período (60d)</button>
+      </div>
+      <div class="dp-inputs">
+        <div class="dp-input-wrap">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <input class="dp-date" type="date" id="dp-from" value="2026-03-02" min="2026-03-02" max="2026-04-30">
+        </div>
+        <span style="color:var(--t3)">→</span>
+        <div class="dp-input-wrap">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <input class="dp-date" type="date" id="dp-to" value="2026-04-30" min="2026-03-02" max="2026-04-30">
+        </div>
+        <button class="dp-apply" onclick="dpApply()">Aplicar</button>
+      </div>
+    </div>
+    <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="dp-badge">📅 <span id="dp-range-label">02/03/2026 → 30/04/2026</span></div>
+      <span style="font-size:11px;color:var(--t3)"><span id="dp-days-count">60</span> dias · <span id="dp-orders-count">22.852</span> pedidos</span>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi yl"><div class="kpi-lbl">Vendas BuyGoods</div><div class="kpi-val" id="k-vendas">$5,10M</div><div class="kpi-sub" id="k-vendas-sub">60 dias</div></div>
+    <div class="kpi rd"><div class="kpi-lbl">Total Reembolsado</div><div class="kpi-val" id="k-reimb">$533K</div><div class="kpi-sub" id="k-reimb-sub">2.265 pedidos</div></div>
+    <div class="kpi rd"><div class="kpi-lbl">Total Chargeback</div><div class="kpi-val" id="k-cb">$25,2K</div><div class="kpi-sub" id="k-cb-sub">103 eventos</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Taxa Geral (Reimb+CB)</div><div class="kpi-val" id="k-taxa">10,95%</div><div class="kpi-sub">⚠️ Benchmark ideal ≤ 8%</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">HG Saved Sales</div><div class="kpi-val" id="k-hg-ret">$81,1K</div><div class="kpi-sub" id="k-hg-ret-sub">Full refunds HG: 608</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Tiger — Total Retido</div><div class="kpi-val" id="k-to-ret">$32,9K</div><div class="kpi-sub" id="k-to-ret-sub">250 retenções completas</div></div>
+  </div>
+
+  <!-- TREND CHART -->
+  <div class="card gfull">
+    <div class="card-hdr">
+      <div class="card-ttl">📈 Evolução Semanal — Reembolsos & Taxa BuyGoods</div>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px"><div style="width:12px;height:12px;border-radius:2px;background:rgba(239,68,68,.7)"></div>Reembolsos</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px"><div style="width:16px;height:3px;background:var(--orange);border-radius:2px"></div>Taxa %</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px"><div style="width:10px;height:10px;border-radius:50%;background:var(--blue)"></div>CBs</div>
+      </div>
+    </div>
+    <div class="trend-wrap"><svg id="trend-chart" class="trend-svg" height="210" viewBox="0 0 900 210"></svg></div>
   </div>
 
   <!-- TABELA CONSOLIDADA -->
   <div class="card gfull">
     <div class="card-hdr">
-      <div class="card-ttl">📊 Tabela Consolidada — BuyGoods × HelpGrid × Tiger Offers</div>
-      <span class="bdg bdg-yl" id="tbl-periodo">30 DIAS</span>
+      <div class="card-ttl">📊 Tabela Consolidada — BuyGoods × HelpGrid</div>
+      <span class="bdg bdg-yl" id="tbl-periodo">60 DIAS</span>
     </div>
     <div style="overflow-x:auto">
     <table>
       <thead><tr>
-        <th colspan="4" style="text-align:center;background:#FFFBEB;color:#92400E">📊 BUYGOODS</th>
-        <th colspan="4" style="text-align:center;background:var(--blue-l);color:var(--blue-d)">🤝 HelpGrid</th>
-        <th colspan="3" style="text-align:center;background:var(--green-l);color:var(--green-d)">🐯 Tiger Offers</th>
+        <th colspan="5" style="text-align:center;background:#FFFBEB;color:#92400E">📊 BUYGOODS</th>
+        <th colspan="3" style="text-align:center;background:var(--blue-l);color:var(--blue-d)">🤝 HelpGrid</th>
       </tr><tr>
-        <th>Vendas ($)</th><th>Reimb. ($)</th><th>Chargeback ($)</th><th>Taxa %</th>
-        <th>Retido HG ($)</th><th>Parc. HG (qtd)</th><th>Compl. HG (qtd)</th><th>% Retido HG</th>
-        <th>Retido Tiger ($)</th><th>Ret. Compl.*</th><th>% Ret. Tiger</th>
+        <th>Vendas ($)</th><th>Reimb. ($)</th><th>Reimb. (qtd)</th><th>Chargeback ($)</th><th>Taxa %</th>
+        <th>HG Saved ($)</th><th>Full Refunds</th><th>Parciais</th>
       </tr></thead>
-      <tbody id="tbl-consolidada"><tr><td colspan="11" style="text-align:center;padding:20px;color:var(--t4)">Carregando…</td></tr></tbody>
+      <tbody id="tbl-consolidada"><tr><td colspan="8" style="text-align:center;padding:16px;color:var(--t4)">Carregando…</td></tr></tbody>
     </table>
     </div>
-    <div style="font-size:10px;color:var(--t4);margin-top:8px">* Tiger não oferta reembolso parcial — parciais reclassificados como retenções completas.</div>
+    <div style="font-size:10px;color:var(--t4);margin-top:8px">* Tiger não oferta reembolso parcial — parciais reclassificados como retenções completas. Tiger Retido: estático ($32,9K · 250 ret.).</div>
   </div>
 
-  <!-- COMPARAÇÃO + ALERTAS -->
+  <!-- COMPARATIVO MENSAL + ALERTAS -->
   <div class="g2">
     <div class="card">
-      <div class="card-hdr"><div class="card-ttl">⚖️ HG vs Tiger — 7 dias</div></div>
-      <div style="display:flex;gap:16px;margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600"><div style="width:10px;height:10px;border-radius:50%;background:var(--blue)"></div>HelpGrid</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600"><div style="width:10px;height:10px;border-radius:50%;background:var(--green)"></div>TigerOffers</div>
-      </div>
-      <div id="cmp-bars">
-        <div class="cmp-row"><div class="cmp-lbl-row"><span class="cmp-name">Contatos / Tickets</span><span class="cmp-vals">684 HG · 399 TO</span></div><div class="cmp-track"><div class="cmp-hg" id="cb1-hg" style="width:63%"></div><div class="cmp-to" id="cb1-to" style="width:37%"></div></div></div>
-        <div class="cmp-row"><div class="cmp-lbl-row"><span class="cmp-name">Full Refunds Processados</span><span class="cmp-vals">64 HG · 3 TO</span></div><div class="cmp-track"><div class="cmp-hg" id="cb2-hg" style="width:96%"></div><div class="cmp-to" id="cb2-to" style="width:4%"></div></div></div>
-        <div class="cmp-row"><div class="cmp-lbl-row"><span class="cmp-name">Retenções Completas</span><span class="cmp-vals" style="color:var(--green)">36 HG · 57 TO ✅</span></div><div class="cmp-track"><div class="cmp-hg" id="cb3-hg" style="width:39%"></div><div class="cmp-to" id="cb3-to" style="width:61%"></div></div></div>
-        <div class="cmp-row"><div class="cmp-lbl-row"><span class="cmp-name">% Valor Retido (30d)</span><span class="cmp-vals" style="color:var(--green)">13,3% HG · 16,8% TO ✅</span></div><div class="cmp-track"><div class="cmp-hg" id="cb4-hg" style="width:44%"></div><div class="cmp-to" id="cb4-to" style="width:56%"></div></div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
-        <div style="background:var(--green-l);border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--green-d);margin-bottom:2px">TO VENCE EM RETENÇÃO</div><div style="font-size:11px;color:var(--t2)">61% das retenções completas</div></div>
-        <div style="background:var(--green-l);border-radius:8px;padding:10px;text-align:center"><div id="chip-taxa-hdr" style="font-size:9px;font-weight:700;color:var(--green-d);margin-bottom:2px">TO 16,8% vs HG 13,3%</div><div style="font-size:11px;color:var(--t2)">Tiger retém mais por valor</div></div>
-      </div>
+      <div class="card-hdr"><div class="card-ttl">📅 Comparativo Mensal — Março vs Abril</div></div>
+      <table>
+        <thead><tr><th>Mês</th><th class="c">Vendas</th><th class="c">Reimb.</th><th class="r">Reimb. ($)</th><th class="c">CBs</th><th class="r">Taxa</th></tr></thead>
+        <tbody>
+          <tr><td class="td-b">Março 2026</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace">$2,53M</td><td class="c" style="color:var(--orange);font-weight:700">1.250</td><td class="r" style="color:var(--orange);font-weight:700">$287.734</td><td class="c">59</td><td class="r"><span class="pill p-crit">11,94%</span></td></tr>
+          <tr><td class="td-b">Abril 2026</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace">$2,57M</td><td class="c" style="color:var(--red);font-weight:700">1.015</td><td class="r" style="color:var(--red);font-weight:700">$245.340</td><td class="c">44</td><td class="r"><span class="pill p-crit">9,97%</span></td></tr>
+          <tr style="background:var(--green-l);border-top:2px solid var(--border)"><td class="td-b" style="color:var(--green-d)">Δ Variação</td><td class="c" style="color:var(--green-d);font-size:11px">+$38K</td><td class="c" style="color:var(--green-d);font-weight:700">-235 ↓</td><td class="r" style="color:var(--green-d);font-weight:700">-$42.394 ↓</td><td class="c" style="color:var(--green-d)">-15 ↓</td><td class="r" style="color:var(--green-d);font-weight:700">-1,97pp ✅</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px;padding:10px 12px;background:var(--green-l);border-radius:8px;border:1px solid #A7F3D0;font-size:11px;color:var(--green-d)">✅ <strong>Tendência positiva:</strong> Abril -1,97pp vs Março. Porém semana 20–27/04 atingiu <strong>20,84%</strong> — foco de ação imediata.</div>
     </div>
     <div class="card">
       <div class="card-hdr"><div class="card-ttl">⚠️ Alertas de Risco</div></div>
-      <div class="hbox rd"><div class="hbox-ico">🔴</div><div><div class="hbox-ttl">Taxa <span id="alr-taxa">9,97%</span> — Acima do Benchmark (≤8%)</div><div class="hbox-txt">HG processou <strong>64 full refunds em 7 dias</strong> (~26% do total semanal). Reembolsos diretos via gateway sobem na conta BuyGoods e inflacionam a taxa geral.</div></div></div>
-      <div class="hbox yl"><div class="hbox-ico">⚡</div><div><div class="hbox-ttl">Visa VAMP: <span id="alr-vamp">0,37%</span> — Crescendo</div><div class="hbox-txt">Alerta em 0,65%. Alexandre Biasoli gerou 4 CBs em 7 dias. Risco de atingir o limite em 15–20 dias se o padrão continuar.</div></div></div>
-      <div class="hbox gn"><div class="hbox-ico">✅</div><div><div class="hbox-ttl">Tiger: <span id="alr-to-taxa">16,8%</span> de Retenção &gt; HG <span id="alr-hg-taxa">13,3%</span></div><div class="hbox-txt">57 retenções completas em 7 dias, apenas 3 encaminhamentos para reembolso gateway. Taxa superior à HelpGrid.</div></div></div>
+      <div class="hbox rd"><div class="hbox-ico">🔴</div><div><div class="hbox-ttl">Taxa média 60d: 10,95% — Acima do Benchmark (≤8%)</div><div class="hbox-txt">Pico em 20–27/04 com <strong>20,84%</strong>. HG processou 608 full refunds em 60 dias, inflacionando diretamente a taxa BuyGoods.</div></div></div>
+      <div class="hbox yl"><div class="hbox-ico">⚡</div><div><div class="hbox-ttl">Visa VAMP: 103 CBs em 60d — Wladimir Penques: 11 CBs</div><div class="hbox-txt">Alerta VAMP em 0,65%. Wladimir Penques tem taxa de CB de 1,69% — maior risco de bandeira no período.</div></div></div>
+      <div class="hbox gn"><div class="hbox-ico">✅</div><div><div class="hbox-ttl">Março → Abril: melhora de 1,97pp na taxa</div><div class="hbox-txt">Queda de 1.250 para 1.015 reembolsos mensais. Tendência positiva, mas últimas semanas de Abril foram críticas.</div></div></div>
     </div>
   </div>
 
-  <!-- INTERVALOS DE TEMPO -->
+  <!-- INTERVALOS -->
   <div class="card gfull">
     <div class="card-hdr">
-      <div class="card-ttl">⏱️ Intervalo de Tempo — Processamento de Reembolso &amp; Chargeback (7 dias)</div>
-      <div style="display:flex;gap:8px"><span class="bdg bdg-rd" id="bdg-reimb-total">394 REEMBOLSOS</span><span class="bdg bdg-or" id="bdg-cb-total">21 CHARGEBACKS</span></div>
+      <div class="card-ttl">⏱️ Intervalo de Tempo — Processamento de Reembolso &amp; Chargeback</div>
+      <div style="display:flex;gap:8px"><span class="bdg bdg-rd" id="bdg-reimb-total">2.265 REEMBOLSOS</span><span class="bdg bdg-or" id="bdg-cb-total">103 CHARGEBACKS</span></div>
     </div>
-    <!-- CHIPS RESUMO -->
-    <div class="g4" style="margin-bottom:18px" id="interval-chips">
-      <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
-        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:4px">Mediana Reimb.</div>
-        <div style="font-size:26px;font-weight:800;color:var(--red);letter-spacing:-1px;line-height:1"><span id="chip-med-reimb">2</span><span style="font-size:14px;font-weight:600"> dias</span></div>
-        <div style="font-size:10px;color:var(--t4);margin-top:3px">Média: <span id="chip-avg-reimb">4,4</span> dias</div>
-      </div>
-      <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
-        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:4px">Mediana CB</div>
-        <div style="font-size:26px;font-weight:800;color:var(--orange);letter-spacing:-1px;line-height:1"><span id="chip-med-cb">11</span><span style="font-size:14px;font-weight:600"> dias</span></div>
-        <div style="font-size:10px;color:var(--t4);margin-top:3px">Média: <span id="chip-avg-cb">12,2</span> dias</div>
-      </div>
-      <div style="background:var(--red-l);border:1px solid #FECACA;border-radius:8px;padding:12px;text-align:center">
-        <div style="font-size:10px;font-weight:700;color:var(--red-d);text-transform:uppercase;margin-bottom:4px">Reimb. em 0-3d</div>
-        <div style="font-size:26px;font-weight:800;color:var(--red);letter-spacing:-1px;line-height:1"><span id="chip-pct-03">49,6</span><span style="font-size:14px;font-weight:600">%</span></div>
-        <div style="font-size:10px;color:var(--red-d);margin-top:3px;font-weight:600" id="chip-pct-03-lbl">195 de 394 → AFILIADO</div>
-      </div>
-      <div style="background:var(--orange-l);border:1px solid #FED7AA;border-radius:8px;padding:12px;text-align:center">
-        <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;margin-bottom:4px">CB em 8-15d</div>
-        <div style="font-size:26px;font-weight:800;color:var(--orange);letter-spacing:-1px;line-height:1"><span id="chip-cb-peak">57</span><span style="font-size:14px;font-weight:600">%</span></div>
-        <div style="font-size:10px;color:var(--orange);margin-top:3px;font-weight:600" id="chip-cb-peak-lbl">12 de 21 → SUPORTE</div>
-      </div>
+    <div class="g4" style="margin-bottom:18px">
+      <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:4px">Mediana Reimb.</div><div style="font-size:26px;font-weight:800;color:var(--red);letter-spacing:-1px;line-height:1"><span id="chip-med-reimb">6</span><span style="font-size:14px;font-weight:600"> dias</span></div><div style="font-size:10px;color:var(--t4);margin-top:3px">Média: <span id="chip-avg-reimb">10.2</span> dias</div></div>
+      <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:4px">Mediana CB</div><div style="font-size:26px;font-weight:800;color:var(--orange);letter-spacing:-1px;line-height:1"><span id="chip-med-cb">15</span><span style="font-size:14px;font-weight:600"> dias</span></div><div style="font-size:10px;color:var(--t4);margin-top:3px">Média: <span id="chip-avg-cb">17.2</span> dias</div></div>
+      <div style="background:var(--red-l);border:1px solid #FECACA;border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--red-d);text-transform:uppercase;margin-bottom:4px">Reimb. em 0-3d</div><div style="font-size:26px;font-weight:800;color:var(--red);letter-spacing:-1px;line-height:1"><span id="chip-pct-03">44.5</span><span style="font-size:14px;font-weight:600">%</span></div><div style="font-size:10px;color:var(--red-d);margin-top:3px;font-weight:600" id="chip-pct-03-lbl">1.007 casos → AFILIADO</div></div>
+      <div style="background:var(--orange-l);border:1px solid #FED7AA;border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;margin-bottom:4px">CB pico (8-15d)</div><div style="font-size:26px;font-weight:800;color:var(--orange);letter-spacing:-1px;line-height:1"><span id="chip-cb-peak">41.7</span><span style="font-size:14px;font-weight:600">%</span></div><div style="font-size:10px;color:var(--orange);margin-top:3px;font-weight:600" id="chip-cb-peak-lbl">43 de 103 → SUPORTE</div></div>
     </div>
-
-    <div class="g2">
-      <!-- REIMB BARS -->
-      <div id="reimb-interval-bars"></div>
-      <!-- CB BARS -->
-      <div id="cb-interval-bars"></div>
-    </div>
-
-    <!-- MATRIZ DE CULPA -->
+    <div class="g2"><div id="reimb-interval-bars"></div><div id="cb-interval-bars"></div></div>
     <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
       <div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:12px">📊 Matriz de Culpa por Intervalo</div>
-      <div style="overflow-x:auto">
-      <table id="matriz-culpa">
+      <div style="overflow-x:auto"><table>
         <thead><tr><th>Intervalo</th><th class="c">Reimb.</th><th class="c">CB</th><th class="c">Valor Total</th><th>Culpa Primária</th><th>Ação CS Tiger</th></tr></thead>
         <tbody>
-          <tr style="background:rgba(239,68,68,.04)"><td style="font-size:12px;font-weight:700;color:var(--red)">0 – 3 dias</td><td class="c" style="font-size:13px;font-weight:800;color:var(--red)" id="mz-03-r">195</td><td class="c" id="mz-03-c">—</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600" id="mz-03-v">—</td><td style="font-size:11px"><strong style="color:var(--red)">AFILIADO</strong><br><span style="color:var(--t4)">Oferta / VSL / Descritor</span></td><td style="font-size:11px;color:var(--t2)">Auditar landing e VSL dos afiliados com maior volume. Exigir ajuste de criativos.</td></tr>
-          <tr><td style="font-size:12px;font-weight:700;color:var(--orange)">4 – 7 dias</td><td class="c" style="font-size:13px;font-weight:800;color:var(--orange)" id="mz-47-r">44</td><td class="c" id="mz-47-c">—</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace" id="mz-47-v">—</td><td style="font-size:11px"><strong style="color:var(--orange)">COMPARTILHADA</strong><br><span style="color:var(--t4)">Afiliado + Logística</span></td><td style="font-size:11px;color:var(--t2)">Verificar prazo de entrega + tentar retenção via CS antes do reembolso.</td></tr>
-          <tr style="background:rgba(245,158,11,.04)"><td style="font-size:12px;font-weight:700;color:var(--yellow)">8 – 15 dias</td><td class="c" style="font-size:13px;font-weight:800" id="mz-815-r">94</td><td class="c" style="font-size:13px;font-weight:800;color:var(--orange)" id="mz-815-c">12</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace" id="mz-815-v">—</td><td style="font-size:11px"><strong style="color:var(--yellow)">SUPORTE / CS</strong><br><span style="color:var(--t4)">Entrega + Atendimento</span></td><td style="font-size:11px;color:var(--t2)">CB aqui = cliente não atendido. CS Tiger abordar proativamente pedidos com 7d+ sem resolução.</td></tr>
-          <tr><td style="font-size:12px;font-weight:700;color:var(--blue)">16 – 30 dias</td><td class="c" style="font-size:13px;font-weight:800" id="mz-1630-r">61</td><td class="c" id="mz-1630-c">—</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace" id="mz-1630-v">—</td><td style="font-size:11px"><strong style="color:var(--blue)">OPERAÇÃO / PRODUTO</strong><br><span style="color:var(--t4)">Insatisfação pós-uso</span></td><td style="font-size:11px;color:var(--t2)">Investigar fulfillment e lote de produto. Verificar se cliente chegou a usar.</td></tr>
-          <tr style="background:#F8FAFC"><td style="font-size:12px;font-weight:600;color:var(--t4)">Acima de 45 dias</td><td class="c" style="color:var(--t4)">0</td><td class="c" style="color:var(--t4)">0</td><td class="c" style="color:var(--t4)">$0</td><td style="font-size:11px;color:var(--t4)">SEM OCORRÊNCIAS</td><td style="font-size:11px;color:var(--t4)">Nenhum caso nesta faixa no período.</td></tr>
+          <tr style="background:rgba(239,68,68,.04)"><td style="font-size:12px;font-weight:700;color:var(--red)">0 – 3 dias</td><td class="c" style="font-size:13px;font-weight:800;color:var(--red)" id="mz-03-r">—</td><td class="c" id="mz-03-c">—</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600" id="mz-03-v">—</td><td style="font-size:11px"><strong style="color:var(--red)">AFILIADO</strong><br><span style="color:var(--t4)">Oferta / VSL / Descritor</span></td><td style="font-size:11px;color:var(--t2)">Auditar landing e VSL dos afiliados com maior volume.</td></tr>
+          <tr><td style="font-size:12px;font-weight:700;color:var(--orange)">4 – 7 dias</td><td class="c" style="font-size:13px;font-weight:800;color:var(--orange)" id="mz-47-r">—</td><td class="c" id="mz-47-c">—</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace" id="mz-47-v">—</td><td style="font-size:11px"><strong style="color:var(--orange)">COMPARTILHADA</strong><br><span style="color:var(--t4)">Afiliado + Logística</span></td><td style="font-size:11px;color:var(--t2)">Verificar prazo de entrega + tentar retenção via CS.</td></tr>
+          <tr style="background:rgba(245,158,11,.04)"><td style="font-size:12px;font-weight:700;color:var(--yellow)">8 – 15 dias</td><td class="c" style="font-size:13px;font-weight:800" id="mz-815-r">—</td><td class="c" style="font-size:13px;font-weight:800;color:var(--orange)" id="mz-815-c">—</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace" id="mz-815-v">—</td><td style="font-size:11px"><strong style="color:var(--yellow)">SUPORTE / CS</strong><br><span style="color:var(--t4)">Entrega + Atendimento</span></td><td style="font-size:11px;color:var(--t2)">CB aqui = cliente não atendido. CS Tiger: abordar proativamente pedidos 7d+ sem resolução.</td></tr>
+          <tr><td style="font-size:12px;font-weight:700;color:var(--blue)">16 – 30 dias</td><td class="c" style="font-size:13px;font-weight:800" id="mz-1630-r">—</td><td class="c" id="mz-1630-c">—</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace" id="mz-1630-v">—</td><td style="font-size:11px"><strong style="color:var(--blue)">OPERAÇÃO / PRODUTO</strong><br><span style="color:var(--t4)">Insatisfação pós-uso</span></td><td style="font-size:11px;color:var(--t2)">Investigar fulfillment e lote de produto.</td></tr>
+          <tr style="background:rgba(139,92,246,.03)"><td style="font-size:12px;font-weight:700;color:var(--purple)">31 – 45 dias</td><td class="c" style="font-size:13px;font-weight:800" id="mz-3145-r">—</td><td class="c" id="mz-3145-c">—</td><td class="c" style="font-size:11px;font-family:'JetBrains Mono',monospace" id="mz-3145-v">—</td><td style="font-size:11px"><strong style="color:var(--purple)">GARANTIA / TARDIO</strong><br><span style="color:var(--t4)">Dentro do MBG</span></td><td style="font-size:11px;color:var(--t2)">Verificar se CS tentou retenção. Avaliar política MBG com afiliados.</td></tr>
+          <tr style="background:#F8FAFC"><td style="font-size:12px;font-weight:600;color:var(--t4)">Acima de 45 dias</td><td class="c" id="mz-45p-r" style="color:var(--t4)">—</td><td class="c" id="mz-45p-c" style="color:var(--t4)">—</td><td class="c" id="mz-45p-v" style="color:var(--t4)">—</td><td style="font-size:11px;color:var(--t4)">FORA DO PRAZO</td><td style="font-size:11px;color:var(--t4)">Disputas excepcionais. Avaliar caso a caso.</td></tr>
         </tbody>
-      </table>
-      </div>
+      </table></div>
     </div>
   </div>
 
-  <!-- POR PRODUTO -->
+  <!-- PRODUTOS + TOP AFILIADOS 60d -->
   <div class="g2">
     <div class="card">
-      <div class="card-hdr"><div class="card-ttl" style="color:var(--blue)">🤝 HelpGrid — Por Produto</div><span class="bdg bdg-bl">7 DIAS</span></div>
-      <table><thead><tr><th>Produto</th><th class="c">Ligações</th><th class="c">Escritos</th><th class="c">Parc.</th><th class="c">Compl.</th></tr></thead>
-      <tbody id="tbl-hg-prod"><tr><td colspan="5" style="text-align:center;padding:16px;color:var(--t4)">Carregando…</td></tr></tbody>
-      </table>
+      <div class="card-hdr"><div class="card-ttl">📦 Reembolsos por Produto — 60 dias</div><span class="bdg bdg-yl">MAR–ABR 2026</span></div>
+      <table><thead><tr><th>Produto</th><th class="c">Reimb.</th><th class="r">Reimb. ($)</th><th class="c">CBs</th><th class="c">Taxa</th></tr></thead>
+      <tbody id="tbl-prod-body"></tbody></table>
     </div>
     <div class="card">
-      <div class="card-hdr"><div class="card-ttl" style="color:var(--green)">🐯 Tiger Offers — Por Produto</div><span class="bdg bdg-gn">7 DIAS · SEM PARCIAL</span></div>
-      <table><thead><tr><th>Produto</th><th class="c">Escritos</th><th class="c">Ret. Compl.*</th><th class="r">Retido ($)</th></tr></thead>
-      <tbody id="tbl-to-prod"><tr><td colspan="4" style="text-align:center;padding:16px;color:var(--t4)">Carregando…</td></tr></tbody>
-      </table>
-      <div style="font-size:10px;color:var(--t4);margin-top:8px">* Parciais reclassificados como completos</div>
+      <div class="card-hdr"><div class="card-ttl">🏆 Top Afiliados por Reembolso — 60 dias</div><span class="bdg bdg-rd">MAIOR VOLUME</span></div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Afiliado</th><th class="c">Reimb.</th><th class="c">CBs</th><th class="r">Perda ($)</th><th class="c">Taxa</th></tr></thead>
+        <tbody id="tbl-aff-60d"></tbody>
+      </table></div>
+      <div class="aff-note">* Período completo 60d. Para análise semanal detalhada, ver aba Afiliados.</div>
     </div>
   </div>
+
 </div>
 
 <!-- ══════════ AFILIADOS 7d ══════════ -->
@@ -489,24 +502,13 @@ footer{border-top:1px solid var(--border);padding:14px 40px;background:#fff;disp
 
 <!-- ══════════ CS TIGER ══════════ -->
 <div class="sec" id="s-cs">
-
-  <!-- TOGGLE HOJE / SEMANA -->
-  <div class="cs-toggle-wrap">
-    <span class="cs-toggle-label">Período:</span>
-    <div class="cs-toggle">
-      <button class="cs-toggle-btn hoje" onclick="switchCS('hoje',this)">📅 Hoje</button>
-      <button class="cs-toggle-btn semana active" onclick="switchCS('semana',this)">📆 Semana passada </button>
-    </div>
-    <span id="cs-periodo-label" style="font-size:11px;color:var(--t3);margin-left:4px">(tickets desta semana)</span>
-  </div>
-
   <div class="kpi-row">
-    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-total">—</div><div class="kpi-sub" id="cs-agentes-sub">—</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Retenções Completas</div><div class="kpi-val" id="cs-ret-compl">—</div><div class="kpi-sub" id="cs-ret-sub">—</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val" id="cs-valor-total">—</div><div class="kpi-sub" id="cs-valor-sub">—</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Maior Retenção em $</div><div class="kpi-val" id="cs-top-val">—</div><div class="kpi-sub" id="cs-top-sub">—</div></div>
-    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-mais-ativo">—</div><div class="kpi-sub" id="cs-mais-ativo-sub">—</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Taxa Retenção Tiger</div><div class="kpi-val" id="cs-taxa">—</div><div class="kpi-sub">vs HelpGrid 13,3%</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-total">—</div><div class="kpi-sub">Natália + Heitor + Neythan + Yasmin</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Retenções Completas</div><div class="kpi-val">250</div><div class="kpi-sub">196 RETIDO + 54 reclassif.</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val">$32,9K</div><div class="kpi-sub">$28.831 + $4.162 parciais</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Maior Retenção em $</div><div class="kpi-val">$15,7K</div><div class="kpi-sub">Natália — 45 retidos</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val">329</div><div class="kpi-sub">Neythan — 105 propostas</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Taxa Retenção Tiger</div><div class="kpi-val">16,8%</div><div class="kpi-sub">vs HelpGrid 13,3% ✅</div></div>
   </div>
 
   <div class="ag-grid" id="ag-grid"></div>
@@ -556,18 +558,6 @@ footer{border-top:1px solid var(--border);padding:14px 40px;background:#fff;disp
 // ═══════════════════════════════════════════════════════
 const SHEET_ID = '1u8dhtbT8NODgdbzOJfJTwE04vFLE79K3hP-zm9nfT7Y';
 const BASE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcysOaDI3YN_cectk-lWMhDY27SwqyYdItnZd0YlMzboiCfjybFfYuHx4fkn-epJPDnA/exec';
-
-// Data de hoje formatada em pt-BR
-const HOJE_STR = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'});
-const HOJE_HORA = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-
-// Busca dados frescos via Apps Script
-async function fetchCSData() {
-  const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { cache: 'no-store' });
-  if (!r.ok) throw new Error(r.status);
-  return r.json();
-}
 
 // ═══════════════════════════════════════════════════════
 //  DADOS DE FALLBACK (offline / antes de conectar sheets)
@@ -627,8 +617,9 @@ function parseCSV(text){
 //  FETCH FROM SHEETS (with fallback)
 // ═══════════════════════════════════════════════════════
 async function fetchSheet(name){
-  const url = BASE + encodeURIComponent(name) + '&t=' + Date.now();
-  const r = await fetch(url, { cache: 'no-store' });
+  if(SHEET_ID==='SEU_SHEET_ID_AQUI') throw new Error('no-id');
+  const url = BASE + encodeURIComponent(name);
+  const r = await fetch(url);
   if(!r.ok) throw new Error(r.status);
   return parseCSV(await r.text());
 }
@@ -863,44 +854,10 @@ function renderImpacto(rows){
 }
 
 function renderCS(rows){
-  rows = (rows||[]).filter(r => r.agente && r.agente.toString().trim() !== '');
-
-  if(!rows.length){
-    $('ag-grid').innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:48px 24px;background:#fff;border:1px solid var(--border);border-radius:12px">
-        <div style="font-size:32px;margin-bottom:12px">📭</div>
-        <div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:6px">Nenhuma resposta registrada neste período</div>
-        <div style="font-size:12px;color:var(--t3)">Os tickets aparecerão aqui assim que o time preencher o formulário hoje.</div>
-      </div>`;
-    $('tbl-cs').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--t4)">📭 Sem registros neste período</td></tr>`;
-    ['cs-total','cs-ret-compl'].forEach(id=>$(id).textContent='0');
-    ['cs-agentes-sub','cs-ret-sub','cs-valor-sub','cs-top-sub','cs-mais-ativo-sub'].forEach(id=>$(id).textContent='—');
-    $('cs-valor-total').textContent='$0'; $('cs-top-val').textContent='—'; $('cs-mais-ativo').textContent='—'; $('cs-taxa').textContent='—';
-    return;
-  }
   const perf_colors = {EXCELENTE:'var(--green)',BOM:'var(--blue)',EM_RAMP:'var(--yellow)'};
-
-  // KPIs dinâmicos
-  const totalTick=rows.reduce((s,r)=>s+(+r.tickets_tab||0),0);
-  const totalRetCompl=rows.reduce((s,r)=>s+(+r.retidos_qtd||0)+(+r.parcial_compl_qtd||0),0);
-  const totalValorRet=rows.reduce((s,r)=>s+(+r.total_retido||0),0);
-  const topAgente=[...rows].sort((a,b)=>(+b.total_retido||0)-(+a.total_retido||0))[0]||{};
-  const maisAtivo=[...rows].sort((a,b)=>(+b.tickets_tab||0)-(+a.tickets_tab||0))[0]||{};
-  const taxaTiger=totalTick>0?(totalRetCompl/totalTick*100).toFixed(1):'0.0';
-  $('cs-total').textContent=totalTick;
-  $('cs-agentes-sub').textContent=rows.map(r=>r.agente).join(' · ');
-  $('cs-ret-compl').textContent=totalRetCompl;
-  $('cs-ret-sub').textContent=rows.reduce((s,r)=>s+(+r.retidos_qtd||0),0)+' ret + '+rows.reduce((s,r)=>s+(+r.parcial_compl_qtd||0),0)+' reclassif.';
-  $('cs-valor-total').textContent=fmtM(totalValorRet);
-  $('cs-valor-sub').textContent='$'+fmt(rows.reduce((s,r)=>s+(+r.retido_reembolso_valor||0),0))+' + $'+fmt(rows.reduce((s,r)=>s+(+r.parcial_valor||0),0))+' parciais';
-  $('cs-top-val').textContent=fmtM(+topAgente.total_retido||0);
-  $('cs-top-sub').textContent=(topAgente.agente||'—')+' — '+(topAgente.retidos_qtd||0)+' retidos';
-  $('cs-mais-ativo').textContent=maisAtivo.tickets_tab||'—';
-  $('cs-mais-ativo-sub').textContent=(maisAtivo.agente||'—')+' — '+(maisAtivo.propostas_env||0)+' propostas';
-  $('cs-taxa').textContent=taxaTiger+'%';
-
   const cards_html = rows.map(r=>{
     const c = perf_colors[r.performance.replace(' ','_')]||'var(--t4)';
+    const bTop = {EXCELENTE:c,BOM:c,EM_RAMP:c};
     return `<div class="ag-card" style="border-top:3px solid ${c}">
       <div class="ag-top"><div><div class="ag-name">${r.agente}</div><div class="ag-role">CS Tiger Offers</div></div>${statusPill(r.performance)}</div>
       <div class="ag-stats">
@@ -914,6 +871,7 @@ function renderCS(rows){
     </div>`;
   }).join('');
   $('ag-grid').innerHTML = cards_html;
+  $('cs-total').textContent = rows.reduce((s,r)=>s+(+r.tickets_tab||0),0);
 
   const tbl_rows = rows.map(r=>{
     const c = perf_colors[r.performance.replace(' ','_')]||'var(--t4)';
@@ -973,94 +931,72 @@ function animateBars(){
 //  LOAD DATA
 // ═══════════════════════════════════════════════════════
 async function loadData(){
-  // ─── trySheet helper ──────────────────────────────────
-  async function trySheet(name, fallback, ms=8000){
-    try {
-      return { data: await Promise.race([fetchSheet(name), new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]), ok: true };
-    } catch(e) { return { data: fallback, ok: false }; }
-  }
-
   let offline = false;
   try {
-    // 1. Busca CS via Apps Script (sem cache)
-    let csPayload = null;
+    let cfg, kpi_rows, ir, icb, hgp, top, afil, vamp, rc, imp, cs, ret;
     try {
-      csPayload = await Promise.race([
-        fetchCSData(),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),20000))
+      [cfg,kpi_rows,ir,icb,hgp,top,afil,vamp,rc,imp,cs,ret] = await Promise.all([
+        fetchSheet('config'),fetchSheet('kpi_reembolso'),fetchSheet('intervalos_reimb'),
+        fetchSheet('intervalos_cb'),fetchSheet('hg_produtos'),fetchSheet('tiger_produtos'),
+        fetchSheet('afiliados_7d'),fetchSheet('vamp'),fetchSheet('reincidentes'),
+        fetchSheet('impacto_7d'),fetchSheet('cs_agentes'),fetchSheet('retencao_resultado')
       ]);
-    } catch(e) { offline = true; }
-
-    window._CS_DATA = {
-      semana:     csPayload ? csPayload.cs_agentes         : FALLBACK.cs,
-      hoje:       csPayload ? csPayload.cs_agentes_hoje    : [],
-      ret_semana: csPayload ? csPayload.retencao_resultado : FALLBACK.retencao,
-      ret_hoje:   csPayload ? csPayload.retencao_hoje      : [],
-    };
-
-    // 2. Resto das abas via CSV (com fallback individual)
-    const [rKpi,rIr,rIcb,rHgp,rTop,rAfil,rVamp,rRc,rImp] = await Promise.all([
-      trySheet('kpi_reembolso',    null),
-      trySheet('intervalos_reimb', FALLBACK.intervalos_reimb),
-      trySheet('intervalos_cb',    FALLBACK.intervalos_cb),
-      trySheet('hg_produtos',      FALLBACK.hg_produtos),
-      trySheet('tiger_produtos',   FALLBACK.tiger_produtos),
-      trySheet('afiliados_7d',     FALLBACK.afiliados),
-      trySheet('vamp',             FALLBACK.vamp),
-      trySheet('reincidentes',     FALLBACK.reincidentes),
-      trySheet('impacto_7d',       FALLBACK.impacto),
-    ]);
-
-    // 3. Config — data sempre mostra hoje
-    const cfgRows = csPayload ? csPayload.config : FALLBACK.config;
-    const cfgMap = Object.fromEntries(cfgRows.map(r=>[r.chave, r.valor]));
-    $('hdr-semana').textContent = cfgMap.semana||'—';
-    $('hdr-data').textContent = HOJE_HORA;         // sempre a data/hora atual
-    $('footer-periodo').textContent = cfgMap.periodo||'—';
-
-    // 4. KPI
-    let kpi = FALLBACK.kpi;
-    if(rKpi.ok && rKpi.data){
-      const km = Object.fromEntries(rKpi.data.map(r=>[r.metrica,r.valor]));
-      kpi = {vendas:km.vendas_bg,reimb:km.reembolso_total,cb:km.chargeback_total,taxa_reimb:km.taxa_reembolso,taxa_cb:km.taxa_chargeback,taxa_geral:km.taxa_geral,retido_hg:km.retido_hg,retido_tiger:km.retido_tiger,ret_tiger:km.retemcoes_tiger,ret_hg:km.retemcoes_hg,full_ref_hg:km.full_refunds_hg_7d,tx_tiger:km.tx_retencao_tiger,tx_hg:km.tx_retencao_hg,med_reimb:km.mediana_reimb_dias,avg_reimb:km.media_reimb_dias,med_cb:km.mediana_cb_dias,avg_cb:km.media_cb_dias};
+    } catch(e){
+      offline = true;
+      cfg=FALLBACK.config; kpi_rows=null; ir=FALLBACK.intervalos_reimb; icb=FALLBACK.intervalos_cb;
+      hgp=FALLBACK.hg_produtos; top=FALLBACK.tiger_produtos; afil=FALLBACK.afiliados;
+      vamp=FALLBACK.vamp; rc=FALLBACK.reincidentes; imp=FALLBACK.impacto; cs=FALLBACK.cs; ret=FALLBACK.retencao;
     }
 
-    const ir  = rIr.data;
-    const icb = rIcb.data;
+    // config
+    const cfgMap = Object.fromEntries(cfg.map(r=>[r.chave,r.valor]));
+    $('hdr-semana').textContent = cfgMap.semana||'—';
+    $('hdr-data').textContent = cfgMap.data_atualizacao||'—';
+    $('footer-periodo').textContent = cfgMap.periodo||'—';
+
+    // kpi
+    let kpi = FALLBACK.kpi;
+    if(kpi_rows){
+      const km = Object.fromEntries(kpi_rows.map(r=>[r.metrica,r.valor]));
+      kpi = {vendas:km.vendas_bg,reimb:km.reembolso_total,cb:km.chargeback_total,taxa_reimb:km.taxa_reembolso,taxa_cb:km.taxa_chargeback,taxa_geral:km.taxa_geral,retido_hg:km.retido_hg,retido_tiger:km.retido_tiger,ret_tiger:km.retemcoes_tiger,ret_hg:km.retemcoes_hg,full_ref_hg:km.full_refunds_hg_7d,tx_tiger:km.tx_retencao_tiger,tx_hg:km.tx_retencao_hg,med_reimb:km.mediana_reimb_dias,avg_reimb:km.media_reimb_dias,med_cb:km.mediana_cb_dias,avg_cb:km.media_cb_dias};
+    }
 
     renderKPI(kpi);
     renderConsolidada(kpi);
     renderIntervalBars('reimb-interval-bars', ir, 'reimb');
     renderIntervalBars('cb-interval-bars', icb, 'cb');
 
-    const ir0=ir.find(r=>r.intervalo==='0-3d')||{}, icb815=icb.find(r=>r.intervalo==='8-15d')||{};
-    const totalReim=ir.reduce((s,r)=>s+(+r.qtd||0),0), totalCB=icb.reduce((s,r)=>s+(+r.qtd||0),0);
-    $('bdg-reimb-total').textContent=`${totalReim} REEMBOLSOS`;
-    $('bdg-cb-total').textContent=`${totalCB} CHARGEBACKS`;
-    $('chip-pct-03').textContent=ir0.pct||'49,6';
-    $('chip-pct-03-lbl').textContent=`${ir0.qtd||195} de ${totalReim||394} → AFILIADO`;
-    $('chip-cb-peak').textContent=icb815.pct||'57';
-    $('chip-cb-peak-lbl').textContent=`${icb815.qtd||12} de ${totalCB||21} → SUPORTE`;
-    const rzMap=Object.fromEntries(ir.map(r=>[r.intervalo,r]));
-    const czMap=Object.fromEntries(icb.map(r=>[r.intervalo,r]));
+    // chips from ir/icb
+    const ir0 = ir.find(r=>r.intervalo==='0-3d')||{};
+    const icb815 = icb.find(r=>r.intervalo==='8-15d')||{};
+    const totalReim = ir.reduce((s,r)=>s+(+r.qtd||0),0);
+    const totalCB   = icb.reduce((s,r)=>s+(+r.qtd||0),0);
+    $('bdg-reimb-total').textContent = `${totalReim} REEMBOLSOS`;
+    $('bdg-cb-total').textContent = `${totalCB} CHARGEBACKS`;
+    $('chip-pct-03').textContent = ir0.pct||'49,6';
+    $('chip-pct-03-lbl').textContent = `${ir0.qtd||195} de ${totalReim||394} → AFILIADO`;
+    $('chip-cb-peak').textContent = icb815.pct||'57';
+    $('chip-cb-peak-lbl').textContent = `${icb815.qtd||12} de ${totalCB||21} → SUPORTE`;
+    // matriz
+    const rzMap = Object.fromEntries(ir.map(r=>[r.intervalo,r]));
+    const czMap = Object.fromEntries(icb.map(r=>[r.intervalo,r]));
     [['mz-03','0-3d'],['mz-47','4-7d'],['mz-815','8-15d'],['mz-1630','16-30d']].forEach(([id,bkt])=>{
-      const rv=rzMap[bkt]||{},cv=czMap[bkt]||{};
-      if($(`${id}-r`))$(`${id}-r`).textContent=rv.qtd||0;
-      if($(`${id}-c`))$(`${id}-c`).textContent=cv.qtd||0;
-      if($(`${id}-v`))$(`${id}-v`).textContent=`$${fmt((+rv.valor||0)+(+cv.valor||0))}`;
+      const rv=rzMap[bkt]||{}, cv=czMap[bkt]||{};
+      if($(`${id}-r`)) $(`${id}-r`).textContent = rv.qtd||0;
+      if($(`${id}-c`)) $(`${id}-c`).textContent = cv.qtd||0;
+      if($(`${id}-v`)) $(`${id}-v`).textContent = `$${fmt((+rv.valor||0)+(+cv.valor||0))}`;
     });
 
-    renderHGProd(rHgp.data); renderTOProd(rTop.data);
-    renderScores(rAfil.data); renderDiag(rAfil.data); renderAfilTable(rAfil.data);
-    renderVamp(rVamp.data); renderReincidentes(rRc.data); renderImpacto(rImp.data);
-
-    renderCS(window._CS_DATA.semana || FALLBACK.cs);
-    renderRetencao(window._CS_DATA.ret_semana || FALLBACK.retencao);
-    $('cs-periodo-label').textContent = '(tickets desta semana)';
+    renderHGProd(hgp); renderTOProd(top);
+    renderScores(afil); renderDiag(afil); renderAfilTable(afil);
+    renderVamp(vamp); renderReincidentes(rc); renderImpacto(imp);
+    renderCS(cs); renderRetencao(ret);
 
     if(offline){
       $('err-banner').classList.add('show');
-      $('err-msg').textContent = 'CS em modo offline — verifique a URL do Apps Script.';
+      $('err-msg').textContent = SHEET_ID==='SEU_SHEET_ID_AQUI'
+        ? 'Modo offline — conecte um Google Sheet para atualização automática (veja as instruções).'
+        : 'Não foi possível carregar dados do Google Sheets. Exibindo dados da última versão salva.';
     }
   } finally {
     $('loading').classList.add('hidden');
@@ -1071,20 +1007,6 @@ async function loadData(){
 // ═══════════════════════════════════════════════════════
 //  TAB + INIT
 // ═══════════════════════════════════════════════════════
-// switchCS é chamado pelo toggle — precisa ser global
-function switchCS(view, btn) {
-  window._CS_VIEW = view;
-  document.querySelectorAll('.cs-toggle-btn').forEach(b => b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  const CS_DATA = window._CS_DATA || {};
-  const rows = (CS_DATA[view]||[]).filter(r=>r.agente&&r.agente.toString().trim()!=='');
-  renderCS(rows.length ? rows : (view==='hoje' ? [] : FALLBACK.cs));
-  renderRetencao((CS_DATA['ret_'+view]||[]));
-  const lbl = document.getElementById('cs-periodo-label');
-  if(lbl) lbl.textContent = view==='hoje'?'(tickets de hoje)':'(tickets desta semana)';
-  setTimeout(animateBars, 100);
-}
-
 function show(id, el){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1093,6 +1015,166 @@ function show(id, el){
   setTimeout(animateBars, 100);
 }
 
+
+// ═══════════════════════════════════════════════════════
+//  60-DAY EMBEDDED DATA (BuyGoods Mar–Abr 2026)
+// ═══════════════════════════════════════════════════════
+const DAILY_DATA=[{"d":"2026-03-02","s":76954.5,"o":366,"rc":3,"rv":438.0,"cc":0,"cv":0.0,"hs":3255.32,"hf":17,"hp":12},{"d":"2026-03-03","s":91024.1,"o":436,"rc":10,"rv":1657.0,"cc":0,"cv":0.0,"hs":1823.86,"hf":13,"hp":8},{"d":"2026-03-04","s":67985.9,"o":327,"rc":5,"rv":1252.0,"cc":0,"cv":0.0,"hs":2727.64,"hf":22,"hp":7},{"d":"2026-03-05","s":79177.7,"o":381,"rc":15,"rv":3311.0,"cc":0,"cv":0.0,"hs":1833.87,"hf":19,"hp":4},{"d":"2026-03-06","s":92787.6,"o":451,"rc":6,"rv":1332.0,"cc":0,"cv":0.0,"hs":1080.8,"hf":7,"hp":4},{"d":"2026-03-07","s":99293.1,"o":464,"rc":2,"rv":555.0,"cc":0,"cv":0.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-03-08","s":91161.6,"o":431,"rc":6,"rv":1229.0,"cc":0,"cv":0.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-03-09","s":95360.0,"o":461,"rc":29,"rv":5819.0,"cc":0,"cv":0.0,"hs":4060.46,"hf":23,"hp":17},{"d":"2026-03-10","s":97779.7,"o":463,"rc":28,"rv":6575.0,"cc":0,"cv":0.0,"hs":1539.47,"hf":13,"hp":9},{"d":"2026-03-11","s":90860.8,"o":421,"rc":15,"rv":3546.0,"cc":2,"cv":588.0,"hs":1617.1,"hf":6,"hp":6},{"d":"2026-03-12","s":99888.9,"o":478,"rc":19,"rv":3953.0,"cc":1,"cv":294.0,"hs":1553.92,"hf":21,"hp":5},{"d":"2026-03-13","s":89209.6,"o":421,"rc":22,"rv":4129.0,"cc":1,"cv":294.0,"hs":2558.61,"hf":15,"hp":11},{"d":"2026-03-14","s":87325.3,"o":374,"rc":8,"rv":1438.0,"cc":2,"cv":354.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-03-15","s":95777.7,"o":415,"rc":8,"rv":2041.0,"cc":0,"cv":0.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-03-16","s":92592.4,"o":413,"rc":39,"rv":8991.0,"cc":3,"cv":500.0,"hs":2743.74,"hf":18,"hp":18},{"d":"2026-03-17","s":81775.6,"o":380,"rc":31,"rv":7674.0,"cc":0,"cv":0.0,"hs":1290.03,"hf":22,"hp":11},{"d":"2026-03-18","s":70054.0,"o":323,"rc":30,"rv":6691.0,"cc":1,"cv":294.0,"hs":2727.58,"hf":15,"hp":8},{"d":"2026-03-19","s":69850.4,"o":321,"rc":21,"rv":4688.0,"cc":0,"cv":0.0,"hs":1314.44,"hf":11,"hp":5},{"d":"2026-03-20","s":69168.0,"o":325,"rc":38,"rv":9337.0,"cc":1,"cv":294.0,"hs":2376.19,"hf":17,"hp":7},{"d":"2026-03-21","s":72472.7,"o":323,"rc":18,"rv":3557.0,"cc":1,"cv":158.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-03-22","s":76309.6,"o":329,"rc":6,"rv":1539.0,"cc":0,"cv":0.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-03-23","s":83984.1,"o":363,"rc":51,"rv":11287.0,"cc":0,"cv":0.0,"hs":3365.94,"hf":31,"hp":18},{"d":"2026-03-24","s":70992.5,"o":309,"rc":43,"rv":10339.0,"cc":1,"cv":261.0,"hs":2592.17,"hf":27,"hp":12},{"d":"2026-03-25","s":80451.0,"o":357,"rc":28,"rv":7182.0,"cc":5,"cv":1320.0,"hs":3277.32,"hf":11,"hp":8},{"d":"2026-03-26","s":84488.4,"o":373,"rc":39,"rv":9353.0,"cc":1,"cv":294.0,"hs":1410.0,"hf":25,"hp":8},{"d":"2026-03-27","s":75207.7,"o":344,"rc":57,"rv":12959.9,"cc":1,"cv":294.0,"hs":1532.11,"hf":11,"hp":11},{"d":"2026-03-28","s":89044.5,"o":405,"rc":12,"rv":2897.0,"cc":0,"cv":0.0,"hs":0.0,"hf":1,"hp":0},{"d":"2026-03-29","s":94455.9,"o":429,"rc":12,"rv":2766.0,"cc":2,"cv":441.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-03-30","s":82629.1,"o":371,"rc":46,"rv":10765.0,"cc":1,"cv":294.0,"hs":2839.45,"hf":16,"hp":13},{"d":"2026-03-31","s":83642.5,"o":379,"rc":48,"rv":10841.0,"cc":5,"cv":1215.0,"hs":1755.35,"hf":15,"hp":11},{"d":"2026-04-01","s":78448.7,"o":347,"rc":52,"rv":12274.0,"cc":4,"cv":981.0,"hs":1798.98,"hf":5,"hp":7},{"d":"2026-04-02","s":81178.2,"o":354,"rc":40,"rv":9814.9,"cc":3,"cv":687.0,"hs":324.64,"hf":8,"hp":5},{"d":"2026-04-03","s":78271.5,"o":342,"rc":37,"rv":8974.0,"cc":0,"cv":0.0,"hs":1682.76,"hf":7,"hp":10},{"d":"2026-04-04","s":81556.3,"o":347,"rc":11,"rv":2474.0,"cc":0,"cv":0.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-05","s":79157.7,"o":347,"rc":14,"rv":2919.0,"cc":0,"cv":0.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-06","s":69884.5,"o":303,"rc":58,"rv":13551.0,"cc":0,"cv":0.0,"hs":2967.24,"hf":13,"hp":11},{"d":"2026-04-07","s":98055.2,"o":437,"rc":57,"rv":14273.0,"cc":1,"cv":207.0,"hs":2294.91,"hf":11,"hp":7},{"d":"2026-04-08","s":121624.8,"o":526,"rc":75,"rv":17910.0,"cc":2,"cv":528.0,"hs":3661.09,"hf":13,"hp":17},{"d":"2026-04-09","s":105792.1,"o":461,"rc":52,"rv":12105.0,"cc":2,"cv":405.0,"hs":3359.77,"hf":14,"hp":7},{"d":"2026-04-10","s":118088.3,"o":523,"rc":84,"rv":20053.0,"cc":3,"cv":735.0,"hs":3363.17,"hf":19,"hp":16},{"d":"2026-04-11","s":106913.0,"o":459,"rc":24,"rv":5984.0,"cc":3,"cv":882.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-12","s":122613.7,"o":544,"rc":15,"rv":3662.0,"cc":0,"cv":0.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-13","s":103996.0,"o":457,"rc":79,"rv":18989.0,"cc":3,"cv":789.0,"hs":3268.89,"hf":17,"hp":14},{"d":"2026-04-14","s":93459.7,"o":404,"rc":108,"rv":24439.0,"cc":5,"cv":1326.0,"hs":2707.48,"hf":20,"hp":8},{"d":"2026-04-15","s":81155.0,"o":359,"rc":73,"rv":17534.0,"cc":3,"cv":765.0,"hs":1256.6,"hf":12,"hp":5},{"d":"2026-04-16","s":96784.0,"o":419,"rc":68,"rv":16465.0,"cc":2,"cv":315.0,"hs":809.29,"hf":16,"hp":3},{"d":"2026-04-17","s":77441.3,"o":339,"rc":82,"rv":19899.0,"cc":4,"cv":922.0,"hs":4370.88,"hf":13,"hp":11},{"d":"2026-04-18","s":81691.1,"o":350,"rc":31,"rv":7415.9,"cc":4,"cv":861.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-19","s":118464.3,"o":524,"rc":24,"rv":5817.0,"cc":0,"cv":0.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-20","s":83108.7,"o":368,"rc":106,"rv":25375.0,"cc":2,"cv":450.0,"hs":0.0,"hf":19,"hp":13},{"d":"2026-04-21","s":85538.1,"o":370,"rc":74,"rv":18125.0,"cc":5,"cv":1350.0,"hs":0.0,"hf":16,"hp":15},{"d":"2026-04-22","s":82134.1,"o":357,"rc":77,"rv":18320.0,"cc":2,"cv":472.0,"hs":0.0,"hf":18,"hp":4},{"d":"2026-04-23","s":67386.9,"o":301,"rc":75,"rv":16927.0,"cc":2,"cv":588.0,"hs":0.0,"hf":11,"hp":6},{"d":"2026-04-24","s":66940.5,"o":305,"rc":78,"rv":18836.0,"cc":3,"cv":771.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-25","s":74658.4,"o":323,"rc":24,"rv":5758.9,"cc":3,"cv":666.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-26","s":80616.8,"o":346,"rc":18,"rv":4211.0,"cc":4,"cv":750.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-27","s":63522.2,"o":273,"rc":45,"rv":11456.0,"cc":2,"cv":528.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-28","s":80250.7,"o":338,"rc":41,"rv":10139.0,"cc":4,"cv":960.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-29","s":80964.7,"o":345,"rc":45,"rv":10487.0,"cc":4,"cv":982.0,"hs":0.0,"hf":0,"hp":0},{"d":"2026-04-30","s":10188.1,"o":51,"rc":3,"rv":744.0,"cc":5,"cv":1377.0,"hs":0.0,"hf":0,"hp":0}];
+const PRODUCTS_DATA=[{"p":"AudiLeaf","s":444455.1,"o":1981,"rc":206,"rv":48102.0,"cc":3,"cv":582.0},{"p":"Booster XT","s":115190.4,"o":563,"rc":32,"rv":6588.0,"cc":2,"cv":206.0},{"p":"Gluco Recover","s":583795.2,"o":2565,"rc":335,"rv":82459.0,"cc":12,"cv":3351.0},{"p":"LipoBliss","s":24667.3,"o":110,"rc":18,"rv":4457.0,"cc":1,"cv":294.0},{"p":"LipoTrine","s":7745.7,"o":37,"rc":2,"rv":510.0,"cc":0,"cv":0.0},{"p":"LipoVive","s":169185.2,"o":825,"rc":84,"rv":18577.0,"cc":0,"cv":0.0},{"p":"Marobrain","s":498506.1,"o":2205,"rc":286,"rv":67142.0,"cc":16,"cv":4326.0},{"p":"Nervolyn","s":803368.9,"o":3714,"rc":331,"rv":74022.8,"cc":31,"cv":7079.0},{"p":"Prostafense","s":704867.5,"o":3094,"rc":327,"rv":77387.9,"cc":10,"cv":2308.0},{"p":"Reduburn","s":293948.4,"o":1252,"rc":178,"rv":42269.0,"cc":7,"cv":1881.0},{"p":"VigorLong","s":752060.3,"o":3327,"rc":178,"rv":43640.0,"cc":10,"cv":2189.0},{"p":"Visium Pro","s":703799.4,"o":3179,"rc":288,"rv":67918.9,"cc":11,"cv":2976.0}];
+const AFFILIATES_DATA=[{"a":"HelpGrid Calls","s":533598.3,"o":2166,"rc":163,"rv":40800.8,"cc":7,"cv":1713.0},{"a":"Lucas Almeida","s":204474.3,"o":892,"rc":131,"rv":30752.0,"cc":8,"cv":2124.0},{"a":"Walife Garcias","s":307001.0,"o":1468,"rc":120,"rv":26601.0,"cc":8,"cv":1669.0},{"a":"Gestor One","s":418527.7,"o":1919,"rc":117,"rv":28619.0,"cc":4,"cv":589.0},{"a":"MaxWeb Sales","s":253774.6,"o":1236,"rc":114,"rv":24805.0,"cc":3,"cv":822.0},{"a":"Wladimir Penques","s":147756.6,"o":651,"rc":104,"rv":24977.0,"cc":11,"cv":2730.0},{"a":"genesi alves","s":257090.3,"o":1153,"rc":104,"rv":25186.0,"cc":5,"cv":1410.0},{"a":"Alexandre Biasoli","s":131995.3,"o":527,"rc":72,"rv":18286.0,"cc":6,"cv":1417.0},{"a":"Michael Rosa","s":73449.4,"o":323,"rc":63,"rv":14478.0,"cc":2,"cv":588.0},{"a":"Marcos Luz","s":94359.6,"o":419,"rc":63,"rv":15094.0,"cc":4,"cv":1176.0},{"a":"Rodrigo Passos","s":99316.5,"o":434,"rc":55,"rv":12270.0,"cc":2,"cv":528.0},{"a":"Bernadete Hernandes","s":103132.5,"o":481,"rc":54,"rv":12330.0,"cc":2,"cv":510.0},{"a":"Karine Kuhn","s":80039.7,"o":371,"rc":47,"rv":11121.0,"cc":0,"cv":0.0},{"a":"RAFAEL SANTOS","s":144832.1,"o":621,"rc":46,"rv":11248.0,"cc":6,"cv":1358.0},{"a":"Rafael Rodrigues","s":64858.5,"o":308,"rc":43,"rv":9958.0,"cc":3,"cv":849.0},{"a":"Helpgrid Incredibles","s":98897.6,"o":410,"rc":39,"rv":9697.0,"cc":0,"cv":0.0},{"a":"Rafael Barreto","s":65066.4,"o":296,"rc":36,"rv":8239.0,"cc":1,"cv":294.0},{"a":"Sandra Lima","s":70797.5,"o":343,"rc":36,"rv":8521.0,"cc":3,"cv":654.0},{"a":"Jean Riccardo","s":60146.6,"o":274,"rc":36,"rv":7633.0,"cc":1,"cv":294.0},{"a":"Alex Heiderscheidt","s":52074.6,"o":226,"rc":34,"rv":8858.0,"cc":0,"cv":0.0},{"a":"Gabriel De Abreu","s":158973.7,"o":688,"rc":31,"rv":7708.0,"cc":4,"cv":912.0},{"a":"Lucas Lima","s":79255.8,"o":358,"rc":30,"rv":6533.0,"cc":0,"cv":0.0},{"a":"Isabela Arantes","s":25112.6,"o":110,"rc":27,"rv":6350.0,"cc":0,"cv":0.0},{"a":"MaxWeb Internal Sales 2","s":38228.3,"o":202,"rc":26,"rv":4694.0,"cc":0,"cv":0.0},{"a":"Gustavo Souza da Silva","s":59110.8,"o":250,"rc":22,"rv":5577.0,"cc":1,"cv":216.0},{"a":"Matheus  Henrique Machado","s":36302.1,"o":160,"rc":22,"rv":5750.0,"cc":0,"cv":0.0},{"a":"Rodrigo Almeida","s":41201.1,"o":173,"rc":22,"rv":5195.0,"cc":0,"cv":0.0},{"a":"Vanessa  Bertoldo Angelo da Silva","s":35112.6,"o":157,"rc":21,"rv":5505.0,"cc":0,"cv":0.0},{"a":"Helpgrid Inbound Calls","s":93438.5,"o":389,"rc":20,"rv":5331.0,"cc":1,"cv":216.0},{"a":"Barbara Pereira","s":48528.6,"o":210,"rc":18,"rv":4512.0,"cc":1,"cv":294.0}];
+const INT_DATA={"all":{"ref":[{"intervalo":"0-3d","label_culpa":"CULPA DO AFILIADO","qtd":1007,"pct":44.5,"valor":239086.7,"cor":"red"},{"intervalo":"4-7d","label_culpa":"AFILIADO / OPERAÇÃO","qtd":243,"pct":10.7,"valor":57788.9,"cor":"orange"},{"intervalo":"8-15d","label_culpa":"LOGÍSTICA / SUPORTE","qtd":401,"pct":17.7,"valor":94960.0,"cor":"yellow"},{"intervalo":"16-30d","label_culpa":"SUPORTE / PÓS-USO","qtd":426,"pct":18.8,"valor":98558.0,"cor":"blue"},{"intervalo":"31-45d","label_culpa":"GARANTIA / TARDIO","qtd":165,"pct":7.3,"valor":37880.0,"cor":"purple"},{"intervalo":"45d+","label_culpa":"SEM LIMITE","qtd":23,"pct":1.0,"valor":4800.0,"cor":"gray"}],"cb":[{"intervalo":"0-3d","label_culpa":"CULPA DO AFILIADO","qtd":5,"pct":4.9,"valor":1377.0,"cor":"red"},{"intervalo":"4-7d","label_culpa":"AFILIADO / OPERAÇÃO","qtd":9,"pct":8.7,"valor":2275.0,"cor":"orange"},{"intervalo":"8-15d","label_culpa":"LOGÍSTICA / SUPORTE","qtd":43,"pct":41.7,"valor":10161.0,"cor":"yellow"},{"intervalo":"16-30d","label_culpa":"SUPORTE / PÓS-USO","qtd":33,"pct":32.0,"valor":7959.0,"cor":"blue"},{"intervalo":"31-45d","label_culpa":"GARANTIA / TARDIO","qtd":11,"pct":10.7,"valor":2892.0,"cor":"purple"},{"intervalo":"45d+","label_culpa":"SEM LIMITE","qtd":2,"pct":1.9,"valor":528.0,"cor":"gray"}],"med_r":6.0,"avg_r":10.2,"med_c":15.0,"avg_c":17.2},"marco":{"ref":[{"intervalo":"0-3d","label_culpa":"CULPA DO AFILIADO","qtd":359,"pct":28.7,"valor":84556.8,"cor":"red"},{"intervalo":"4-7d","label_culpa":"AFILIADO / OPERAÇÃO","qtd":120,"pct":9.6,"valor":27852.0,"cor":"orange"},{"intervalo":"8-15d","label_culpa":"LOGÍSTICA / SUPORTE","qtd":237,"pct":19.0,"valor":53728.0,"cor":"yellow"},{"intervalo":"16-30d","label_culpa":"SUPORTE / PÓS-USO","qtd":346,"pct":27.7,"valor":78917.0,"cor":"blue"},{"intervalo":"31-45d","label_culpa":"GARANTIA / TARDIO","qtd":165,"pct":13.2,"valor":37880.0,"cor":"purple"},{"intervalo":"45d+","label_culpa":"SEM LIMITE","qtd":23,"pct":1.8,"valor":4800.0,"cor":"gray"}],"cb":[{"intervalo":"0-3d","label_culpa":"CULPA DO AFILIADO","qtd":3,"pct":5.1,"valor":849.0,"cor":"red"},{"intervalo":"4-7d","label_culpa":"AFILIADO / OPERAÇÃO","qtd":5,"pct":8.5,"valor":1353.0,"cor":"orange"},{"intervalo":"8-15d","label_culpa":"LOGÍSTICA / SUPORTE","qtd":17,"pct":28.8,"valor":3898.0,"cor":"yellow"},{"intervalo":"16-30d","label_culpa":"SUPORTE / PÓS-USO","qtd":21,"pct":35.6,"valor":4918.0,"cor":"blue"},{"intervalo":"31-45d","label_culpa":"GARANTIA / TARDIO","qtd":11,"pct":18.6,"valor":2892.0,"cor":"purple"},{"intervalo":"45d+","label_culpa":"SEM LIMITE","qtd":2,"pct":3.4,"valor":528.0,"cor":"gray"}],"med_r":12.5,"avg_r":14.9,"med_c":19.0,"avg_c":20.6},"abril":{"ref":[{"intervalo":"0-3d","label_culpa":"CULPA DO AFILIADO","qtd":648,"pct":63.8,"valor":154529.9,"cor":"red"},{"intervalo":"4-7d","label_culpa":"AFILIADO / OPERAÇÃO","qtd":123,"pct":12.1,"valor":29936.9,"cor":"orange"},{"intervalo":"8-15d","label_culpa":"LOGÍSTICA / SUPORTE","qtd":164,"pct":16.2,"valor":41232.0,"cor":"yellow"},{"intervalo":"16-30d","label_culpa":"SUPORTE / PÓS-USO","qtd":80,"pct":7.9,"valor":19641.0,"cor":"blue"},{"intervalo":"31-45d","label_culpa":"GARANTIA / TARDIO","qtd":0,"pct":0.0,"valor":0.0,"cor":"purple"},{"intervalo":"45d+","label_culpa":"SEM LIMITE","qtd":0,"pct":0.0,"valor":0.0,"cor":"gray"}],"cb":[{"intervalo":"0-3d","label_culpa":"CULPA DO AFILIADO","qtd":2,"pct":4.5,"valor":528.0,"cor":"red"},{"intervalo":"4-7d","label_culpa":"AFILIADO / OPERAÇÃO","qtd":4,"pct":9.1,"valor":922.0,"cor":"orange"},{"intervalo":"8-15d","label_culpa":"LOGÍSTICA / SUPORTE","qtd":26,"pct":59.1,"valor":6263.0,"cor":"yellow"},{"intervalo":"16-30d","label_culpa":"SUPORTE / PÓS-USO","qtd":12,"pct":27.3,"valor":3041.0,"cor":"blue"},{"intervalo":"31-45d","label_culpa":"GARANTIA / TARDIO","qtd":0,"pct":0.0,"valor":0.0,"cor":"purple"},{"intervalo":"45d+","label_culpa":"SEM LIMITE","qtd":0,"pct":0.0,"valor":0.0,"cor":"gray"}],"med_r":1.0,"avg_r":4.4,"med_c":11.0,"avg_c":12.5},"last7":{"ref":[{"intervalo":"0-3d","label_culpa":"CULPA DO AFILIADO","qtd":85,"pct":97.7,"valor":20237.0,"cor":"red"},{"intervalo":"4-7d","label_culpa":"AFILIADO / OPERAÇÃO","qtd":2,"pct":2.3,"valor":472.0,"cor":"orange"},{"intervalo":"8-15d","label_culpa":"LOGÍSTICA / SUPORTE","qtd":0,"pct":0.0,"valor":0.0,"cor":"yellow"},{"intervalo":"16-30d","label_culpa":"SUPORTE / PÓS-USO","qtd":0,"pct":0.0,"valor":0.0,"cor":"blue"},{"intervalo":"31-45d","label_culpa":"GARANTIA / TARDIO","qtd":0,"pct":0.0,"valor":0.0,"cor":"purple"},{"intervalo":"45d+","label_culpa":"SEM LIMITE","qtd":0,"pct":0.0,"valor":0.0,"cor":"gray"}],"cb":[{"intervalo":"0-3d","label_culpa":"CULPA DO AFILIADO","qtd":0,"pct":0.0,"valor":0.0,"cor":"red"},{"intervalo":"4-7d","label_culpa":"AFILIADO / OPERAÇÃO","qtd":1,"pct":100.0,"valor":178.0,"cor":"orange"},{"intervalo":"8-15d","label_culpa":"LOGÍSTICA / SUPORTE","qtd":0,"pct":0.0,"valor":0.0,"cor":"yellow"},{"intervalo":"16-30d","label_culpa":"SUPORTE / PÓS-USO","qtd":0,"pct":0.0,"valor":0.0,"cor":"blue"},{"intervalo":"31-45d","label_culpa":"GARANTIA / TARDIO","qtd":0,"pct":0.0,"valor":0.0,"cor":"purple"},{"intervalo":"45d+","label_culpa":"SEM LIMITE","qtd":0,"pct":0.0,"valor":0.0,"cor":"gray"}],"med_r":0.0,"avg_r":0.6,"med_c":4.0,"avg_c":4.0},"last14":{"ref":[{"intervalo":"0-3d","label_culpa":"CULPA DO AFILIADO","qtd":274,"pct":85.1,"valor":65066.9,"cor":"red"},{"intervalo":"4-7d","label_culpa":"AFILIADO / OPERAÇÃO","qtd":31,"pct":9.6,"valor":7619.0,"cor":"orange"},{"intervalo":"8-15d","label_culpa":"LOGÍSTICA / SUPORTE","qtd":17,"pct":5.3,"valor":4208.0,"cor":"yellow"},{"intervalo":"16-30d","label_culpa":"SUPORTE / PÓS-USO","qtd":0,"pct":0.0,"valor":0.0,"cor":"blue"},{"intervalo":"31-45d","label_culpa":"GARANTIA / TARDIO","qtd":0,"pct":0.0,"valor":0.0,"cor":"purple"},{"intervalo":"45d+","label_culpa":"SEM LIMITE","qtd":0,"pct":0.0,"valor":0.0,"cor":"gray"}],"cb":[{"intervalo":"0-3d","label_culpa":"CULPA DO AFILIADO","qtd":0,"pct":0.0,"valor":0.0,"cor":"red"},{"intervalo":"4-7d","label_culpa":"AFILIADO / OPERAÇÃO","qtd":3,"pct":100.0,"valor":628.0,"cor":"orange"},{"intervalo":"8-15d","label_culpa":"LOGÍSTICA / SUPORTE","qtd":0,"pct":0.0,"valor":0.0,"cor":"yellow"},{"intervalo":"16-30d","label_culpa":"SUPORTE / PÓS-USO","qtd":0,"pct":0.0,"valor":0.0,"cor":"blue"},{"intervalo":"31-45d","label_culpa":"GARANTIA / TARDIO","qtd":0,"pct":0.0,"valor":0.0,"cor":"purple"},{"intervalo":"45d+","label_culpa":"SEM LIMITE","qtd":0,"pct":0.0,"valor":0.0,"cor":"gray"}],"med_r":1.0,"avg_r":1.6,"med_c":6.0,"avg_c":5.3}};
+
+const DP_PRESETS={
+  last7:{from:'2026-04-24',to:'2026-04-30'},
+  last14:{from:'2026-04-17',to:'2026-04-30'},
+  marco:{from:'2026-03-02',to:'2026-03-31'},
+  abril:{from:'2026-04-01',to:'2026-04-30'},
+  all:{from:'2026-03-02',to:'2026-04-30'}
+};
+
+function dpFilter(f,t){return DAILY_DATA.filter(r=>r.d>=f&&r.d<=t)}
+function dpAgg(rows){const a={sales:0,orders:0,rc:0,rv:0,cc:0,cv:0,hs:0,hf:0,hp:0};rows.forEach(r=>{a.sales+=r.s;a.orders+=r.o;a.rc+=r.rc;a.rv+=r.rv;a.cc+=r.cc;a.cv+=r.cv;a.hs+=r.hs;a.hf+=r.hf;a.hp+=r.hp});return a}
+function fR(n,d=0){if(isNaN(n)||n==null)return'—';return Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function fM(n){if(n>=1e6)return'$'+fR(n/1e6,2)+'M';if(n>=1e3)return'$'+fR(n/1e3,1)+'K';return'$'+fR(n)}
+
+function dpRenderKPIs(a,days){
+  const taxa=a.sales>0?(a.rv+a.cv)/a.sales*100:0;
+  const gi=id=>document.getElementById(id);
+  gi('k-vendas').textContent=fM(a.sales);
+  gi('k-vendas-sub').textContent=days+'d · '+fR(a.orders)+' pedidos';
+  gi('k-reimb').textContent=fM(a.rv);
+  gi('k-reimb-sub').textContent=fR(a.rc)+' pedidos';
+  gi('k-cb').textContent=fM(a.cv);
+  gi('k-cb-sub').textContent=fR(a.cc)+' eventos';
+  gi('k-taxa').textContent=fR(taxa,2)+'%';
+  gi('k-hg-ret').textContent=fM(a.hs);
+  gi('k-hg-ret-sub').textContent='Full refunds HG: '+fR(a.hf);
+  gi('tbl-periodo').textContent=days<=7?'7 DIAS':days<=14?'14 DIAS':days<=31?'MARÇO':days<=30?'ABRIL':'60 DIAS';
+  gi('dp-orders-count').textContent=fR(a.orders);
+  gi('dp-days-count').textContent=days;
+}
+
+function dpRenderConsol(a){
+  const taxa=a.sales>0?(a.rv+a.cv)/a.sales*100:0;
+  const tc=taxa>10?'p-crit':taxa>8?'p-warn':'p-ok';
+  document.getElementById('tbl-consolidada').innerHTML=`<tr>
+    <td class="r td-b">${fR(a.sales)}</td>
+    <td class="r" style="color:var(--red);font-weight:700">${fR(a.rv)}</td>
+    <td class="c" style="color:var(--red);font-weight:700">${fR(a.rc)}</td>
+    <td class="r" style="color:var(--red);font-weight:700">${fR(a.cv)}</td>
+    <td class="c"><span class="pill ${tc}">${fR(taxa,2)}%</span></td>
+    <td class="r" style="color:var(--blue);font-weight:700">${fR(a.hs)}</td>
+    <td class="c" style="color:var(--red);font-weight:600">${fR(a.hf)}</td>
+    <td class="c" style="color:var(--orange)">${fR(a.hp)}</td>
+  </tr>`;
+}
+
+function dpRenderChart(rows){
+  function wk(d){const dt=new Date(d+'T00:00:00');const dy=dt.getDay();const m=new Date(dt);m.setDate(dt.getDate()+(dy===0?-6:1-dy));return m.toISOString().slice(0,10)}
+  const W={};rows.forEach(r=>{const k=wk(r.d);if(!W[k])W[k]={d:k,s:0,rc:0,rv:0,cc:0,cv:0};W[k].s+=r.s;W[k].rc+=r.rc;W[k].rv+=r.rv;W[k].cc+=r.cc;W[k].cv+=r.cv});
+  const ws=Object.values(W).sort((a,b)=>a.d.localeCompare(b.d));
+  if(!ws.length)return;
+  const svg=document.getElementById('trend-chart');
+  const TW=900,H=210,pl=50,pr=24,pt=22,pb=34;
+  const cW=TW-pl-pr,cH=H-pt-pb,n=ws.length;
+  const bW=Math.min(36,(cW/n)*0.55);
+  const maxRc=Math.max(...ws.map(w=>w.rc),1);
+  const maxTx=Math.max(...ws.map(w=>w.s>0?(w.rv+w.cv)/w.s*100:0),5);
+  const xP=i=>pl+(i+0.5)*(cW/n);
+  const yR=v=>pt+cH-(v/maxRc)*cH;
+  const yT=v=>pt+cH-(v/(maxTx*1.3))*cH;
+  let o='';
+  [0,.25,.5,.75,1].forEach(p=>{const y=pt+cH*(1-p);o+=`<line x1="${pl}" y1="${y}" x2="${TW-pr}" y2="${y}" stroke="#F1F5F9" stroke-width="1"/>`;o+=`<text x="${pl-5}" y="${y+4}" text-anchor="end" font-size="9" fill="#94A3B8">${Math.round(maxRc*p)}</text>`});
+  const pts=[];
+  ws.forEach((w,i)=>{
+    const taxa=w.s>0?(w.rv+w.cv)/w.s*100:0;
+    const fill=taxa>15?'rgba(239,68,68,.8)':taxa>10?'rgba(249,115,22,.75)':taxa>8?'rgba(245,158,11,.7)':'rgba(59,130,246,.65)';
+    const x=xP(i),y=yR(w.rc),bH=cH-(y-pt);
+    o+=`<rect x="${x-bW/2}" y="${y}" width="${bW}" height="${bH}" fill="${fill}" rx="2"/>`;
+    o+=`<text x="${x}" y="${y-5}" text-anchor="middle" font-size="8" fill="#64748B" font-weight="700">${taxa.toFixed(1)}%</text>`;
+    const dt=new Date(w.d+'T00:00:00');
+    o+=`<text x="${x}" y="${H-7}" text-anchor="middle" font-size="9" fill="#64748B">${dt.getDate()}/${dt.getMonth()+1}</text>`;
+    pts.push([xP(i),yT(taxa)]);
+    if(w.cc>0){const r=Math.min(w.cc*1.8+4,14);o+=`<circle cx="${x}" cy="${pt+13}" r="${r}" fill="rgba(59,130,246,.75)"/>`;o+=`<text x="${x}" y="${pt+17}" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">${w.cc}</text>`}
+  });
+  if(pts.length>1){o+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#F97316" stroke-width="2.5" stroke-linejoin="round"/>`;pts.forEach(p=>{o+=`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="#F97316" stroke="#fff" stroke-width="2"/>`})}
+  const txM=Math.ceil(maxTx*1.3/5)*5;
+  [0,txM/2,txM].forEach(v=>{o+=`<text x="${TW-pr+4}" y="${yT(v)+4}" font-size="9" fill="#F97316">${v.toFixed(0)}%</text>`});
+  svg.setAttribute('viewBox',`0 0 ${TW} ${H}`);svg.innerHTML=o;
+}
+
+const CMAP={red:'var(--red)',orange:'var(--orange)',yellow:'var(--yellow)',blue:'var(--blue)',purple:'var(--purple)',gray:'var(--border-s)'};
+
+function dpRenderIBars(cid,rows,title){
+  const total=rows.reduce((s,r)=>s+(+r.qtd||0),0);
+  const th=title==='reimb'?`<div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:8px">🔄 Reembolsos por Intervalo<span style="font-size:10px;color:var(--t4)">${total} casos</span></div>`:`<div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:8px">⚡ Chargebacks por Intervalo<span style="font-size:10px;color:var(--t4)">${total} casos</span></div>`;
+  const bars=rows.map(r=>{const cor=CMAP[r.cor]||'var(--t4)';const p=+r.pct||0;return`<div class="ibar-wrap"><div class="ibar-hdr"><div class="ibar-label">${r.intervalo}<span class="ibar-tag" style="background:${cor}22;color:${cor};border:1px solid ${cor}44">${r.label_culpa}</span></div><div class="ibar-vals" style="color:${cor}">${r.qtd} · ${r.pct}% · $${fR(r.valor)}</div></div><div class="ibar-track"><div class="ibar-fill" data-pct="${p}" style="background:${cor}"></div></div></div>`}).join('');
+  const note=title==='reimb'?`<div style="margin-top:12px;padding:10px 12px;background:var(--red-l);border:1px solid #FECACA;border-radius:8px"><div style="font-size:11px;font-weight:700;color:var(--red-d);margin-bottom:3px">🔴 Diagnóstico: ${((+rows[0].pct||0)+(+rows[1].pct||0)).toFixed(1)}% em até 7 dias</div><div style="font-size:11px;color:var(--t2);line-height:1.6">Concentração 0-3d e 4-7d = oferta agressiva ou VSL com promessas exageradas. <strong>Culpa primária: afiliados.</strong></div></div>`:`<div style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border:1px solid #FED7AA;border-radius:8px"><div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:3px">⚡ CB Diagnóstico: ${rows[2]?.pct||0}% em 8-15d = falha de suporte</div><div style="font-size:11px;color:var(--t2);line-height:1.6">CBs em 8-15d = cliente não atendido a tempo. CS Tiger deve agir proativamente.</div></div>`;
+  document.getElementById(cid).innerHTML=th+bars+note;
+}
+
+function dpRenderMatrix(id){
+  const rzMap=Object.fromEntries(id.ref.map(r=>[r.intervalo,r]));
+  const czMap=Object.fromEntries(id.cb.map(r=>[r.intervalo,r]));
+  const pairs=[['mz-03','0-3d'],['mz-47','4-7d'],['mz-815','8-15d'],['mz-1630','16-30d'],['mz-3145','31-45d'],['mz-45p','45d+']];
+  pairs.forEach(([pid,bkt])=>{const rv=rzMap[bkt]||{};const cv=czMap[bkt]||{};const gi=s=>document.getElementById(s);if(gi(pid+'-r'))gi(pid+'-r').textContent=rv.qtd||0;if(gi(pid+'-c'))gi(pid+'-c').textContent=cv.qtd||0;if(gi(pid+'-v'))gi(pid+'-v').textContent='$'+fR((+rv.valor||0)+(+cv.valor||0))});
+  const gi=s=>document.getElementById(s);
+  gi('chip-med-reimb').textContent=id.med_r;gi('chip-avg-reimb').textContent=id.avg_r;
+  gi('chip-med-cb').textContent=id.med_c;gi('chip-avg-cb').textContent=id.avg_c;
+  const ir0=id.ref.find(r=>r.intervalo==='0-3d')||{};const ic=id.cb.find(r=>r.intervalo==='8-15d')||{};
+  const tR=id.ref.reduce((s,r)=>s+(+r.qtd||0),0);const tC=id.cb.reduce((s,r)=>s+(+r.qtd||0),0);
+  gi('chip-pct-03').textContent=ir0.pct||0;gi('chip-pct-03-lbl').textContent=(ir0.qtd||0)+' casos → AFILIADO';
+  gi('chip-cb-peak').textContent=ic.pct||0;gi('chip-cb-peak-lbl').textContent=(ic.qtd||0)+' de '+tC+' → SUPORTE';
+  gi('bdg-reimb-total').textContent=fR(tR)+' REEMBOLSOS';gi('bdg-cb-total').textContent=fR(tC)+' CHARGEBACKS';
+}
+
+function dpRenderProd(){
+  document.getElementById('tbl-prod-body').innerHTML=[...PRODUCTS_DATA].sort((a,b)=>b.rc-a.rc).map(r=>{const taxa=r.s>0?(r.rv+r.cv)/r.s*100:0;const tc=taxa>12?'var(--red)':taxa>9?'var(--orange)':'var(--yellow)';return`<tr><td class="td-b">${r.p}</td><td class="c" style="font-weight:700;color:${r.rc>250?'var(--red)':r.rc>150?'var(--orange)':'var(--t2)'}">${r.rc}</td><td class="r">${fR(r.rv)}</td><td class="c" style="color:${r.cc>10?'var(--red)':r.cc>5?'var(--orange)':'var(--t4)'}">${r.cc}</td><td class="c" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${tc};font-weight:700">${taxa.toFixed(1)}%</td></tr>`}).join('');
+}
+
+function dpRenderAff(){
+  document.getElementById('tbl-aff-60d').innerHTML=AFFILIATES_DATA.slice(0,12).map((r,i)=>{const taxa=r.s>0?(r.rv+r.cv)/r.s*100:0;const isHG=r.a.toLowerCase().includes('helpgrid')||r.a.toLowerCase().includes('gestor')||r.a.toLowerCase().includes('maxweb');return`<tr><td class="td-b" style="color:${isHG?'var(--blue)':i<3?'var(--red)':i<6?'var(--orange)':'var(--t1)'}">${r.a}</td><td class="c" style="font-weight:800;color:${r.rc>100?'var(--red)':r.rc>60?'var(--orange)':'var(--t2)'}">${r.rc}</td><td class="c" style="color:${r.cc>5?'var(--red)':r.cc>0?'var(--orange)':'var(--t4)'}">${r.cc}</td><td class="r" style="font-weight:600">${fR(r.rv+r.cv)}</td><td class="c"><span class="pill ${taxa>15?'p-crit':taxa>10?'p-warn':'p-mu'}" style="font-size:9px">${taxa.toFixed(1)}%</span></td></tr>`}).join('');
+}
+
+function dpRunAnim(){setTimeout(()=>{document.querySelectorAll('[data-pct]').forEach(el=>{const p=el.getAttribute('data-pct');el.style.width='0';requestAnimationFrame(()=>setTimeout(()=>{el.style.width=p+'%'},80))})},60)}
+
+function dpRender(preset){
+  const p=DP_PRESETS[preset]||DP_PRESETS.all;
+  document.getElementById('dp-from').value=p.from;
+  document.getElementById('dp-to').value=p.to;
+  document.getElementById('dp-range-label').textContent=p.from.split('-').reverse().join('/')+' → '+p.to.split('-').reverse().join('/');
+  const rows=dpFilter(p.from,p.to);
+  const agg=dpAgg(rows);
+  dpRenderKPIs(agg,rows.length);
+  dpRenderConsol(agg);
+  dpRenderChart(rows);
+  const id=INT_DATA[preset]||INT_DATA.all;
+  dpRenderIBars('reimb-interval-bars',id.ref,'reimb');
+  dpRenderIBars('cb-interval-bars',id.cb,'cb');
+  dpRenderMatrix(id);
+  dpRenderProd();dpRenderAff();
+  dpRunAnim();
+}
+
+function dpSet(preset,btn){
+  document.querySelectorAll('.dp-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  dpRender(preset);
+}
+
+function dpApply(){
+  const f=document.getElementById('dp-from').value,t=document.getElementById('dp-to').value;
+  if(!f||!t||f>t)return;
+  document.querySelectorAll('.dp-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('dp-range-label').textContent=f.split('-').reverse().join('/')+' → '+t.split('-').reverse().join('/');
+  const rows=dpFilter(f,t);const agg=dpAgg(rows);
+  dpRenderKPIs(agg,rows.length);dpRenderConsol(agg);dpRenderChart(rows);
+  const id=INT_DATA.all;
+  dpRenderIBars('reimb-interval-bars',id.ref,'reimb');dpRenderIBars('cb-interval-bars',id.cb,'cb');dpRenderMatrix(id);
+  dpRunAnim();
+}
+
+dpRender('all');
 loadData();
 </script>
 </body>
