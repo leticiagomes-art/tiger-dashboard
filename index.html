@@ -715,7 +715,7 @@ async function fetchTodayCS() {
   try {
     // 1. Usa o URL do seu Web App + parâmetro anti-cache
     const url = APPS_SCRIPT_URL + "?_=" + Date.now();
-    const r = await fetch(url);
+    const r = await fetch(url, { redirect: 'follow' }); // ← Adicione isso aqui
     
     if (!r.ok) throw new Error("Erro HTTP: " + r.status);
     
