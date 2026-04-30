@@ -712,48 +712,27 @@ function parseCSV(text) {
 
 // ─── FETCH TODAY CS ──────────────────────────
 async function fetchTodayCS() {
-  try {
-    // 1. Usa o URL do seu Web App + parâmetro anti-cache
-    const url = APPS_SCRIPT_URL + "?_=" + Date.now();
-    const r = await fetch(url, { redirect: 'follow' }); // ← Adicione isso aqui
-    
-    if (!r.ok) throw new Error("Erro HTTP: " + r.status);
-    
-    // 2. O seu doGet retorna um JSON, não um CSV
-    const data = await r.json();
-    
-    // 3. Puxa especificamente os dados de 'hoje'
+  // Lê os dados que o loadData() já baixou do JSON
+  const data = window.dadosScript;
+  
+  if (data && data.cs_agentes_hoje && data.cs_agentes_hoje.length) {
     const rowsHoje = data.cs_agentes_hoje;
     
-    if (rowsHoje && rowsHoje.length) {
-      // 4. Calcula os totais com base nas colunas do seu Apps Script
-      const tot = rowsHoje.reduce((s, r) => s + (+r.tickets_tab || 0), 0);
-      const retV = rowsHoje.reduce((s, r) => s + (+r.retido_reembolso_valor || 0) + (+r.parcial_valor || 0), 0);
-      const retQ = rowsHoje.reduce((s, r) => s + (+r.retidos_qtd || 0) + (+r.parcial_compl_qtd || 0), 0);
-      const taxa = tot > 0 ? (retQ / tot) * 100 : 0;
-      
-      // 5. Atualiza o DOM
-      $('cs-hoje-tickets').textContent = tot;
-      $('cs-hoje-retido').textContent = fmtM(retV);
-      $('cs-hoje-taxa').textContent = fmt(taxa, 1) + '%';
-      
-      // Bônus: Atualiza a data no painel
-      if (data.config && data.config.length > 0) {
-         const dataAtualizacaoRow = data.config.find(c => c.chave === 'data_atualizacao');
-         if (dataAtualizacaoRow) {
-             $('cs-hoje-data').textContent = dataAtualizacaoRow.valor;
-         }
-      }
-    } else {
-      $('cs-hoje-tickets').textContent = '0';
-      $('cs-hoje-retido').textContent = '$0';
-      $('cs-hoje-taxa').textContent = '0%';
-    }
-  } catch(e) {
-    console.error("Erro ao buscar dados do Apps Script:", e);
-    $('cs-hoje-tickets').textContent = 'Erro';
-    $('cs-hoje-retido').textContent = '—';
-    $('cs-hoje-taxa').textContent = '—';
+    // Soma as métricas do dia
+    const tot = rowsHoje.reduce((s, r) => s + (+r.tickets_tab || 0), 0);
+    const retV = rowsHoje.reduce((s, r) => s + (+r.retido_reembolso_valor || 0) + (+r.parcial_valor || 0), 0);
+    const retQ = rowsHoje.reduce((s, r) => s + (+r.retidos_qtd || 0) + (+r.parcial_compl_qtd || 0), 0);
+    const taxa = tot > 0 ? (retQ / tot) * 100 : 0;
+    
+    // Atualiza a tela
+    $('cs-hoje-tickets').textContent = tot;
+    $('cs-hoje-retido').textContent = fmtM(retV);
+    $('cs-hoje-taxa').textContent = fmt(taxa, 1) + '%';
+  } else {
+    // Caso não haja tickets registrados hoje ainda ou falhe
+    $('cs-hoje-tickets').textContent = '0';
+    $('cs-hoje-retido').textContent = '$0';
+    $('cs-hoje-taxa').textContent = '0%';
   }
 }
 
@@ -1237,9 +1216,9 @@ async function fetchTodayCS() {
   }
 }
 
-// ─── LOAD DATA (Sheets or Fallback) ──────────
+// ─── LOAD DATA (Apps Script Centralizado) ──────────
 async function loadData() {
-  // Always render static fallback data immediately
+  // Renderiza os dados estáticos (fallback) imediatamente enquanto carrega
   renderIntervalBars('reimb-interval-bars', FB.intervalos_reimb, 'reimb');
   renderIntervalBars('cb-interval-bars', FB.intervalos_cb, 'cb');
   renderScores(FB.afiliados);
@@ -1253,29 +1232,38 @@ async function loadData() {
   renderHGProd(FB.hg_produtos);
   renderTOProd(FB.tiger_produtos);
 
-  // Try Sheets
-  let sheetsOk = false;
   try {
-    const SHEET_ID = '1u8dhtbT8NODgdbzOJfJTwE04vFLE79K3hP-zm9nfT7Y';
-    const BASE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
-    const r = await fetch(BASE + 'config');
-    if (r.ok) {
-      const cfg = parseCSV(await r.text());
-      if (cfg.length) {
-        sheetsOk = true;
-        const now = new Date().toLocaleString('pt-BR');
-        $('hdr-data').textContent = now;
-        // Could load other sheets here and override FB data
+    // Busca TODOS os dados usando apenas a URL do Apps Script
+    const url = APPS_SCRIPT_URL + "?_=" + Date.now();
+    const r = await fetch(url, { redirect: 'follow' });
+    
+    if (!r.ok) throw new Error("Erro na requisição HTTP: " + r.status);
+    
+    // O Apps Script retorna { config, cs_agentes, cs_agentes_hoje, retencao... }
+    const data = await r.json();
+    
+    // Salva os dados globalmente para a aba "Hoje" não precisar fazer outro fetch
+    window.dadosScript = data; 
+    
+    $('err-banner').style.display = 'none';
+    
+    // Atualiza as datas pelo painel com base na aba de configuração
+    if (data.config && data.config.length) {
+      const dataAtualizacao = data.config.find(c => c.chave === 'data_atualizacao');
+      if (dataAtualizacao) {
+        $('hdr-data').textContent = dataAtualizacao.valor;
+        if ($('cs-hoje-data')) $('cs-hoje-data').textContent = dataAtualizacao.valor;
       }
     }
-  } catch(e) { /* use fallback */ }
 
-  if (!sheetsOk) {
+    // Opcional: Se quiser que as tabelas de CS usem os dados reais do script, descomente abaixo:
+    // if (data.cs_agentes && data.cs_agentes.length) renderCS(data.cs_agentes);
+    // if (data.retencao_resultado && data.retencao_resultado.length) renderRetencao(data.retencao_resultado);
+
+  } catch(e) {
+    console.error("Modo offline ativo ou erro no Script:", e);
     $('err-banner').style.display = 'flex';
     $('hdr-data').textContent = new Date().toLocaleString('pt-BR') + ' (offline)';
-  } else {
-    $('err-banner').style.display = 'none';
-    $('hdr-data').textContent = new Date().toLocaleString('pt-BR');
   }
 }
 
