@@ -711,9 +711,13 @@ function parseCSV(text) {
 }
 
 async function fetchSheet(name) {
-  const r = await fetch(BASE + encodeURIComponent(name));
-  if (!r.ok) throw new Error(r.status);
-  return parseCSV(await r.text());
+    // Adiciona um timestamp único para forçar atualização
+    const antiCache = `&_=${Date.now()}`;
+    const url = BASE + encodeURIComponent(name) + antiCache;
+    
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(r.status);
+    return parseCSV(await r.text());
 }
 
 // ─── PERIOD STATE ────────────────────────────
