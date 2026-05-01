@@ -133,13 +133,28 @@ function show(id, el) {
 // ─── MOTOR DE CÁLCULO DE REEMBOLSO (BUYGOODS) ───────────
 function processarReembolso(rows, start, end) {
   let stats = { vendas:0, reimb:0, cb:0, qtdR:0, qtdC:0, afil:{} };
+  if (!rows || rows.length === 0) return stats;
+
+  // Caçador de colunas: ignora maiúsculas/minúsculas e acha o dado
+  const getVal = (obj, chaves) => {
+    const keyEncontrada = Object.keys(obj).find(k => chaves.includes(k.toLowerCase().trim()));
+    return keyEncontrada ? obj[keyEncontrada] : null;
+  };
+
   rows.forEach(r => {
-    const d = new Date(r['Create Date'] || r['create date']);
+    const dataCriacao = getVal(r, ['create date', 'data de criação']);
+    if (!dataCriacao) return; // Se não tem data, ignora a linha (pula o lixo)
+    
+    const d = new Date(dataCriacao);
     if (d < start || d > end) return;
-    const val = parseFloat(r.Amount) || 0;
-    const isR = r['Was Refunded'] == 1;
-    const isC = r['Was Chargeback'] == 1;
-    const name = r['Affiliate Name'] || 'Direto';
+
+    // Pega o valor limpando símbolos de moeda caso existam
+    const valStr = getVal(r, ['amount', 'valor']) || 0;
+    const val = parseFloat(String(valStr).replace(/[^0-9.-]/g, '')) || 0;
+    
+    const isR = getVal(r, ['was refunded', 'refunded']) == 1;
+    const isC = getVal(r, ['was chargeback', 'chargeback']) == 1;
+    const name = getVal(r, ['affiliate name', 'afiliado']) || 'Direto';
 
     stats.vendas += val;
     if(!stats.afil[name]) stats.afil[name] = { n:name, r:0, c:0, v:0, totalCanc:0, zeroTres:0 };
@@ -147,17 +162,21 @@ function processarReembolso(rows, start, end) {
     if(isR || isC) {
       if(isC) { stats.cb += val; stats.qtdC++; stats.afil[name].c++; }
       else { stats.reimb += val; stats.qtdR++; stats.afil[name].r++; }
+      
       stats.afil[name].v += val;
       stats.afil[name].totalCanc++;
       
-      const dCanc = new Date(r['Canceled Date']);
-      const dias = Math.floor((dCanc - d) / (1000*60*60*24));
-      if(dias <= 3) stats.afil[name].zeroTres++;
+      const dataCanc = getVal(r, ['canceled date', 'data de cancelamento']);
+      if (dataCanc) {
+        const dCanc = new Date(dataCanc);
+        const dias = Math.floor((dCanc - d) / (1000*60*60*24));
+        if(dias >= 0 && dias <= 3) stats.afil[name].zeroTres++;
+      }
     }
   });
+  
   return stats;
 }
-
 // ─── MOTOR DE CÁLCULO DE CS (FORMULÁRIO) ───────────
 function processarCS(rows, start, end) {
   const agentes = {};
