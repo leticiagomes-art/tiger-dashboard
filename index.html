@@ -24,7 +24,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font);font-size:13px
 .date-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .date-bar-label{font-size:9px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
 
-/* Month-grouped selector */
 .period-selector{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .period-hoje{
   padding:5px 12px;border-radius:7px;border:none;
@@ -37,8 +36,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font);font-size:13px
 .period-hoje:hover{opacity:.88}
 .period-hoje.active{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--orange)}
 .period-sep{width:1px;height:18px;background:var(--border-s);flex-shrink:0}
-
-/* Month group */
 .month-group{display:flex;align-items:center;gap:2px;background:var(--surface2);border:1px solid var(--border-s);border-radius:9px;padding:2px;overflow:hidden}
 .month-btn{
   padding:4px 11px;border-radius:7px;border:none;
@@ -53,8 +50,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font);font-size:13px
   content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
   width:4px;height:4px;border-radius:50%;background:var(--orange);
 }
-
-/* Week sub-row */
 .week-row{
   display:flex;align-items:center;gap:3px;
   height:0;overflow:hidden;
@@ -226,7 +221,7 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
 :root[data-theme="light"] .theme-toggle .tgl-thumb{background:#fff;transform:translateX(14px);}
 :root[data-theme="light"] .theme-toggle{background:#EEF2FF;border-color:rgba(37,99,235,.2);color:#2563EB;}
 
-/* ── IMPROVED TABS (match image style) ── */
+/* ── IMPROVED TABS ── */
 .tabs{display:flex;gap:4px;padding:0 2px;overflow-x:auto;}
 .tab{
   padding:9px 16px;
@@ -276,7 +271,6 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
 :root[data-theme="light"] .ag-card{box-shadow:0 1px 6px rgba(0,0,0,.06);}
 :root[data-theme="light"] tbody tr:hover{background:#F0F2F7;}
 :root[data-theme="light"] thead th{background:#F0F2F6;}
-
 </style>
 </head>
 <body>
@@ -294,22 +288,18 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
     <div style="display:flex;flex-direction:column;gap:7px">
       <div class="date-bar" style="flex-direction:column;align-items:flex-start;gap:5px">
         <span class="date-bar-label">Período global</span>
-        <!-- Main selector row -->
         <div class="period-selector" id="period-selector">
           <button class="period-hoje" onclick="selectHoje(this)" id="btn-hoje">📅 HOJE</button>
           <div class="period-sep"></div>
-          <!-- Março -->
           <div class="month-group" id="mg-marco">
             <button class="month-btn" onclick="toggleMonth('marco',this)" id="mb-marco">Março</button>
             <button class="month-btn" onclick="selectTotal('marco',this)" id="mb-marco-total" style="font-size:10px;color:var(--t4)">Total</button>
           </div>
-          <!-- Abril -->
           <div class="month-group" id="mg-abril">
             <button class="month-btn month-active" onclick="toggleMonth('abril',this)" id="mb-abril">Abril</button>
             <button class="month-btn" onclick="selectTotal('abril',this)" id="mb-abril-total" style="font-size:10px;color:var(--t4)">Total</button>
           </div>
         </div>
-        <!-- Week sub-rows -->
         <div class="week-row" id="weeks-marco">
           <span class="week-lbl">Semanas:</span>
           <button class="week-btn" onclick="selectWeek('marco_S1',this)">S1 Mar</button>
@@ -355,14 +345,14 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
 <div class="alert-banner err" id="err-banner"><span id="err-msg">Modo offline — dados da última versão salva.</span></div>
 <div class="alert-banner" id="taxa-alert" style="background:var(--red-l);border-color:rgba(239,68,68,.3);color:var(--red)"><span id="taxa-alert-msg"></span></div>
 
-<!-- ═══ ABA REEMBOLSO ═══ -->
-<div class="kpi-row">
-    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-kpi-tickets">—</div><div class="kpi-sub" id="cs-kpi-tickets-sub">Time CS Tiger</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Retenções Totais (Tiger)</div><div class="kpi-val" id="cs-kpi-ret-qtd">—</div><div class="kpi-sub" id="cs-kpi-ret-sub">—</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val" id="cs-kpi-ret-val">—</div><div class="kpi-sub ok" id="cs-kpi-ret-val-sub">—</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Maior Retentora</div><div class="kpi-val" id="cs-kpi-best-val">—</div><div class="kpi-sub ok" id="cs-kpi-best-ag">—</div></div>
-    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-kpi-active-tick">—</div><div class="kpi-sub" id="cs-kpi-active-ag">—</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Taxa de Retenção Tiger</div><div class="kpi-val" id="cs-kpi-taxa">—</div><div class="kpi-sub ok" id="cs-kpi-taxa-sub">—</div></div>
+<div class="sec active" id="s-reimb">
+  <div class="kpi-row">
+    <div class="kpi yl"><div class="kpi-lbl">Vendas Brutas BG</div><div class="kpi-val" id="k-vendas">—</div><div class="kpi-sub" id="k-vendas-sub" title="Líquido = bruto excluindo reembolsados e CBs">↳ Líq: —</div></div>
+    <div class="kpi rd"><div class="kpi-lbl">Total Reembolsado</div><div class="kpi-val" id="k-reimb">—</div><div class="kpi-sub" id="k-reimb-sub">—</div></div>
+    <div class="kpi rd"><div class="kpi-lbl">Total Chargeback</div><div class="kpi-val" id="k-cb">—</div><div class="kpi-sub" id="k-cb-sub">—</div></div>
+    <div class="kpi or" id="kpi-taxa"><div class="kpi-lbl">Taxa Geral (Reimb+CB)</div><div class="kpi-val" id="k-taxa">—</div><div class="kpi-sub warn">⚠ Benchmark ideal ≤ 8%</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">HG Retido (Saved Sales)</div><div class="kpi-val" id="k-hg-ret">—</div><div class="kpi-sub" id="k-hg-ret-sub">—</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Tiger Retido (Total)</div><div class="kpi-val" id="k-to-ret">—</div><div class="kpi-sub" id="k-to-ret-sub">—</div></div>
   </div>
 
   <div class="card gfull">
@@ -452,10 +442,7 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
     <tbody id="tbl-to-prod"><tr><td colspan="5" style="text-align:center;padding:16px;color:var(--t4)">Carregando…</td></tr></tbody></table>
     <div style="font-size:9px;color:var(--t4);margin-top:8px">* Parciais reclassificados como retenções totais — Tiger Offers não oferta reembolso parcial ao cliente.</div>
   </div>
-</div><!-- /reimb -->
-
-<!-- ═══ ABA AFILIADOS ═══ -->
-<div class="sec" id="s-afil">
+</div><div class="sec" id="s-afil">
   <div class="kpi-row">
     <div class="kpi rd"><div class="kpi-lbl">Reimb. (S5 28–30/04)</div><div class="kpi-val" id="ka-reimb">21</div><div class="kpi-sub">Total BuyGoods</div></div>
     <div class="kpi rd"><div class="kpi-lbl">CBs (Abr total)</div><div class="kpi-val" id="ka-cbs">44</div><div class="kpi-sub crit">Risco VAMP ativo</div></div>
@@ -531,10 +518,7 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
     <div class="act-item"><div class="act-num an-or">04</div><div><div class="act-ttl" style="color:var(--orange)">AUDITORIA — Rodrigo Passos (19 reimb · 47% em 0-3d) + Bernadete (17 reimb)</div><div class="act-txt">Prazo 7 dias para ajuste. Bernadete: investigar Thomas Fairfull (5 reemb. $1.149 = possível fraude de bumping).</div><div class="tags"><span class="tag bdg-rd">DIAGNÓSTICO</span><span class="tag bdg-or">0-3 DIAS</span></div></div></div>
     <div class="act-item"><div class="act-num an-gn">05</div><div><div class="act-ttl" style="color:var(--green)">KPIs AUTOMÁTICOS — Alertas por Afiliado (&gt;8% reimb. ou &gt;0,5% CB)</div><div class="act-txt">Gatilhos: &gt;8% taxa ou &gt;0,5% CB em 7 dias → notificação automática ao afiliado + CS Tiger (prazo 48h). Segmentação por intervalo cirúrgica por causa raiz.</div><div class="tags"><span class="tag bdg-gn">SISTÊMICO</span><span class="tag bdg-or">KPI</span></div></div></div>
   </div>
-</div><!-- /afil -->
-
-<!-- ═══ ABA CS ═══ -->
-<div class="sec" id="s-cs">
+</div><div class="sec" id="s-cs">
 
   <div class="cs-hoje-panel" id="cs-hoje-panel">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -551,12 +535,12 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
   </div>
 
   <div class="kpi-row">
-    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-total">—</div><div class="kpi-sub">Natália + Heitor + Neythan + Yasmin</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Retenções Totais (Tiger)</div><div class="kpi-val">250</div><div class="kpi-sub">196 diretas + 54 parc.→ret.</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val">$32,9K</div><div class="kpi-sub ok">$28.831 direto + $4.162 reclassif.</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Maior Retentora</div><div class="kpi-val">$15,7K</div><div class="kpi-sub ok">Natália — 45 ret. totais</div></div>
-    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val">329</div><div class="kpi-sub">Neythan — 105 propostas</div></div>
-    <div class="kpi or"><div class="kpi-lbl">Taxa Tiger vs HG</div><div class="kpi-val">16,8%</div><div class="kpi-sub ok">Tiger &gt; HG 13,3% ✅</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-kpi-tickets">—</div><div class="kpi-sub" id="cs-kpi-tickets-sub">Time CS Tiger</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Retenções Totais (Tiger)</div><div class="kpi-val" id="cs-kpi-ret-qtd">—</div><div class="kpi-sub" id="cs-kpi-ret-sub">—</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val" id="cs-kpi-ret-val">—</div><div class="kpi-sub ok" id="cs-kpi-ret-val-sub">—</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Maior Retentora</div><div class="kpi-val" id="cs-kpi-best-val">—</div><div class="kpi-sub ok" id="cs-kpi-best-ag">—</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-kpi-active-tick">—</div><div class="kpi-sub" id="cs-kpi-active-ag">—</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Taxa de Retenção Tiger</div><div class="kpi-val" id="cs-kpi-taxa">—</div><div class="kpi-sub ok" id="cs-kpi-taxa-sub">—</div></div>
   </div>
 
   <div class="ag-grid" id="ag-grid"></div>
@@ -575,7 +559,7 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
       <div class="card-hdr"><div class="card-ttl">📈 Resultado de Retenção — Tiger</div></div>
       <div id="ret-bars"></div>
       <div style="margin-top:12px;padding:11px;background:var(--green-l);border-radius:8px;border:1px solid rgba(34,197,94,.25)">
-        <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:3px">✅ Tiger 16,8% &gt; HelpGrid 13,3%</div>
+        <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:3px">✅ Tiger 16,8% > HelpGrid 13,3%</div>
         <div style="font-size:10px;color:var(--t2)">Com reclassificação de parciais como retenções totais, Tiger supera HG em valor retido e % de retenção.</div>
       </div>
     </div>
@@ -607,9 +591,7 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
     <div class="hbox rd" style="margin-top:8px"><div class="hbox-ico">🔴</div><div><div class="hbox-ttl">HG: Full Refunds em 7d → cada um impacta a taxa BuyGoods diretamente (dados HG pendentes)</div><div class="hbox-txt">Transferir atendimento CB Threat + 0-3d para Tiger temporariamente. Roteiro de retenção obrigatório 3 etapas antes de qualquer processamento HG.</div></div></div>
   </div>
 
-</div><!-- /cs -->
-</div><!-- /body -->
-<footer><div>🐯 Tiger Offers — Dashboard Backend v2.0</div><div id="footer-periodo">—</div><div>BuyGoods · HG Tracker · Tabulação Tiger · Apps Script</div></footer>
+</div></div><footer><div>🐯 Tiger Offers — Dashboard Backend v2.0</div><div id="footer-periodo">—</div><div>BuyGoods · HG Tracker · Tabulação Tiger · Apps Script</div></footer>
 
 <script>
 // ─── UTILS ──────────────────────────────────
@@ -655,13 +637,19 @@ const verdictStyle = v => {
 
 // ─── APPS SCRIPT CONFIG & FALLBACK DATA ──────────────────
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcysOaDI3YN_cectk-lWMhDY27SwqyYdItnZd0YlMzboiCfjybFfYuHx4fkn-epJPDnA/exec';
-window.dadosScript = null; // Variável global para guardar os dados do Google Sheets
+window.dadosScript = null;
 
 const RD = {"marco":{"label":"Março 2026","hg_aguardando":false,"total":{"vendas":2531704.9,"vendas_liquido":2230643.1,"reimb":287733.8,"qtd_reimb":1250,"cb":14438.0,"qtd_cb":59,"taxa":11.94,"retido_hg":0.0,"retido_to":0.0},"produtos":[]},"abril_semanas":[{"key":"S5","label":"Semana 5 — 28 a 30/04","hg_aguardando":true,"total":{"vendas":171403.5,"vendas_liquido":166358.5,"reimb":5045.0,"qtd_reimb":21,"cb":0.0,"qtd_cb":0,"taxa":2.94,"retido_hg":0.0,"retido_to":0.0},"produtos":[]}],"abril_total":{"vendas":2569884.6,"vendas_liquido":2314318.8,"reimb":245339.8,"qtd_reimb":1015,"cb":10754.0,"qtd_cb":44,"taxa":9.97,"retido_hg":0.0,"retido_to":0.0}};
 const FB = {
-  intervalos_reimb: [{intervalo:'0-3d',label_culpa:'AFILIADO',qtd:1007,pct:44.5,valor:240464,cor:'red'}],
-  intervalos_cb: [{intervalo:'8-15d',label_culpa:'SUPORTE',qtd:43,pct:41.7,valor:10233,cor:'orange'}],
-  afiliados: [], vamp: [], reincidentes: [], impacto: [], hg_produtos: [], tiger_produtos: [], retencao: [],
+  intervalos_reimb: [{intervalo:'0-3d',label_culpa:'AFILIADO',qtd:1007,pct:44.5,valor:240464,cor:'red'},{intervalo:'4-7d',label_culpa:'AFILIADO/OP',qtd:243,pct:10.7,valor:60064,cor:'orange'},{intervalo:'8-15d',label_culpa:'SUPORTE/CS',qtd:401,pct:17.7,valor:105121,cor:'yellow'},{intervalo:'16-30d',label_culpa:'OPERAÇÃO',qtd:426,pct:18.8,valor:106517,cor:'blue'},{intervalo:'31-45d',label_culpa:'MBG/GARANTIA',qtd:165,pct:7.3,valor:40772,cor:'purple'}],
+  intervalos_cb: [{intervalo:'0-3d',label_culpa:'DESCRITOR',qtd:5,pct:4.9,valor:1190,cor:'lightred'},{intervalo:'4-7d',label_culpa:'OP/AFILIADO',qtd:9,pct:8.7,valor:2143,cor:'lightorange'},{intervalo:'8-15d',label_culpa:'SUPORTE',qtd:43,pct:41.7,valor:10233,cor:'orange'},{intervalo:'16-30d',label_culpa:'TARDIO',qtd:33,pct:32.0,valor:7853,cor:'blue'},{intervalo:'31-45d',label_culpa:'MBG',qtd:11,pct:10.7,valor:2618,cor:'purple'}],
+  afiliados: [{afiliado:'Walife Garcias',tipo:'Afiliado',reemb:30,cbs:1,valor_reimb:7226,mediana_dias:2,pct_0_3d:70,pct_4_7d:20,pct_8_15d:0,pct_16_30d:10,raw_0_3d:21,raw_4_7d:6,raw_8_15d:0,raw_16_30d:3,veredicto:'CULPA DO AFILIADO',status:'CRÍTICO',acao:'Reunião 24h. VSL agressiva. KPI ≤6% ou pausa.'},{afiliado:'Rodrigo Passos',tipo:'Afiliado',reemb:19,cbs:0,valor_reimb:4149,mediana_dias:4,pct_0_3d:47,pct_4_7d:11,pct_8_15d:42,pct_16_30d:0,raw_0_3d:9,raw_4_7d:2,raw_8_15d:8,raw_16_30d:0,veredicto:'COMPARTILHADA',status:'CRÍTICO',acao:'Taxa 100% em 7d. Pausa preventiva.'},{afiliado:'Bernadete Hernandes',tipo:'Afiliado',reemb:17,cbs:0,valor_reimb:4206,mediana_dias:7,pct_0_3d:47,pct_4_7d:24,pct_8_15d:0,pct_16_30d:29,raw_0_3d:8,raw_4_7d:4,raw_8_15d:0,raw_16_30d:5,veredicto:'CULPA DO AFILIADO',status:'CRÍTICO',acao:'Histórico alto. Investigar Thomas Fairfull.'},{afiliado:'Alexandre Biasoli',tipo:'Afiliado',reemb:16,cbs:4,valor_reimb:4038,mediana_dias:9,pct_0_3d:25,pct_4_7d:25,pct_8_15d:37,pct_16_30d:13,raw_0_3d:4,raw_4_7d:4,raw_8_15d:6,raw_16_30d:2,veredicto:'CULPA + SUPORTE',status:'PAUSAR JÁ',acao:'4 CBs em 8-15d. PAUSAR imediatamente.'}], 
+  vamp: [{afiliado:'Alexandre Biasoli',produto:'Prostafense',vendas:291,cbs:6,pct_cb:2.1,valor_cb:900,status_visa:'CRÍTICO (MATCH)',acao:'PAUSAR imediatamente.'},{afiliado:'Sandra Lima',produto:'NervoLyn',vendas:221,cbs:3,pct_cb:1.4,valor_cb:654,status_visa:'ALERTA VAMP',acao:'Pausar. Revisar landing.'}], 
+  reincidentes: [{cliente:'Thomas Fairfull',email:'thomas@fairfull.com',n_reembolsos:5,valor_total:1149,afiliado:'Bernadete Hernandes',produto:'Prostafense',status:'SUSPEITO'}], 
+  impacto: [{afiliado:'Walife Garcias',reemb:30,cbs:1,perda_7d:7442,projecao_anual:386984},{afiliado:'HelpGrid Calls',reemb:16,cbs:3,perda_7d:5001,projecao_anual:260052}], 
+  hg_produtos: [{produto:'Gluco Recover',ligacoes:85,escritos:59,parcial:6,completo:12}], 
+  tiger_produtos: [{produto:'Vigorlong',escritos:95,retencao_compl:20,retido_valor:914}], 
+  retencao: [{resultado:'Proposta Enviada (base)',qtd:109,pct:100,cor:'orange'},{resultado:'Ret. Total — Aceitou usar',qtd:40,pct:37,cor:'green'},{resultado:'Parc.→Ret. Total (reclassif.)',qtd:17,pct:16,cor:'lightgreen'}],
   cs: [{agente:'Carregando...',tickets_tab:0,retido_reembolso_valor:0,retidos_qtd:0,parcial_compl_qtd:0,parcial_valor:0,gateway_hg:0,propostas_env:0,total_retido:0,performance:'MONIT.'}]
 };
 
@@ -677,8 +665,17 @@ function show(id, el) {
   animateBars();
 }
 
-const PERIOD_LABELS = { hoje: null, S5:'Semana 5 — 27 a 30/04' };
-const RP_KEY_MAP = { S5:'S5' };
+const PERIOD_LABELS = { 
+  hoje: null, 
+  S1:'Semana 1 — 01 a 06/04',
+  S2:'Semana 2 — 07 a 13/04',
+  S3:'Semana 3 — 14 a 20/04',
+  S4:'Semana 4 — 21 a 27/04',
+  S5:'Semana 5 — 28 a 30/04',
+  abril_total:'Abril 2026 — Total',
+  marco:'Março 2026 — Total'
+};
+const RP_KEY_MAP = { S1:'S1', S2:'S2', S3:'S3', S4:'S4', S5:'S5', abril_total:'abril_total', marco:'marco' };
 
 // ─── DICIONÁRIO DE DATAS DE CORTE (2026) ────────────────────────
 const PERIOD_DATES = {
@@ -739,14 +736,12 @@ function processarCSBruto(rows, dataInicio, dataFim) {
     a.total_retido = a.retido_reembolso_valor + a.parcial_valor;
   });
 
-  // Calcula a performance e ordena pelo que mais reteve
   return Object.values(agentes).map(a => {
     const tx = a.tickets_tab > 0 ? (a.retidos_qtd + a.parcial_compl_qtd) / a.tickets_tab * 100 : 0;
     a.performance = tx >= 20 ? 'EXCELENTE' : tx >= 12 ? 'BOM' : 'EM DESENVOLVIMENTO';
     return a;
   }).sort((a, b) => b.total_retido - a.total_retido);
 }
-
 
 // ─── APPLY PERIOD (A Mágica da Interface) ─────────────
 function applyPeriod(key) {
@@ -759,10 +754,8 @@ function applyPeriod(key) {
   $('footer-periodo').textContent = label;
   $('hdr-semana').textContent = label;
   
-  // Atualiza as tabelas lá da aba "Reembolso" (que você já tinha)
   rpRender(RP_KEY_MAP[key] || 'S5');
   
-  // Define o range de data "Hoje" (da meia noite até as 23:59 de hoje)
   const hojeStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
   const hojeEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
   PERIOD_DATES['hoje'] = [hojeStart, hojeEnd];
@@ -774,33 +767,352 @@ function applyPeriod(key) {
     $('cs-hoje-panel').classList.remove('visible');
   }
 
-  // PEGA AS DATAS DE CORTE
   const [start, end] = PERIOD_DATES[key] || PERIOD_DATES['S5'];
 
-  // SE O JSON JÁ VEIO COM AS RESPOSTAS BRUTAS, FAZEMOS TUDO AQUI MESMO
   if (window.dadosScript && window.dadosScript.respostas_brutas) {
       const dadosFiltrados = processarCSBruto(window.dadosScript.respostas_brutas, start, end);
       renderCS(dadosFiltrados);
-      
-      // Atualiza os resuminhos no painel de "Hoje" também se precisar
-      if (key === 'hoje') {
-          fetchTodayCS(); // (O fetchTodayCS só atualiza o bloquinho superior visual, e vai puxar direto dos dados calculados se quisermos)
-      }
+      if (key === 'hoje') fetchTodayCS(); 
   } else {
-      // Fallback: se as respostas brutas ainda não baixaram ou deu erro
       if (key === 'hoje' && window.dadosScript && window.dadosScript.cs_agentes_hoje) {
           renderCS(window.dadosScript.cs_agentes_hoje);
+          fetchTodayCS();
       } else if (window.dadosScript && window.dadosScript.cs_agentes) {
           renderCS(window.dadosScript.cs_agentes);
       } else {
-          renderCS(FB.cs); // Dado estático padrão
+          renderCS(FB.cs); 
       }
   }
-  
   setTimeout(animateBars, 100);
 }
 
-  // 1. Calcula as métricas somando o array que chegou (Total ou Hoje)
+function selectHoje(btn) {
+  document.querySelectorAll('.week-btn, .month-btn, .period-hoje').forEach(b => b.classList.remove('active', 'month-active', 'has-active'));
+  btn.classList.add('active');
+  applyPeriod('hoje');
+}
+
+function toggleMonth(month, btn) {
+  const isOpen = openMonth === month;
+  ['marco','abril'].forEach(m => {
+    const wr = $('weeks-' + m);
+    if (wr) wr.classList.remove('open');
+    const mb = $('mb-' + m);
+    if (mb) mb.classList.remove('month-active');
+  });
+  document.querySelectorAll('.period-hoje').forEach(b => b.classList.remove('active'));
+
+  if (!isOpen) {
+    openMonth = month;
+    const wr = $('weeks-' + month);
+    if (wr) wr.classList.add('open');
+    btn.classList.add('month-active');
+    if (wr) wr.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+    applyPeriod(month === 'marco' ? 'marco' : 'abril_total');
+  } else {
+    openMonth = null;
+    btn.classList.remove('month-active');
+  }
+}
+
+function selectTotal(month, btn) {
+  document.querySelectorAll('.week-btn, .period-hoje').forEach(b => b.classList.remove('active'));
+  const mb = $('mb-' + month);
+  const wr = $('weeks-' + month);
+  ['marco','abril'].forEach(m => {
+    const w = $('weeks-' + m);
+    const b = $('mb-' + m);
+    if (w) w.classList.remove('open');
+    if (b) b.classList.remove('month-active','has-active');
+  });
+  if (mb) mb.classList.add('month-active');
+  if (wr) wr.classList.add('open');
+  openMonth = month;
+  applyPeriod(month === 'marco' ? 'marco' : 'abril_total');
+}
+
+function selectWeek(key, btn) {
+  document.querySelectorAll('.week-btn, .period-hoje').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const isMarco = key.startsWith('marco_');
+  const month = isMarco ? 'marco' : 'abril';
+  document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('has-active'));
+  const mb = $('mb-' + month);
+  if (mb) mb.classList.add('month-active','has-active');
+  applyPeriod(key);
+}
+
+function animateBars() {
+  document.querySelectorAll('[data-pct]').forEach(el => {
+    const pct = Math.min(Math.max(parseFloat(el.dataset.pct)||0, 0), 100);
+    el.style.width = pct + '%';
+  });
+}
+
+// ─── RENDER FUNCTIONS ───────────────────
+function renderIntervalBars(containerId, rows, type) {
+  const total = rows.reduce((s,r) => s+(+r.qtd||0), 0);
+  const title = type==='reimb'
+    ? `🔄 Reembolsos por Intervalo <span style="font-size:10px;color:var(--t4)">(${fmt(total)} casos)</span>`
+    : `⚡ Chargebacks por Intervalo <span style="font-size:10px;color:var(--t4)">(${fmt(total)} casos)</span>`;
+  const bars = rows.map(r => {
+    const cor = colorMap[r.cor]||'var(--t4)';
+    return `<div class="ibar-wrap">
+      <div class="ibar-hdr">
+        <div class="ibar-label">${r.intervalo} <span class="ibar-tag" style="background:${cor}22;color:${cor};border:1px solid ${cor}44">${r.label_culpa}</span></div>
+        <div class="ibar-vals" style="color:${cor}">${fmt(r.qtd)} · ${fmt(+r.pct,1)}% · $${fmt(+r.valor)}</div>
+      </div>
+      <div class="ibar-track"><div class="ibar-fill" data-pct="${+r.pct}" style="background:${cor}"></div></div>
+    </div>`;
+  }).join('');
+  $(containerId).innerHTML = `<div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:10px">${title}</div>${bars}`;
+}
+
+function renderScores(rows) {
+  const sc = r => r.status==='CRÍTICO'||r.status==='PAUSAR JÁ'?'sc-crit':r.status==='ALTO'?'sc-high':r.status==='ALINHAR HG'||r.status==='HG'?'sc-hg':r.status==='MONIT.'?'sc-med':'sc-ok';
+  $('score-grid').innerHTML = rows.map((r,i) => `<div class="score-card ${sc(r)}">
+    <div class="sc-rank">#${i+1} · período global</div>
+    <div class="sc-name">${r.afiliado}</div>
+    <div class="sc-type">${r.tipo==='HelpGrid'?'HelpGrid (interno)':'Afiliado'} · Med. ${r.mediana_dias}d</div>
+    <div class="sc-num" style="color:${r.cbs>1?'var(--red)':r.reemb>15?'var(--orange)':'var(--t1)'}">${r.reemb}</div>
+    <div class="sc-num-lbl">Reembolsos</div>
+    <div class="sc-mini-row">
+      <div class="sc-mini"><div class="sc-mini-v" style="color:${r.cbs>0?'var(--red)':'var(--t4)'}">${r.cbs}</div><div class="sc-mini-l">CBs</div></div>
+      <div class="sc-mini"><div class="sc-mini-v" style="color:var(--red)">$${fmt(r.valor_reimb)}</div><div class="sc-mini-l">Perda</div></div>
+      <div class="sc-mini"><div class="sc-mini-v" style="color:${r.pct_0_3d>50?'var(--red)':r.pct_0_3d>30?'var(--orange)':'var(--t4)'}">${r.pct_0_3d}%</div><div class="sc-mini-l">0-3d</div></div>
+    </div>
+  </div>`).join('');
+}
+
+function renderDiag(rows) {
+  const top = rows.filter(r => r.reemb >= 4).slice(0, 6);
+  const col1 = top.slice(0, 3), col2 = top.slice(3);
+  const bar = (lbl, col, pct, raw) => `<div class="diag-row">
+    <div class="diag-lrow"><span class="diag-lbl">${lbl}</span><span class="diag-val" style="color:${col}">${pct}% (${raw})</span></div>
+    <div class="diag-track"><div class="diag-fill" data-pct="${pct}" style="background:${col}"></div></div>
+  </div>`;
+  const card = r => `<div class="diag-card">
+    <div class="diag-name">${r.afiliado}${r.tipo==='HelpGrid'?'<span class="pill p-bl" style="font-size:8px;margin-left:5px">HG</span>':''}</div>
+    <div class="diag-meta">${r.reemb} reembolsos · ${r.cbs} CBs · Mediana: ${r.mediana_dias}d</div>
+    ${bar('0 – 3 dias','var(--red)',r.pct_0_3d,r.raw_0_3d)}
+    ${bar('4 – 7 dias','var(--orange)',r.pct_4_7d,r.raw_4_7d)}
+    ${bar('8 – 15 dias','var(--yellow)',r.pct_8_15d,r.raw_8_15d)}
+    ${bar('16 – 30 dias','var(--blue)',r.pct_16_30d,r.raw_16_30d)}
+    <div class="diag-verdict ${verdictStyle(r.veredicto)}">${r.veredicto}</div>
+  </div>`;
+  $('diag-grid').innerHTML = `<div>${col1.map(card).join('')}</div><div>${col2.map(card).join('')}</div>`;
+}
+
+function renderAfilTable(rows) {
+  const bgMap = {'CRÍTICO':'rgba(239,68,68,.04)','PAUSAR JÁ':'rgba(239,68,68,.06)','ALTO':'rgba(245,158,11,.03)'};
+  $('tbl-afil').innerHTML = rows.map(r => `<tr style="background:${bgMap[r.status]||''}">
+    <td class="bold" style="color:${r.tipo==='HelpGrid'?'var(--blue)':r.status==='PAUSAR JÁ'?'var(--red)':'var(--t1)'}">${r.afiliado}</td>
+    <td class="center" style="font-size:13px;font-weight:700;color:${r.reemb>15?'var(--red)':r.reemb>8?'var(--orange)':'var(--t2)'}">${r.reemb}</td>
+    <td class="center" style="font-weight:700;color:${r.cbs>0?'var(--red)':'var(--t4)'}">${r.cbs||0}</td>
+    <td class="right bold">$${fmt(r.valor_reimb)}</td>
+    <td class="center mono">${r.mediana_dias}d</td>
+    <td class="center" style="font-size:11px;font-weight:700;color:${r.pct_0_3d>50?'var(--red)':r.pct_0_3d>30?'var(--orange)':'var(--t4)'}">${r.pct_0_3d}%</td>
+    <td class="center"><div class="diag-verdict ${verdictStyle(r.veredicto)}" style="font-size:8px;white-space:nowrap;display:inline-block">${r.veredicto}</div></td>
+    <td class="center">${statusPill(r.status)}</td>
+    <td style="font-size:10px;color:var(--t3)">${r.acao}</td>
+  </tr>`).join('');
+}
+
+function renderVamp(rows) {
+  $('tbl-vamp').innerHTML = rows.map(r => {
+    const bg = r.status_visa.includes('CRÍTICO')?'rgba(239,68,68,.04)':r.status_visa.includes('ALERTA')?'rgba(245,158,11,.03)':'';
+    return `<tr style="background:${bg}">
+      <td class="bold" style="color:${r.status_visa.includes('CRÍTICO')?'var(--red)':r.status_visa.includes('ALERTA')?'var(--orange)':'var(--t1)'}">${r.afiliado}</td>
+      <td>${r.produto}</td><td class="center">${r.vendas}</td>
+      <td class="center" style="font-weight:700;color:${r.cbs>2?'var(--red)':r.cbs>0?'var(--orange)':'var(--t2)'}">${r.cbs}</td>
+      <td class="center" style="font-weight:700;color:${r.pct_cb>1?'var(--red)':r.pct_cb>0.5?'var(--orange)':'var(--t2)'}">${fmt(r.pct_cb,1)}%</td>
+      <td class="right" style="color:${r.valor_cb>500?'var(--red)':'var(--t2)'}">$${fmt(r.valor_cb)}</td>
+      <td class="center">${statusPill(r.status_visa)}</td>
+      <td style="font-size:10px;color:var(--t3)">${r.acao}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderReincidentes(rows) {
+  const half = Math.ceil(rows.length/2);
+  const card = r => `<div class="rc-card">
+    <div><div class="rc-name">${r.cliente}</div><div class="rc-email">${r.email}</div><div style="font-size:10px;color:var(--t4);margin-top:2px">${r.afiliado} · ${r.produto}</div></div>
+    <div style="text-align:center"><div class="rc-val">${r.n_reembolsos}</div><div class="rc-vlbl">reembolsos</div></div>
+    <div><div style="font-size:14px;font-weight:700;font-family:var(--mono);color:${r.status==='SUSPEITO'?'var(--red)':'var(--orange)'}">$${fmt(r.valor_total)}</div>
+    <div style="font-size:8px;color:var(--t4)">valor total</div>
+    <div style="margin-top:4px">${statusPill(r.status)}</div></div>
+  </div>`;
+  $('reincidentes-grid').innerHTML = `<div>${rows.slice(0,half).map(card).join('')}</div><div>${rows.slice(half).map(card).join('')}</div>`;
+}
+
+function renderImpacto(rows) {
+  const max = Math.max(...rows.map(r => +r.perda_7d||0), 1);
+  $('impact-bars').innerHTML = rows.map(r => {
+    const pct = Math.round((+r.perda_7d||0)/max*100);
+    const col = pct>80?'var(--red)':pct>50?'var(--orange)':pct>30?'var(--yellow)':'var(--blue)';
+    return `<div class="impact-row">
+      <div class="impact-name">${r.afiliado}</div>
+      <div class="impact-track"><div class="impact-fill" data-pct="${pct}" style="background:${col}"></div></div>
+      <div class="impact-val" style="color:${col}">$${fmt(r.perda_7d)} <span style="font-size:9px;color:var(--t4)">→ $${fmt(r.projecao_anual/1000)}K/ano</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderRetencao(rows) {
+  const cols = {orange:'var(--orange)',green:'var(--green)',lightgreen:'var(--green)',blue:'var(--blue)',red:'var(--red)',gray:'var(--t4)'};
+  $('ret-bars').innerHTML = rows.map(r => `<div class="ret-row">
+    <div class="ret-lbl" style="color:${r.cor==='gray'?'var(--t4)':'var(--t2)'}">${r.resultado}</div>
+    <div class="ret-track"><div class="ret-fill" data-pct="${r.pct}" style="background:${cols[r.cor]||'var(--t4)'}"></div></div>
+    <div class="ret-pct">${r.qtd}</div>
+  </div>`).join('');
+}
+
+function renderHGProd(rows) {
+  const sums = rows.reduce((a,r) => ({l:a.l+(+r.ligacoes||0),e:a.e+(+r.escritos||0),p:a.p+(+r.parcial||0),c:a.c+(+r.completo||0)}), {l:0,e:0,p:0,c:0});
+  $('tbl-hg-prod').innerHTML = rows.map(r => `<tr>
+    <td>${r.produto}</td><td class="center">${r.ligacoes}</td>
+    <td class="center">${r.escritos}</td>
+    <td class="center warn">${r.parcial||0}</td>
+    <td class="center crit">${r.completo}</td>
+  </tr>`).join('') + `<tr style="background:var(--surface2);font-weight:700">
+    <td>TOTAL</td><td class="center bl">${sums.l}</td><td class="center bl">${sums.e}</td>
+    <td class="center warn">${sums.p}</td><td class="center crit">${sums.c}</td>
+  </tr>`;
+}
+
+function renderTOProd(rows) {
+  const sums = rows.reduce((a,r) => ({e:a.e+(+r.escritos||0),c:a.c+(+r.retencao_compl||0),v:a.v+(+r.retido_valor||0)}), {e:0,c:0,v:0});
+  $('tbl-to-prod').innerHTML = rows.map(r => `<tr>
+    <td>${r.produto}</td>
+    <td class="center" style="color:var(--orange)">${r.escritos}</td>
+    <td class="center" style="color:var(--yellow)">${r.retencao_compl||0}</td>
+    <td class="center ok">${r.retencao_compl||0}</td>
+    <td class="right ok">${r.retido_valor>0?'$'+fmt(r.retido_valor):'—'}</td>
+  </tr>`).join('') + `<tr style="background:var(--surface2);font-weight:700">
+    <td>TOTAL</td>
+    <td class="center" style="color:var(--orange)">${sums.e}</td>
+    <td class="center" style="color:var(--yellow)">${sums.c}</td>
+    <td class="center ok">${sums.c}</td>
+    <td class="right ok">$${fmt(sums.v)}</td>
+  </tr>`;
+}
+
+function rpRender(key) {
+  let period, prods, hgWait = false, label = '';
+  if (key === 'marco') {
+    period = RD.marco.total; prods = RD.marco.produtos;
+    hgWait = false; label = 'Março 2026';
+  } else if (key === 'abril_total') {
+    period = RD.abril_total;
+    prods = RD.abril_semanas.reduce((acc, w) => {
+      (w.produtos||[]).forEach(p => {
+        const e = acc.find(a => a.produto===p.produto);
+        if (e) { e.reimb=(e.reimb||0)+(+p.reimb||0); e.cb=(e.cb||0)+(+p.cb||0); e.retido_hg=(e.retido_hg||0)+(+p.retido_hg||0); e.retido_to=(e.retido_to||0)+(+p.retido_to||0); e.parc_hg=(e.parc_hg||0)+(+p.parc_hg||0); e.compl_hg=(e.compl_hg||0)+(+p.compl_hg||0); e.escritos_to=(e.escritos_to||0)+(+p.escritos_to||0); e.retido_to_prod=(e.retido_to_prod||0)+(+p.retido_to_prod||0); }
+        else acc.push({...p});
+      });
+      return acc;
+    }, []);
+    hgWait = true; label = 'Abril 2026 (total)';
+  } else {
+    const w = RD.abril_semanas.find(w => w.key===key);
+    if (!w) { const w2 = RD.abril_semanas[RD.abril_semanas.length-1]; period=w2.total; prods=w2.produtos||[]; hgWait=w2.hg_aguardando; label=w2.label; }
+    else { period=w.total; prods=w.produtos||[]; hgWait=w.hg_aguardando; label=w.label; }
+  }
+
+  $('tbl-periodo').textContent = label;
+  if ($('prod-periodo-lbl')) $('prod-periodo-lbl').textContent = label;
+  $('hg-wait-badge').style.display = hgWait ? 'inline-flex' : 'none';
+  if ($('hg-desemp-status')) $('hg-desemp-status').style.display = hgWait ? 'inline-flex' : 'none';
+
+  $('k-vendas').textContent = fmtM(period.vendas);
+  $('k-vendas-sub').textContent = '↳ Líq: '+fmtM(period.vendas_liquido||period.vendas);
+  $('k-reimb').textContent = fmtM(period.reimb);
+  $('k-reimb-sub').textContent = fmt(period.qtd_reimb||0)+' pedidos reembolsados';
+  $('k-cb').textContent = fmtM(period.cb);
+  $('k-cb-sub').textContent = fmt(period.qtd_cb||0)+' chargebacks processados';
+  $('k-taxa').textContent = fmt(period.taxa,2)+'%';
+  $('k-hg-ret').textContent = hgWait ? '⏳' : fmtM(period.retido_hg);
+  $('k-hg-ret-sub').textContent = hgWait ? 'HG não atualizou ainda' : 'Saved Sales HG';
+  $('k-to-ret').textContent = fmtM(period.retido_to);
+  $('k-to-ret-sub').textContent = '$'+fmt(period.retido_to)+' Tiger retido';
+
+  const overLimit = period.taxa > 8;
+  $('kpi-taxa').classList.toggle('alert-high', overLimit);
+  if (overLimit) {
+    $('taxa-alert').style.display = 'flex';
+    $('taxa-alert-msg').textContent = `⚠️ Taxa geral ${fmt(period.taxa,2)}% — ACIMA do benchmark ≤ 8%. Ação imediata necessária.`;
+  } else {
+    $('taxa-alert').style.display = 'none';
+  }
+
+  const maxRet = Math.max(period.retido_hg, period.retido_to, 1);
+  const hgPct = period.retido_hg/maxRet*100;
+  const toPct = period.retido_to/maxRet*100;
+  const reimbTotal = (period.reimb||0) + (period.cb||0);
+  const txHG = reimbTotal>0 ? period.retido_hg/reimbTotal*100 : 0;
+  const txTO = reimbTotal>0 ? period.retido_to/reimbTotal*100 : 0;
+  $('cmp-hg-bar').style.width = hgPct+'%';
+  $('cmp-to-bar').style.width = toPct+'%';
+  $('cmp-hg-vals').textContent = (hgWait?'Aguardando':fmtM(period.retido_hg))+' · '+(hgWait?'—':fmt(txHG,1)+'%');
+  $('cmp-to-vals').textContent = fmtM(period.retido_to)+' · '+fmt(txTO,1)+'%';
+  $('ret-total-combinado').textContent = fmtM(period.retido_hg + period.retido_to);
+  const pctComb = reimbTotal>0 ? (period.retido_hg+period.retido_to)/reimbTotal*100 : 0;
+  $('ret-pct-combinado').textContent = fmt(pctComb,1)+'%';
+
+  const taxaClass = period.taxa>10?'p-crit':period.taxa>8?'p-warn':'p-ok';
+  const totParcHG = prods.reduce((s,p) => s+(+p.parc_hg||0), 0);
+  const totComplHG = prods.reduce((s,p) => s+(+p.compl_hg||0), 0);
+  const totEscTO = prods.reduce((s,p) => s+(+p.escritos_to||0), 0);
+  $('tbl-unificada').innerHTML = `<tr>
+    <td class="right bold mono">$${fmt(period.vendas)}</td>
+    <td class="right crit">$${fmt(period.reimb)}</td>
+    <td class="right crit">$${fmt(period.cb)}</td>
+    <td class="center"><span class="pill ${taxaClass}">${fmt(period.taxa,2)}%</span></td>
+    <td class="right" style="color:${hgWait?'var(--yellow)':'var(--blue)'}">
+      ${hgWait?'<span class="hg-wait">⏳ Aguardando</span>':'$'+fmt(period.retido_hg)}</td>
+    <td class="center">${hgWait?'—':fmt(totParcHG)}</td>
+    <td class="center crit">${hgWait?'—':fmt(totComplHG)}</td>
+    <td class="center"><span class="pill ${hgWait?'p-or':'p-bl'}">${hgWait?'⏳':fmt(txHG,1)+'%'}</span></td>
+    <td class="right ok">$${fmt(period.retido_to)}</td>
+    <td class="center" style="color:var(--orange)">${fmt(totEscTO)}</td>
+    <td class="center ok">${fmt(prods.reduce((s,p) => s+(+p.retencao_compl||0),0))}</td>
+    <td class="center"><span class="pill p-ok">${fmt(txTO,1)}%</span></td>
+  </tr>`;
+
+  if (prods.length > 0) {
+    $('tbl-prod-body').innerHTML = prods.map(p => {
+      const isLegado = (p.produto||'').includes('legado');
+      const isNew = p.produto==='LipoBliss'||p.produto==='LipoTrine';
+      const nomeBadge = isLegado
+        ? p.produto.replace(' (legado)','') + ' <span class="pill p-warn" style="font-size:8px">LEGADO</span>'
+        : isNew ? p.produto + ' <span class="pill p-ok" style="font-size:8px">NOVO</span>'
+        : p.produto;
+      return `<tr${isLegado?' style="opacity:.75"':''}>
+        <td class="bold">${nomeBadge}</td>
+        <td class="right mono">$${fmt(+p.vendas||0)}</td>
+        <td class="right mono" style="color:var(--t3)">$${fmt(+p.vendas_liquido||0)}</td>
+        <td class="right crit">$${fmt(+p.reimb||0)}</td>
+        <td class="right warn">$${fmt(+p.cb||0)}</td>
+        <td class="center"><span class="pill ${(+p.taxa||0)>15?'p-crit':(+p.taxa||0)>8?'p-warn':'p-ok'}">${fmt(+p.taxa||0,1)}%</span></td>
+        <td class="right" style="color:${hgWait?'var(--t4)':'var(--blue)'}">
+          ${hgWait?'—':'$'+fmt(+p.retido_hg||0)}</td>
+        <td class="right ok">$${fmt(+p.retido_to||0)}</td>
+      </tr>`;
+    }).join('');
+  } else {
+    $('tbl-prod-body').innerHTML = `<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--t4)">Produtos disponíveis apenas para S1, Março e Abril Total</td></tr>`;
+  }
+}
+
+// ─── RENDER CS INTELIGENTE (Calcula Tudo) ───────────────────
+function renderCS(rows) {
+  if (!rows || rows.length === 0) {
+    $('ag-grid').innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--t4);">Nenhum ticket registrado neste período.</div>';
+    if($('tbl-cs')) $('tbl-cs').innerHTML = '<tr><td colspan="10" class="center">Sem dados</td></tr>';
+    ['cs-kpi-tickets','cs-kpi-ret-qtd','cs-kpi-ret-val','cs-kpi-best-val','cs-kpi-active-tick','cs-kpi-taxa'].forEach(id => { if($(id)) $(id).textContent = '0'; });
+    return;
+  }
+
   let tTickets = 0, tRetQtd = 0, tParcQtd = 0, tRetVal = 0, tParcVal = 0, tPropostas = 0, tGateway = 0;
   let bestAg = { nome: '—', val: 0, ret: 0 };
   let activeAg = { nome: '—', tick: 0, prop: 0 };
@@ -829,24 +1141,19 @@ function applyPeriod(key) {
   const totalVal = tRetVal + tParcVal;
   const taxa = tTickets > 0 ? (totalQtd / tTickets) * 100 : 0;
 
-  // 2. Atualiza os BLOCOS DE KPI LÁ DO TOPO
+  // Atualiza blocos grandes do topo
   if($('cs-kpi-tickets')) $('cs-kpi-tickets').textContent = tTickets;
   if($('cs-kpi-ret-qtd')) $('cs-kpi-ret-qtd').textContent = totalQtd;
   if($('cs-kpi-ret-sub')) $('cs-kpi-ret-sub').textContent = `${tRetQtd} diretas + ${tParcQtd} parc.→ret.`;
-  
   if($('cs-kpi-ret-val')) $('cs-kpi-ret-val').textContent = '$' + fmt(totalVal/1000, 1) + 'K';
   if($('cs-kpi-ret-val-sub')) $('cs-kpi-ret-val-sub').textContent = `$${fmt(tRetVal)} direto + $${fmt(tParcVal)} reclassif.`;
-
   if($('cs-kpi-best-val')) $('cs-kpi-best-val').textContent = bestAg.val > 0 ? '$' + fmt(bestAg.val/1000, 1) + 'K' : '$0';
   if($('cs-kpi-best-ag')) $('cs-kpi-best-ag').textContent = `${bestAg.nome} — ${bestAg.ret} ret. totais`;
-
   if($('cs-kpi-active-tick')) $('cs-kpi-active-tick').textContent = activeAg.tick;
   if($('cs-kpi-active-ag')) $('cs-kpi-active-ag').textContent = `${activeAg.nome} — ${activeAg.prop} propostas`;
-
   if($('cs-kpi-taxa')) $('cs-kpi-taxa').textContent = fmt(taxa, 1) + '%';
   if($('cs-kpi-taxa-sub')) $('cs-kpi-taxa-sub').textContent = `Retenção no período`;
 
-  // 3. Atualiza os CARDS DOS AGENTES
   const perfCol = {EXCELENTE:'var(--green)', BOM:'var(--blue)', 'EM DESENVOLVIMENTO':'var(--yellow)', 'MONIT.':'var(--t4)'};
   $('ag-grid').innerHTML = rows.map(r => {
     const perf = (r.performance || 'MONIT.').toUpperCase();
@@ -864,7 +1171,6 @@ function applyPeriod(key) {
     </div>`;
   }).join('');
 
-  // 4. Atualiza a TABELA NO FINAL DA PÁGINA
   if($('tbl-cs')) {
     const tRows = rows.map(r => {
       const perf = (r.performance || 'MONIT.').toUpperCase();
@@ -882,7 +1188,6 @@ function applyPeriod(key) {
         <td class="center">${statusPill(perf)}</td>
       </tr>`;
     });
-    
     $('tbl-cs').innerHTML = tRows.join('') + `<tr style="background:var(--surface2);font-weight:700">
       <td>TOTAL</td><td class="center bl">${tTickets}</td><td class="right ok">$${fmt(tRetVal)}</td>
       <td class="center" style="color:var(--orange)">${tRetQtd}</td><td class="center warn">${tParcQtd}</td>
@@ -892,39 +1197,34 @@ function applyPeriod(key) {
   }
 }
 
-// ─── FETCH TODAY CS ──────────────────────────
-// ─── FETCH TODAY CS (Simplificada) ──────────────────────────
 function fetchTodayCS() {
-  // Apenas puxa o que já está na tela
-  $('cs-hoje-tickets').textContent = $('cs-kpi-tickets').textContent || '0';
-  $('cs-hoje-retido').textContent = $('cs-kpi-ret-val').textContent || '$0';
-  $('cs-hoje-taxa').textContent = $('cs-kpi-taxa').textContent || '0%';
-}
-    
-    // ATUALIZA A TELA SEM OS TILS (~)!
-    $('cs-hoje-tickets').textContent = tot;
-    $('cs-hoje-retido').textContent = '$' + fmt(retV);
-    $('cs-hoje-taxa').textContent = fmt(taxa, 1) + '%';
-  } else {
-    $('cs-hoje-tickets').textContent = '0';
-    $('cs-hoje-retido').textContent = '$0';
-    $('cs-hoje-taxa').textContent = '0%';
-  }
+  if($('cs-hoje-tickets') && $('cs-kpi-tickets')) $('cs-hoje-tickets').textContent = $('cs-kpi-tickets').textContent || '0';
+  if($('cs-hoje-retido') && $('cs-kpi-ret-val')) $('cs-hoje-retido').textContent = $('cs-kpi-ret-val').textContent || '$0';
+  if($('cs-hoje-taxa') && $('cs-kpi-taxa')) $('cs-hoje-taxa').textContent = $('cs-kpi-taxa').textContent || '0%';
 }
 
-// ─── LOAD DATA (Acesso Único e Global) ──────────
+// ─── LOAD DATA (Acesso Único) ──────────
 async function loadData() {
-  // Preenche dados vazios primeiro
+  renderIntervalBars('reimb-interval-bars', FB.intervalos_reimb, 'reimb');
+  renderIntervalBars('cb-interval-bars', FB.intervalos_cb, 'cb');
+  renderScores(FB.afiliados);
+  renderDiag(FB.afiliados);
+  renderAfilTable(FB.afiliados);
+  renderVamp(FB.vamp);
+  renderReincidentes(FB.reincidentes);
+  renderImpacto(FB.impacto);
+  renderRetencao(FB.retencao);
+  renderHGProd(FB.hg_produtos);
+  renderTOProd(FB.tiger_produtos);
   renderCS(FB.cs); 
 
   try {
-    const url = APPS_SCRIPT_URL + "?_=" + Date.now(); // Evita cache
+    const url = APPS_SCRIPT_URL + "?_=" + Date.now();
     const r = await fetch(url, { redirect: 'follow' });
-    
     if (!r.ok) throw new Error("Erro na requisição HTTP");
     
     const data = await r.json();
-    window.dadosScript = data; // Guarda no navegador
+    window.dadosScript = data; 
     
     if($('err-banner')) $('err-banner').style.display = 'none';
     
@@ -935,8 +1235,6 @@ async function loadData() {
         if ($('cs-hoje-data')) $('cs-hoje-data').textContent = dataAtualizacao.valor;
       }
     }
-
-    // Após carregar os dados reais da planilha, força a atualização da tela
     applyPeriod(currentPeriod); 
 
   } catch(e) {
@@ -976,7 +1274,6 @@ window.addEventListener('DOMContentLoaded', () => {
   applyStoredTheme();
   $('global-period-badge').textContent = '📅 Semana 5 — 27 a 30/04';
   
-  // Começa carregando tudo!
   loadData().finally(() => {
     setTimeout(() => {
       $('loading').classList.add('hidden');
