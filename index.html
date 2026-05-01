@@ -322,6 +322,17 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
           <div class="live-dot" style="font-size:10px">Atualizado <span id="hdr-data" style="margin-left:3px">—</span></div>
           <div class="hoje-badge" id="global-period-badge" style="font-size:10px;padding:2px 8px">📅 Hoje</div>
           <button onclick="syncData()" id="sync-btn" style="padding:3px 9px;border-radius:6px;border:1px solid var(--border-s);background:var(--surface2);color:var(--t2);font-size:10px;cursor:pointer;font-family:var(--font)">🔄 Sincronizar</button>
+          <button onclick="openConfig()" style="padding:3px 9px;border-radius:6px;border:1px solid var(--border-s);background:var(--surface2);color:var(--t3);font-size:10px;cursor:pointer;font-family:var(--font)" title="Configurar URL do Apps Script">⚙️ URL</button>
+        </div>
+        <!-- Config panel -->
+        <div id="config-panel" style="display:none;margin-top:8px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border-s);border-radius:8px;min-width:420px">
+          <div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:6px">🔗 URL do Apps Script (doGet)</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="as-url-input" type="text" placeholder="https://script.google.com/macros/s/…/exec"
+              style="flex:1;padding:5px 8px;border-radius:6px;border:1px solid var(--border-s);background:var(--surface);color:var(--t1);font-size:11px;font-family:var(--mono);outline:none">
+            <button onclick="saveConfig()" style="padding:5px 12px;border-radius:6px;border:none;background:var(--orange);color:#fff;font-size:11px;font-weight:700;cursor:pointer">Salvar</button>
+          </div>
+          <div style="font-size:9px;color:var(--t3);margin-top:5px">Deploy como: Executar como → Eu · Quem tem acesso → Qualquer pessoa</div>
         </div>
       </div>
     </div>
@@ -723,15 +734,13 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
 <footer><div>🐯 Tiger Offers — Dashboard Backend v2.0</div><div id="footer-periodo">—</div><div>BuyGoods · HG Tracker · Tabulação Tiger · Apps Script</div></footer>
 
 <script>
-// ─── UTILS ──────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+//  TIGER DASHBOARD v7
+// ═══════════════════════════════════════════════════════════════
 const $ = id => document.getElementById(id);
-const fmt = (n, d=0) => n == null || isNaN(n) ? '—' : Number(n).toLocaleString('pt-BR', {minimumFractionDigits:d, maximumFractionDigits:d});
-const fmtM = n => {
-  if (n == null || isNaN(n)) return '—';
-  if (n >= 1e6) return '$' + fmt(n/1e6, 2) + 'M';
-  if (n >= 1e3) return '$' + fmt(n/1e3, 1) + 'K';
-  return '$' + fmt(n);
-};
+const fmt  = (n,d=0) => n==null||isNaN(n)?'—':Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtM = n => { if(n==null||isNaN(n))return'—'; if(n>=1e6)return'$'+fmt(n/1e6,2)+'M'; if(n>=1e3)return'$'+fmt(n/1e3,1)+'K'; return'$'+fmt(n); };
+
 const colorMap = {
   red:'var(--red)', orange:'var(--orange)', yellow:'var(--yellow)',
   blue:'var(--blue)', lightred:'rgba(239,68,68,.5)', lightorange:'rgba(255,107,53,.5)',
@@ -1210,377 +1219,332 @@ function rpRender(key) {
     }).join('');
   } else {
     $('tbl-prod-body').innerHTML = `<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--t4)">Produtos disponíveis apenas para S1, Março e Abril Total</td></tr>`;
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  MOTOR DE DADOS — v6
-//  Busca Form Responses 1 + HelpGrid_Raw via gviz/tq (CSV público)
-//  Filtra por período e re-renderiza TUDO ao mudar data
-// ══════════════════════════════════════════════════════════════════
-
-const SHEET_ID = '1u8dhtbT8NODgdbzOJfJTwE04vFLE79K3hP-zm9nfT7Y';
-const GVZ = (sheet) =>
-  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}&headers=1`;
-
-// Cache global
-const RAW = { respostas: [], helpgrid: [], synced: false };
-let currentDR = '60d';   // período ativo
-
-// ── CSV robusto ──────────────────────────────────────────────────
-function parseCSV(txt) {
-  const lines = txt.trim().split(/\r?\n/);
-  if (lines.length < 2) return [];
-  // Parse headers — remove BOM, quotes
-  const hdrs = splitCSVLine(lines[0]).map(h => h.replace(/^\uFEFF/, '').trim());
-  const out = [];
-  for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
-    const vals = splitCSVLine(lines[i]);
-    const obj = {};
-    hdrs.forEach((h, j) => { if (h) obj[h] = (vals[j] || '').trim(); });
-    out.push(obj);
   }
-  return out;
 }
 
-function splitCSVLine(line) {
-  const res = []; let cur = '', inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
-      else inQ = !inQ;
-    } else if (c === ',' && !inQ) { res.push(cur); cur = ''; }
-    else cur += c;
-  }
-  res.push(cur);
-  return res;
-}
+// ═══════════════════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ═══════════════════════════════════════════════════════════════
+const RAW = { form: [], hg: [], ok: false };
+let DR = '60d';   // período activo
 
-// ── Date utils ───────────────────────────────────────────────────
-function getDRDates(key) {
-  const now = new Date();
+// URL do Apps Script — guardado em localStorage para persistir
+let AS_URL = localStorage.getItem('tiger_as_url') || '';
+
+// ═══════════════════════════════════════════════════════════════
+//  DATAS
+// ═══════════════════════════════════════════════════════════════
+function getDR(key) {
+  const now   = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const p = n => String(n).padStart(2, '0');
+  const p = n => String(n).padStart(2,'0');
   const iso = d => `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
-
-  if (key === 'hoje')  { return { from: iso(today), to: iso(today), label: 'Hoje — ' + today.toLocaleDateString('pt-BR') }; }
-  if (key === 'ontem') { const y = new Date(today); y.setDate(y.getDate()-1); return { from: iso(y), to: iso(y), label: 'Ontem — ' + y.toLocaleDateString('pt-BR') }; }
-  const dias = { '7d':7,'15d':15,'30d':30,'60d':60 }[key] || 60;
-  const f = new Date(today); f.setDate(f.getDate() - (dias-1));
-  return { from: iso(f), to: iso(today), label: `Últimos ${dias} dias` };
+  if (key==='hoje')  { return {from:iso(today), to:iso(today), label:'Hoje — '+today.toLocaleDateString('pt-BR')}; }
+  if (key==='ontem') { const y=new Date(today); y.setDate(y.getDate()-1); return {from:iso(y), to:iso(y), label:'Ontem — '+y.toLocaleDateString('pt-BR')}; }
+  const dias = {'7d':7,'15d':15,'30d':30,'60d':60}[key]||60;
+  const f = new Date(today); f.setDate(f.getDate()-(dias-1));
+  return {from:iso(f), to:iso(today), label:`Últimos ${dias} dias`};
 }
 
 function parseDt(v) {
   if (!v) return null;
   const s = String(v).trim();
-  // "4/29/2026 17:35:50"  M/D/YYYY
-  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);   // M/D/YYYY ou D/M/YYYY
   if (m) return new Date(+m[3], +m[1]-1, +m[2]);
-  // "29/04/2026"  D/M/YYYY
-  m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if (m) return new Date(+m[3], +m[2]-1, +m[1]);
-  // ISO / other
-  const d = new Date(s); return isNaN(d) ? null : d;
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);              // ISO
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  const d = new Date(s); return isNaN(d)?null:d;
 }
 
 function isoD(d) { const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
-function inRange(v, from, to) { const d=parseDt(v); if(!d) return false; const s=isoD(d); return s>=from && s<=to; }
+function inRange(v, from, to) { const d=parseDt(v); if(!d) return false; const s=isoD(d); return s>=from&&s<=to; }
 
-// ── Sincronizar dados ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+//  SINCRONIZAÇÃO — Apps Script doGet
+// ═══════════════════════════════════════════════════════════════
 async function syncData() {
+  if (!AS_URL) { showBanner('warn','⚠️ Cole o URL do seu Apps Script e clique em Sincronizar.'); return; }
+
   const btn = $('sync-btn');
-  if (btn) { btn.textContent='⏳ Buscando…'; btn.disabled=true; btn.style.color=''; }
-  showBanner('info', '🔄 Buscando dados da planilha…');
+  if (btn) { btn.textContent='⏳ Buscando…'; btn.disabled=true; }
+  showBanner('info','🔄 Conectando ao Apps Script…');
 
   try {
-    const [rResp, rHG] = await Promise.all([
-      fetch(GVZ('Form Responses 1')),
-      fetch(GVZ('HelpGrid_Raw'))
-    ]);
+    const url = AS_URL.trim() + (AS_URL.includes('?')?'&':'?') + 'ts=' + Date.now();
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
 
-    if (!rResp.ok) throw new Error(`Form Responses: HTTP ${rResp.status}`);
-    if (!rHG.ok)   throw new Error(`HelpGrid_Raw: HTTP ${rHG.status}`);
+    // Apps Script retorna: { respostas_brutas:[], helpgrid_raw:[], timestamp:'' }
+    RAW.form = (data.respostas_brutas || []).map(normalizeRow);
+    RAW.hg   = (data.helpgrid_raw    || []).map(normalizeRow);
+    RAW.ok   = true;
+    RAW.at   = new Date();
 
-    const [csvResp, csvHG] = await Promise.all([rResp.text(), rHG.text()]);
+    $('hdr-data').textContent = RAW.at.toLocaleString('pt-BR');
 
-    RAW.respostas = parseCSV(csvResp);
-    RAW.helpgrid  = parseCSV(csvHG);
-    RAW.synced    = true;
-    RAW.syncAt    = new Date();
+    // Debug: mostra colunas no console
+    if (RAW.form[0]) console.log('[Form] cols:', Object.keys(RAW.form[0]).join(' | '));
+    if (RAW.hg[0])   console.log('[HG] cols:',   Object.keys(RAW.hg[0]).join(' | '));
 
-    $('hdr-data').textContent = RAW.syncAt.toLocaleString('pt-BR');
-
-    const msg = `✅ ${RAW.respostas.length} tickets · ${RAW.helpgrid.length} linhas HG`;
+    const msg = `✅ ${RAW.form.length} tickets · ${RAW.hg.length} linhas HG`;
     showBanner('ok', msg);
     if (btn) { btn.textContent='✅ Sincronizado'; btn.style.color='var(--green)'; }
-
-    // DEBUG: mostra colunas no console
-    if (RAW.respostas[0]) console.log('[Form] colunas:', Object.keys(RAW.respostas[0]));
-    if (RAW.helpgrid[0])  console.log('[HG] colunas:',   Object.keys(RAW.helpgrid[0]));
 
     renderAll();
 
   } catch(err) {
     console.error('Sync error:', err);
-    showBanner('err', '❌ Erro ao buscar planilha: ' + err.message + ' — Verifique se a planilha está compartilhada publicamente (Qualquer pessoa com o link → Visualizador).');
+    const hint = err.message.includes('fetch') 
+      ? ' Verifique: 1) URL correto 2) Deploy como "Qualquer pessoa" 3) Planilha compartilhada'
+      : '';
+    showBanner('err','❌ ' + err.message + hint);
     if (btn) { btn.textContent='❌ Erro'; btn.style.color='var(--red)'; }
-    // Usa FB como fallback mas avisa
-    renderAll();
   } finally {
-    if (btn) btn.disabled = false;
-    setTimeout(() => { if(btn){btn.textContent='🔄 Sincronizar';btn.style.color='';} }, 6000);
+    if (btn) btn.disabled=false;
+    setTimeout(()=>{ if(btn){btn.textContent='🔄 Sincronizar';btn.style.color='';} },6000);
   }
 }
 
-function showBanner(type, msg) {
-  const b = $('err-banner'); if(!b) return;
-  b.style.display='flex';
-  b.className = 'alert-banner ' + (type==='err'?'err':type==='ok'?'show':'show');
-  b.style.background = type==='err'?'var(--red-l)':type==='ok'?'var(--green-l)':'var(--yellow-l)';
-  b.style.borderColor = type==='err'?'rgba(239,68,68,.3)':type==='ok'?'rgba(34,197,94,.3)':'rgba(245,158,11,.3)';
-  b.style.color = type==='err'?'var(--red)':type==='ok'?'var(--green)':'var(--yellow)';
-  $('err-msg').textContent = msg;
-  if (type !== 'err') setTimeout(() => { b.style.display='none'; }, 5000);
+// Normaliza chaves: remove espaços extras, trata Date objects do Apps Script
+function normalizeRow(r) {
+  const out = {};
+  Object.entries(r).forEach(([k,v]) => {
+    // Apps Script envia Date como string ISO ou objeto — normaliza para string
+    out[k.trim()] = (v instanceof Object && v.constructor !== Object) ? String(v) : String(v==null?'':v);
+  });
+  return out;
 }
 
-// ══════════════════════════════════════════════════════════════════
-//  MOTOR DE CLASSIFICAÇÃO
-//  Detecta colunas automaticamente e classifica cada linha
-// ══════════════════════════════════════════════════════════════════
-
-function detectCols(sample) {
+// ═══════════════════════════════════════════════════════════════
+//  DETECÇÃO DE COLUNAS (Form Responses 1)
+// ═══════════════════════════════════════════════════════════════
+function detectFormCols(sample) {
   const keys = Object.keys(sample || {});
-  const find = (...pats) => keys.find(k => pats.some(p => p.test(k))) || '';
+  const f = (...pats) => keys.find(k => pats.some(p => p.test(k))) || '';
   return {
-    ts:      find(/^timestamp$/i, /data.*hora/i, /^date$/i),
-    agente:  find(/^atendente$/i, /agente/i, /agent/i),
-    produto: find(/^produto$/i, /product/i),
-    resp:    find(/^respons/i, /affiliate/i),
-    freq:    find(/frequência/i, /frequency/i, /freq/i),
-    status:  find(/^status$/i, /resultado/i, /desfecho/i, /retid/i, /outcome/i),
-    valor:   find(/valor.*retid/i, /sale.?value/i, /amount/i, /value/i),
-    email:   find(/e-mail.*cliente/i, /customer.*email/i, /email.*client/i),
-    pedido:  find(/número.*pedido/i, /order.?id/i, /order.?number/i),
+    ts:      f(/timestamp/i, /data.hora/i),
+    agente:  f(/^atendente$/i, /agente/i),
+    produto: f(/^produto$/i, /product/i),
+    resp:    f(/^respons/i),
+    freq:    f(/frequência/i, /frequency/i),
+    status:  f(/^status$/i, /resultado/i, /desfecho/i),
+    valor:   f(/valor.*retid/i, /sale.value/i, /amount/i),
   };
 }
 
 function detectHGCols(sample) {
   const keys = Object.keys(sample || {});
-  const find = (...pats) => keys.find(k => pats.some(p => p.test(k))) || '';
+  const f = (...pats) => keys.find(k => pats.some(p => p.test(k))) || '';
   return {
-    date:    find(/^date$/i, /^data$/i, /timestamp/i),
-    produto: find(/^product$/i, /^produto$/i, /item/i),
-    saved:   find(/saved.?sale/i, /sale.?saved/i, /completo/i, /retained/i),
-    partial: find(/partial/i, /parcial/i),
-    refund:  find(/full.?ref/i, /reembol/i, /refund/i),
-    calls:   find(/^calls?$/i, /ligaç/i, /total.?calls/i),
-    emails:  find(/email|escrito|wrote/i),
-    valor:   find(/sale.?amount/i, /valor/i, /value/i, /amount/i),
+    date:    f(/^date$/i, /^data$/i, /timestamp/i),
+    prod:    f(/^product$/i, /^produto$/i),
+    saved:   f(/saved.sale/i, /completo/i, /retained/i),
+    partial: f(/partial/i, /parcial/i),
+    refund:  f(/full.ref/i, /reembol/i),
+    calls:   f(/^calls?$/i, /ligaç/i),
+    valor:   f(/sale.amount/i, /valor/i, /value/i),
   };
 }
 
-// Classifica resultado de uma linha do Form Responses
-function classifyRow(r, cols) {
-  // Texto completo de campos relevantes para busca
-  const statusVal = (r[cols.status] || '').toLowerCase();
-  const freqVal   = (r[cols.freq]   || '').toLowerCase();
-  const allText   = Object.values(r).join(' ');
+// ═══════════════════════════════════════════════════════════════
+//  CLASSIFICAÇÃO DE RESULTADO (uma linha do Form)
+// ═══════════════════════════════════════════════════════════════
+function classify(r, cols) {
+  const all = Object.values(r).join(' ');
+  const low = all.toLowerCase();
+  const hasCheck = all.includes('✅');
+  const hasCross = all.includes('❌');
 
-  // ✅ / ❌ explícito
-  const hasCheck  = allText.includes('✅');
-  const hasCross  = allText.includes('❌');
-  const allLow    = allText.toLowerCase();
-
-  if (/reembol|full.?refund/i.test(allLow)) return 'reimb';
-  if (/gateway|encaminh.*hg|helpgrid|hg.*gateway/i.test(allLow)) return 'gateway';
-  if (/parcial|partial|desc.*parc/i.test(allLow) && !hasCheck) return 'parcial';
-  if (hasCheck || /retid|aceitou|manteve|saved|retenc/i.test(allLow)) return 'retido';
-  if (/parcial|partial/i.test(allLow)) return 'parcial'; // parcial sem cross também conta
-  if (hasCross || /recusou|não aceitou|n.o ret/i.test(allLow)) return 'nao_ret';
-  if (/andamento|em contato|negoci/i.test(freqVal)) return 'andamento';
+  if (/reembol|full.?refund/i.test(low))                      return 'reimb';
+  if (/gateway|encaminh.*hg|\bhg\b.*gateway/i.test(low))      return 'gateway';
+  if (/parcial|partial/i.test(low) && !hasCheck)              return 'parcial';
+  if (hasCheck || /\bretid|\baceitou|manteve|saved/i.test(low)) return 'retido';
+  if (/parcial|partial/i.test(low))                           return 'parcial';
+  if (hasCross || /recusou|n.o aceitou/i.test(low))           return 'nao_ret';
+  if (/andamento|negoci/i.test((r[cols.freq]||'').toLowerCase())) return 'andamento';
   return 'outros';
 }
 
-// ══════════════════════════════════════════════════════════════════
-//  RENDER ALL — ponto central chamado a cada mudança de período
-// ══════════════════════════════════════════════════════════════════
-
+// ═══════════════════════════════════════════════════════════════
+//  RENDER ALL — chamado a cada mudança de período
+// ═══════════════════════════════════════════════════════════════
 function renderAll() {
-  const dr = getDRDates(currentDR);
-  const { from, to } = dr;
+  const dr = getDR(DR);
 
-  // Sincroniza label em todos os lugares
-  document.querySelectorAll('.dr-btn').forEach(b => b.classList.toggle('active', b.dataset.dr === currentDR));
+  // Sincroniza botões ativos em TODAS as abas
+  document.querySelectorAll('.dr-btn').forEach(b => b.classList.toggle('active', b.dataset.dr === DR));
+
+  // Atualiza labels
   $('global-period-badge').textContent = '📅 ' + dr.label;
-  if ($('hdr-semana')) $('hdr-semana').textContent = dr.label;
-  if ($('footer-periodo')) $('footer-periodo').textContent = dr.label;
-  if ($('ret-cmp-period-lbl')) $('ret-cmp-period-lbl').textContent = dr.label;
-  if ($('cmp-efic-period'))    $('cmp-efic-period').textContent    = dr.label;
+  ['hdr-semana','footer-periodo','ret-cmp-period-lbl','cmp-efic-period'].forEach(id => { const e=$(id); if(e) e.textContent=dr.label; });
 
-  if (RAW.synced && RAW.respostas.length > 0) {
-    renderFromRaw(from, to, dr.label);
+  if (RAW.ok && RAW.form.length > 0) {
+    renderFromRaw(dr.from, dr.to, dr.label);
   } else {
-    // Fallback estático FB
-    renderCS(FB.cs);
+    // Fallback estático — CS com dados FB
+    renderCSStatic();
     renderRetencao(FB.retencao);
     renderHGProd(FB.hg_produtos);
     renderTOProd(FB.tiger_produtos);
-    renderRetComparativo(null);
+    renderRetComp(null);
   }
-
   setTimeout(animateBars, 80);
 }
 
-function renderFromRaw(from, to, label) {
-  const cols = detectCols(RAW.respostas[0] || {});
-  const hgCols = detectHGCols(RAW.helpgrid[0] || {});
+// Fallback CS com dados estáticos do FB (para quando sem conexão)
+function renderCSStatic() {
+  renderCSCards(FB.cs.map(a => ({
+    agente: a.agente, tickets: a.tickets_tab,
+    retidos: a.retidos_qtd, parcial: a.parcial_compl_qtd,
+    gateway: a.gateway_hg, reimb: 0,
+    taxa: a.tickets_tab>0?(a.retidos_qtd+a.parcial_compl_qtd)/a.tickets_tab*100:0,
+    perf: a.performance
+  })));
+}
 
-  // ── Filtra Form Responses por período ──────────────────────────
-  const rows = RAW.respostas.filter(r => {
+// ═══════════════════════════════════════════════════════════════
+//  MOTOR PRINCIPAL — calcula tudo a partir dos dados brutos
+// ═══════════════════════════════════════════════════════════════
+function renderFromRaw(from, to, label) {
+  const cols   = detectFormCols(RAW.form[0] || {});
+  const hgcols = detectHGCols(RAW.hg[0]    || {});
+
+  // ── Form Responses filtrado por período ──────────────────────
+  const rows = RAW.form.filter(r => {
     const ts = r[cols.ts] || r['Timestamp'] || r['timestamp'] || '';
     return inRange(ts, from, to);
   });
 
-  // ── Agrupa por Atendente ───────────────────────────────────────
+  // ── Agrupa por Atendente ─────────────────────────────────────
   const agMap = {};
   rows.forEach(r => {
     const ag = (r[cols.agente] || r['Atendente'] || '(sem nome)').trim();
-    if (!agMap[ag]) agMap[ag] = { agente:ag, tickets:0, retidos:0, parcial:0, gateway:0, reimb:0, nao_ret:0, andamento:0, outros:0, valor:0 };
+    if (!ag || ag==='(sem nome)') return;
+    if (!agMap[ag]) agMap[ag] = {agente:ag,tickets:0,retidos:0,parcial:0,gateway:0,reimb:0,nao_ret:0,outros:0,valor:0};
     agMap[ag].tickets++;
-    const cls = classifyRow(r, cols);
-    agMap[ag][cls] = (agMap[ag][cls] || 0) + 1;
+    const cls = classify(r, cols);
+    agMap[ag][cls] = (agMap[ag][cls]||0) + 1;
     if (cls==='retido'||cls==='parcial') {
-      const v = parseFloat((r[cols.valor]||'').replace(/[^\d.]/g,'')) || 0;
-      agMap[ag].valor += v;
+      agMap[ag].valor += parseFloat((r[cols.valor]||'').replace(/[^\d.]/g,''))||0;
     }
   });
 
   const agentes = Object.values(agMap)
     .filter(a => a.tickets > 0)
-    .sort((a,b) => b.tickets - a.tickets)
-    .map(a => ({
-      ...a,
-      totalRet: a.retidos + a.parcial,
-      taxa: a.tickets > 0 ? (a.retidos+a.parcial)/a.tickets*100 : 0,
-      perf: (() => { const t=(a.retidos+a.parcial)/Math.max(a.tickets,1)*100; return t>=20?'EXCELENTE':t>=10?'BOM':'EM_RAMP'; })()
+    .sort((a,b) => b.tickets-a.tickets)
+    .map(a => ({ ...a,
+      taxa: a.tickets>0?(a.retidos+a.parcial)/a.tickets*100:0,
+      perf: (()=>{ const t=(a.retidos+a.parcial)/Math.max(a.tickets,1)*100; return t>=20?'EXCELENTE':t>=10?'BOM':'EM_RAMP'; })()
     }));
 
-  // ── Render CS cards + tabela ───────────────────────────────────
-  renderCSLive(agentes, rows.length);
+  // ── Render CS ────────────────────────────────────────────────
+  if (agentes.length > 0) {
+    renderCSCards(agentes);
+    $('cs-total').textContent = rows.length;
+  } else {
+    $('ag-grid').innerHTML = `<div style="padding:32px;text-align:center;color:var(--t3)">
+      Nenhum ticket encontrado para <strong>${label}</strong><br>
+      <small style="font-size:10px">Verifique se a data bate com o campo Timestamp da planilha</small>
+    </div>`;
+    $('tbl-cs').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:16px;color:var(--t4)">Sem dados no período</td></tr>`;
+    $('cs-total').textContent = 0;
+  }
 
-  // ── Tiger por produto ──────────────────────────────────────────
-  const prodMapT = {};
+  // ── Agrupa por Produto (Tiger) ───────────────────────────────
+  const prodT = {};
   rows.forEach(r => {
-    const prod = (r[cols.produto]||r['Produto']||'—').trim();
-    if (!prodMapT[prod]) prodMapT[prod]={produto:prod,escritos:0,retencao_compl:0,retido_valor:0};
-    prodMapT[prod].escritos++;
-    const cls = classifyRow(r, cols);
+    const p = (r[cols.produto]||r['Produto']||'—').trim();
+    if (!prodT[p]) prodT[p]={produto:p,escritos:0,retencao_compl:0,retido_valor:0};
+    prodT[p].escritos++;
+    const cls = classify(r, cols);
     if (cls==='retido'||cls==='parcial') {
-      prodMapT[prod].retencao_compl++;
-      prodMapT[prod].retido_valor += parseFloat((r[cols.valor]||'').replace(/[^\d.]/g,''))||0;
+      prodT[p].retencao_compl++;
+      prodT[p].retido_valor += parseFloat((r[cols.valor]||'').replace(/[^\d.]/g,''))||0;
     }
   });
-  const tigerProds = Object.values(prodMapT).sort((a,b)=>b.escritos-a.escritos);
+  const tigerProds = Object.values(prodT).sort((a,b)=>b.escritos-a.escritos);
   if (tigerProds.length) renderTOProd(tigerProds);
 
-  // ── HelpGrid filtrado ──────────────────────────────────────────
-  const hgFiltered = RAW.helpgrid.filter(r => {
-    const dt = r[hgCols.date]||r['Date']||r['Timestamp']||r['Data']||'';
-    if (!dt) return true; // sem data = inclui sempre
+  // ── HelpGrid filtrado ────────────────────────────────────────
+  const hgRows = RAW.hg.filter(r => {
+    const dt = r[hgcols.date]||r['Date']||r['Timestamp']||r['Data']||'';
+    if (!dt) return true;
     return inRange(dt, from, to);
   });
 
-  // Agrupa por produto HG
-  const hgProdMap = {};
-  hgFiltered.forEach(r => {
-    const prod = (r[hgCols.produto]||r['Product']||r['Produto']||'—').trim();
-    if (!hgProdMap[prod]) hgProdMap[prod]={produto:prod,ligacoes:0,escritos:0,parcial:0,completo:0,fullRef:0,valor:0};
-    const p = hgProdMap[prod];
-
-    // Lê valores numéricos das colunas se existirem
-    const sv = parseInt(r[hgCols.saved] ||'') || 0;
-    const pv = parseInt(r[hgCols.partial]||'') || 0;
-    const fv = parseInt(r[hgCols.refund] ||'') || 0;
-    const cv = parseInt(r[hgCols.calls]  ||'') || 0;
-    const ev = parseInt(r[hgCols.emails] ||'') || 0;
-    const vv = parseFloat((r[hgCols.valor]||'').replace(/[^\d.]/g,''))||0;
+  // Agrupa HG por produto
+  const hgProd = {};
+  hgRows.forEach(r => {
+    const p = (r[hgcols.prod]||r['Product']||r['Produto']||'—').trim();
+    if (!hgProd[p]) hgProd[p]={produto:p,ligacoes:0,escritos:0,parcial:0,completo:0,fullRef:0,valor:0};
+    const hp = hgProd[p];
+    const sv = parseFloat(r[hgcols.saved] ||0)||0;
+    const pv = parseFloat(r[hgcols.partial]||0)||0;
+    const fv = parseFloat(r[hgcols.refund] ||0)||0;
+    const cv = parseFloat(r[hgcols.calls]  ||0)||0;
+    const vv = parseFloat((r[hgcols.valor]||'').replace(/[^\d.]/g,''))||0;
 
     if (sv||pv||fv) {
-      // Colunas numéricas por linha = relatório agregado
-      p.completo  += sv;
-      p.parcial   += pv;
-      p.fullRef   += fv;
-      p.ligacoes  += cv || 1;
-      p.escritos  += ev;
-      p.valor     += vv;
+      hp.completo+=sv; hp.parcial+=pv; hp.fullRef+=fv;
+      hp.ligacoes+=cv||1; hp.valor+=vv;
     } else {
-      // Uma linha = um caso → classifica por texto
-      const txt = Object.values(r).join(' ').toLowerCase();
-      p.ligacoes++;
-      if (/saved|retid|completo/i.test(txt))       { p.completo++; p.valor+=vv; }
-      else if (/partial|parcial/i.test(txt))        { p.parcial++; }
-      else if (/refund|reembol|full/i.test(txt))    { p.fullRef++; }
-      if (/escrit|email.?sent|wrote/i.test(txt))    { p.escritos++; }
+      const txt=Object.values(r).join(' ').toLowerCase();
+      hp.ligacoes++;
+      if(/saved|retid|completo/i.test(txt)){hp.completo++;hp.valor+=vv;}
+      else if(/partial|parcial/i.test(txt)) hp.parcial++;
+      else if(/refund|reembol|full/i.test(txt)) hp.fullRef++;
     }
   });
 
-  const hgProds = Object.values(hgProdMap);
-  if (hgProds.length) renderHGProd(hgProds);
-  else                renderHGProd(FB.hg_produtos);
+  const hgList = Object.values(hgProd);
+  renderHGProd(hgList.length ? hgList : FB.hg_produtos);
 
-  // ── Totais para comparativo ────────────────────────────────────
-  const tigerTick = rows.length;
-  const tigerRet  = agentes.reduce((s,a)=>s+a.retidos,0);
-  const tigerParc = agentes.reduce((s,a)=>s+a.parcial,0);
-  const tigerGW   = agentes.reduce((s,a)=>s+a.gateway,0);
-  const tigerReim = agentes.reduce((s,a)=>s+a.reimb,0);
-  const tigerVal  = agentes.reduce((s,a)=>s+a.valor,0);
-  const tigerTaxa = tigerTick>0?(tigerRet+tigerParc)/tigerTick*100:0;
+  // ── Totais Tiger ─────────────────────────────────────────────
+  const tTick = rows.length;
+  const tRet  = agentes.reduce((s,a)=>s+a.retidos,0);
+  const tParc = agentes.reduce((s,a)=>s+a.parcial,0);
+  const tGW   = agentes.reduce((s,a)=>s+a.gateway,0);
+  const tReim = agentes.reduce((s,a)=>s+a.reimb,0);
+  const tVal  = agentes.reduce((s,a)=>s+a.valor,0);
+  const tTaxa = tTick>0?(tRet+tParc)/tTick*100:0;
 
-  const hgTotal   = hgFiltered.length || hgProds.reduce((s,p)=>s+p.ligacoes,0);
-  const hgSaved   = hgProds.reduce((s,p)=>s+p.completo,0);
-  const hgParc    = hgProds.reduce((s,p)=>s+p.parcial,0);
-  const hgFull    = hgProds.reduce((s,p)=>s+p.fullRef,0);
-  const hgVal     = hgProds.reduce((s,p)=>s+p.valor,0);
-  const hgTaxa    = hgTotal>0?hgSaved/hgTotal*100:0;
-
-  // Retenção bars Tiger
-  if (tigerTick > 0) {
+  // Bars de retenção Tiger
+  if (tTick > 0) {
     renderRetencao([
-      {resultado:'Tickets no período',            qtd:tigerTick,                                pct:100, cor:'orange'},
-      {resultado:'Ret. Total — Aceitou usar',     qtd:tigerRet,  pct:Math.round(tigerRet/tigerTick*100),  cor:'green'},
-      {resultado:'Parc.→Ret. Total (reclassif.)', qtd:tigerParc, pct:Math.round(tigerParc/tigerTick*100), cor:'lightgreen'},
-      {resultado:'Gateway HG',                    qtd:tigerGW,   pct:Math.round(tigerGW/tigerTick*100),   cor:'blue'},
-      {resultado:'Reembolso Total Tiger',         qtd:tigerReim, pct:Math.round(tigerReim/tigerTick*100),  cor:'red'},
+      {resultado:'Tickets no período',            qtd:tTick, pct:100,                                      cor:'orange'},
+      {resultado:'Ret. Total — Aceitou usar',      qtd:tRet,  pct:Math.round(tRet/tTick*100),              cor:'green'},
+      {resultado:'Parc.→Ret. Total (reclassif.)',  qtd:tParc, pct:Math.round(tParc/tTick*100),             cor:'lightgreen'},
+      {resultado:'Gateway HG',                     qtd:tGW,   pct:Math.round(tGW/tTick*100),               cor:'blue'},
+      {resultado:'Reembolso Total Tiger',          qtd:tReim, pct:Math.round(tReim/tTick*100),             cor:'red'},
     ]);
   }
 
-  renderRetComparativo({tigerTick,tigerRet,tigerParc,tigerGW,tigerReim,tigerVal,tigerTaxa,
-    hgTotal,hgSaved,hgParc,hgFull,hgVal,hgTaxa,label});
+  // ── Totais HG ───────────────────────────────────────────────
+  const hgTot  = hgRows.length || hgList.reduce((s,p)=>s+p.ligacoes,0);
+  const hgSav  = hgList.reduce((s,p)=>s+p.completo,0);
+  const hgParc = hgList.reduce((s,p)=>s+p.parcial,0);
+  const hgFull = hgList.reduce((s,p)=>s+p.fullRef,0);
+  const hgVal  = hgList.reduce((s,p)=>s+p.valor,0);
+  const hgTaxa = hgTot>0?hgSav/hgTot*100:0;
 
-  // Tabela live de responsáveis na aba Afiliados
+  // ── Afiliados live ───────────────────────────────────────────
   renderAfilLive(rows, cols, label);
+
+  // ── Comparativo ─────────────────────────────────────────────
+  renderRetComp({tTick,tRet,tParc,tGW,tReim,tVal,tTaxa,hgTot,hgSav,hgParc,hgFull,hgVal,hgTaxa,label});
 }
 
-// ── CS Cards + Tabela live ──────────────────────────────────────
-function renderCSLive(agentes, total) {
-  const perf2color = {EXCELENTE:'var(--green)',BOM:'var(--blue)',EM_RAMP:'var(--yellow)'};
-  $('cs-total').textContent = total;
+// ═══════════════════════════════════════════════════════════════
+//  RENDER: Cards e Tabela CS
+// ═══════════════════════════════════════════════════════════════
+function renderCSCards(agentes) {
+  const pc={EXCELENTE:'var(--green)',BOM:'var(--blue)',EM_RAMP:'var(--yellow)'};
 
-  if (!agentes.length) {
-    $('ag-grid').innerHTML = `<div style="padding:24px;color:var(--t3);text-align:center">Nenhum ticket encontrado no período selecionado</div>`;
-    $('tbl-cs').innerHTML  = `<tr><td colspan="8" style="text-align:center;padding:16px;color:var(--t4)">Sem dados no período</td></tr>`;
-    return;
-  }
-
-  $('ag-grid').innerHTML = agentes.map(a => {
-    const c = perf2color[a.perf]||'var(--t4)';
+  $('ag-grid').innerHTML = agentes.map(a=>{
+    const c=pc[a.perf]||'var(--t4)';
     return `<div class="ag-card" style="border-top-color:${c}">
-      <div class="ag-top">
-        <div><div class="ag-name">${a.agente}</div><div class="ag-role">CS Tiger Offers</div></div>
-        ${statusPill(a.perf)}
-      </div>
+      <div class="ag-top"><div><div class="ag-name">${a.agente}</div><div class="ag-role">CS Tiger Offers</div></div>${statusPill(a.perf)}</div>
       <div class="ag-stats">
         <div><div class="as-lbl">Tickets</div><div class="as-val c-bl">${a.tickets}</div></div>
         <div><div class="as-lbl">Taxa Ret.</div><div class="as-val" style="color:${c}">${fmt(a.taxa,1)}%</div></div>
@@ -1592,11 +1556,11 @@ function renderCSLive(agentes, total) {
     </div>`;
   }).join('');
 
-  const T = agentes.reduce((s,a)=>({t:s.t+a.tickets,r:s.r+a.retidos,p:s.p+a.parcial,g:s.g+a.gateway,rm:s.rm+a.reimb}),{t:0,r:0,p:0,g:0,rm:0});
-  const tTaxa = T.t>0?(T.r+T.p)/T.t*100:0;
+  const T=agentes.reduce((s,a)=>({t:s.t+a.tickets,r:s.r+a.retidos,p:s.p+a.parcial,g:s.g+a.gateway,rm:s.rm+a.reimb}),{t:0,r:0,p:0,g:0,rm:0});
+  const tTx=T.t>0?(T.r+T.p)/T.t*100:0;
 
-  $('tbl-cs').innerHTML = agentes.map(a => {
-    const c = perf2color[a.perf]||'var(--t4)';
+  $('tbl-cs').innerHTML = agentes.map(a=>{
+    const c=pc[a.perf]||'var(--t4)';
     return `<tr>
       <td class="bold" style="color:${c}">${a.agente}</td>
       <td class="center bl">${a.tickets}</td>
@@ -1611,36 +1575,37 @@ function renderCSLive(agentes, total) {
     <td>TOTAL</td><td class="center bl">${T.t}</td><td class="center ok">${T.r}</td>
     <td class="center warn">${T.p}</td><td class="center">${T.g}</td>
     <td class="center crit">${T.rm}</td>
-    <td class="center" style="color:var(--green)">${fmt(tTaxa,1)}%</td><td>—</td>
+    <td class="center" style="color:var(--green)">${fmt(tTx,1)}%</td><td>—</td>
   </tr>`;
 }
 
-// ── Tabela live Afiliados (Responsável) ─────────────────────────
+// ═══════════════════════════════════════════════════════════════
+//  RENDER: Tabela Afiliados live (aba Afiliados)
+// ═══════════════════════════════════════════════════════════════
 function renderAfilLive(rows, cols, label) {
-  const div = $('afil-live-section'); if (!div) return;
-  if (!rows.length) { div.innerHTML=''; return; }
-
-  const map = {};
-  rows.forEach(r => {
-    const resp = (r[cols.resp]||r['Responsável']||'—').trim();
-    if (!map[resp]) map[resp]={resp,tickets:0,retidos:0,parcial:0,gateway:0,reimb:0};
+  const div=$('afil-live-section'); if(!div) return;
+  if(!rows.length){div.innerHTML='';return;}
+  const map={};
+  rows.forEach(r=>{
+    const resp=(r[cols.resp]||r['Responsável']||'—').trim();
+    if(!map[resp]) map[resp]={resp,tickets:0,retidos:0,parcial:0,gateway:0,reimb:0};
     map[resp].tickets++;
-    const cls = classifyRow(r, cols);
-    if (cls==='retido')  map[resp].retidos++;
+    const cls=classify(r,cols);
+    if(cls==='retido')  map[resp].retidos++;
     else if(cls==='parcial')  map[resp].parcial++;
     else if(cls==='gateway')  map[resp].gateway++;
     else if(cls==='reimb')    map[resp].reimb++;
   });
-
-  const list = Object.values(map).sort((a,b)=>b.tickets-a.tickets).slice(0,20);
-
-  div.innerHTML = `<div class="card gfull" style="margin-top:14px;border-color:rgba(61,142,255,.25)">
+  const list=Object.values(map).sort((a,b)=>b.tickets-a.tickets).slice(0,25);
+  div.innerHTML=`<div class="card gfull" style="margin-top:14px;border-color:rgba(61,142,255,.25)">
     <div class="card-hdr">
-      <div class="card-ttl" style="color:var(--blue)">📊 Por Responsável — ${label} <span class="bdg bdg-bl" style="margin-left:6px">LIVE · Form Responses</span></div>
-      <span class="bdg bdg-mu">${rows.length} tickets no período</span>
+      <div class="card-ttl" style="color:var(--blue)">📊 Por Responsável — ${label}
+        <span class="bdg bdg-bl" style="margin-left:6px">LIVE</span>
+      </div>
+      <span class="bdg bdg-mu">${rows.length} tickets</span>
     </div>
     <div style="overflow-x:auto"><table>
-      <thead><tr><th>Responsável</th><th class="center">Tickets</th><th class="center ok">Retidos</th><th class="center warn">Parc.→Ret.</th><th class="center">Gateway HG</th><th class="center crit">Reimb.</th><th class="center">Taxa Ret.</th></tr></thead>
+      <thead><tr><th>Responsável</th><th class="center">Tickets</th><th class="center">Retidos</th><th class="center">Parc.→Ret.</th><th class="center">Gateway HG</th><th class="center">Reimb.</th><th class="center">Taxa Ret.</th></tr></thead>
       <tbody>${list.map(a=>{
         const t=a.retidos+a.parcial, tx=a.tickets>0?t/a.tickets*100:0;
         return `<tr>
@@ -1657,85 +1622,116 @@ function renderAfilLive(rows, cols, label) {
   </div>`;
 }
 
-// ── Comparativo Tiger vs HelpGrid ───────────────────────────────
-function renderRetComparativo(d) {
-  if (!d) {
-    // Fallback FB
-    d = {tigerTick:1072,tigerRet:196,tigerParc:54,tigerGW:171,tigerReim:3,tigerVal:32993,tigerTaxa:16.8,
-         hgTotal:440,hgSaved:59,hgParc:38,hgFull:64,hgVal:31865,hgTaxa:13.3,label:'—'};
-  }
-  const {tigerTick,tigerRet,tigerParc,tigerGW,tigerReim,tigerVal,tigerTaxa,
-         hgTotal,hgSaved,hgParc,hgFull,hgVal,hgTaxa,label} = d;
+// ═══════════════════════════════════════════════════════════════
+//  RENDER: Comparativo Tiger vs HG
+// ═══════════════════════════════════════════════════════════════
+function renderRetComp(d) {
+  const fb={tTick:1072,tRet:196,tParc:54,tGW:171,tReim:3,tVal:32993,tTaxa:16.8,hgTot:440,hgSav:59,hgParc:38,hgFull:64,hgVal:31865,hgTaxa:13.3,label:'(dados estáticos)'};
+  const {tTick,tRet,tParc,tGW,tReim,tVal,tTaxa,hgTot,hgSav,hgParc,hgFull,hgVal,hgTaxa,label}=d||fb;
+  const s=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
 
-  const set = (id,v) => { const e=$( id); if(e) e.textContent=v; };
+  s('live-tiger-pct',     fmt(tTaxa,1)+'%');
+  s('live-tiger-sub',     fmt(tTick)+' tickets · '+fmt(tRet+tParc)+' retidos');
+  s('live-tiger-tickets', fmt(tTick));
+  s('live-tiger-ret',     fmt(tRet));
+  s('live-tiger-parc',    fmt(tParc));
+  s('live-tiger-reimb',   fmt(tReim));
+  s('live-tiger-valor',   fmtM(tVal));
+  s('live-hg-pct',        fmt(hgTaxa,1)+'%');
+  s('live-hg-sub',        fmt(hgTot)+' atend. · '+fmt(hgSav)+' salvos');
+  s('live-hg-tickets',    fmt(hgTot));
+  s('live-hg-saved',      fmt(hgSav));
+  s('live-hg-parc',       fmt(hgParc));
+  s('live-hg-fullref',    fmt(hgFull));
+  s('live-hg-valor',      fmtM(hgVal));
 
-  set('live-tiger-pct',     fmt(tigerTaxa,1)+'%');
-  set('live-tiger-sub',     fmt(tigerTick)+' tickets · '+ fmt(tigerRet+tigerParc)+' retidos');
-  set('live-tiger-tickets', fmt(tigerTick));
-  set('live-tiger-ret',     fmt(tigerRet));
-  set('live-tiger-parc',    fmt(tigerParc));
-  set('live-tiger-reimb',   fmt(tigerReim));
-  set('live-tiger-valor',   fmtM(tigerVal));
-
-  set('live-hg-pct',     fmt(hgTaxa,1)+'%');
-  set('live-hg-sub',     fmt(hgTotal)+' atend. · '+fmt(hgSaved)+' salvos');
-  set('live-hg-tickets', fmt(hgTotal));
-  set('live-hg-saved',   fmt(hgSaved));
-  set('live-hg-parc',    fmt(hgParc));
-  set('live-hg-fullref', fmt(hgFull));
-  set('live-hg-valor',   fmtM(hgVal));
-
-  const wins = tigerTaxa >= hgTaxa;
-  const diff = Math.abs(tigerTaxa-hgTaxa).toFixed(1);
-
-  const wb=$('ret-winner-box'), wbg=$('ret-winner-badge');
+  const wins=tTaxa>=hgTaxa, diff=Math.abs(tTaxa-hgTaxa).toFixed(1);
+  const wb=$('ret-winner-box'),wbg=$('ret-winner-badge');
   if(wb){wb.style.background=wins?'var(--green-l)':'var(--yellow-l)';wb.style.border=wins?'1px solid rgba(34,197,94,.25)':'1px solid rgba(245,158,11,.25)';}
-  set('ret-winner-ico', wins?'✅':'⚠️');
-  set('ret-winner-txt', wins?`Tiger ${fmt(tigerTaxa,1)}% > HelpGrid ${fmt(hgTaxa,1)}% (+${diff}pp) no período.`:`HelpGrid ${fmt(hgTaxa,1)}% > Tiger ${fmt(tigerTaxa,1)}% (−${diff}pp). Revisar tabulações.`);
+  s('ret-winner-ico',wins?'✅':'⚠️');
+  s('ret-winner-txt',wins?`Tiger ${fmt(tTaxa,1)}% > HelpGrid ${fmt(hgTaxa,1)}% (+${diff}pp).`:`HelpGrid ${fmt(hgTaxa,1)}% > Tiger ${fmt(tTaxa,1)}% (−${diff}pp).`);
   if(wbg){wbg.textContent=wins?'🐯 TIGER VENCE':'⚠️ HG À FRENTE';wbg.className=wins?'bdg bdg-gn':'bdg bdg-yl';}
+  const sb=$('ret-tiger-summary-box'); if(sb)sb.style.background=wins?'var(--green-l)':'var(--yellow-l)';
+  s('ret-tiger-summary-title',wins?`✅ Tiger ${fmt(tTaxa,1)}% > HelpGrid ${fmt(hgTaxa,1)}%`:`⚠️ HelpGrid ${fmt(hgTaxa,1)}% > Tiger ${fmt(tTaxa,1)}%`);
+  s('ret-tiger-summary-txt',wins?`Tiger supera HG em ${diff}pp.`:`Tiger abaixo da HG. Revisar propostas.`);
 
-  const sumBox=$('ret-tiger-summary-box');
-  if(sumBox){sumBox.style.background=wins?'var(--green-l)':'var(--yellow-l)';}
-  set('ret-tiger-summary-title', wins?`✅ Tiger ${fmt(tigerTaxa,1)}% > HelpGrid ${fmt(hgTaxa,1)}%`:`⚠️ HelpGrid ${fmt(hgTaxa,1)}% > Tiger ${fmt(tigerTaxa,1)}%`);
-  set('ret-tiger-summary-txt',   wins?`Tiger supera HG em ${diff}pp neste período.`:`Tiger abaixo da HG neste período. Revisar propostas.`);
-
-  // Barras mini-stat
-  const mxT=Math.max(tigerTaxa,hgTaxa,1), mxV=Math.max(tigerVal,hgVal,1), mxR=Math.max(tigerReim,hgFull,1);
-  const setBar=(id,pct)=>{const e=$(id);if(e)e.dataset.pct=pct.toFixed(0);};
-  setBar('cmp-tiger-taxa-bar',tigerTaxa/mxT*100); setBar('cmp-hg-taxa-bar',hgTaxa/mxT*100);
-  setBar('cmp-tiger-val-bar', tigerVal/mxV*100);  setBar('cmp-hg-val-bar', hgVal/mxV*100);
-  setBar('cmp-tiger-ref-bar', tigerReim/mxR*100); setBar('cmp-hg-ref-bar', hgFull/mxR*100);
-  set('cmp-tiger-taxa-val', fmt(tigerTaxa,1)+'%'); set('cmp-hg-taxa-val', fmt(hgTaxa,1)+'%');
-  set('cmp-tiger-val-val',  fmtM(tigerVal));        set('cmp-hg-val-val',  fmtM(hgVal));
-  set('cmp-tiger-ref-val',  fmt(tigerReim)+' casos'); set('cmp-hg-ref-val', fmt(hgFull)+' casos');
-  set('hg-alerta-ttl', hgFull>0?`HG: ${fmt(hgFull)} Full Refunds no período → impactam taxa BuyGoods`:`HG: Nenhum Full Refund no período ✅`);
-
+  const mxT=Math.max(tTaxa,hgTaxa,1),mxV=Math.max(tVal,hgVal,1),mxR=Math.max(tReim,hgFull,1);
+  const sb2=(id,v)=>{const e=$(id);if(e)e.dataset.pct=v.toFixed(0);};
+  sb2('cmp-tiger-taxa-bar',tTaxa/mxT*100); sb2('cmp-hg-taxa-bar',hgTaxa/mxT*100);
+  sb2('cmp-tiger-val-bar', tVal/mxV*100);  sb2('cmp-hg-val-bar', hgVal/mxV*100);
+  sb2('cmp-tiger-ref-bar', tReim/mxR*100); sb2('cmp-hg-ref-bar', hgFull/mxR*100);
+  s('cmp-tiger-taxa-val',fmt(tTaxa,1)+'%'); s('cmp-hg-taxa-val',fmt(hgTaxa,1)+'%');
+  s('cmp-tiger-val-val',fmtM(tVal));        s('cmp-hg-val-val', fmtM(hgVal));
+  s('cmp-tiger-ref-val',fmt(tReim)+' casos');s('cmp-hg-ref-val',fmt(hgFull)+' casos');
+  s('hg-alerta-ttl',hgFull>0?`HG: ${fmt(hgFull)} Full Refunds no período → impactam taxa BuyGoods`:`HG: Sem Full Refunds registrados ✅`);
   setTimeout(animateBars,80);
 }
 
-// ── Seletor de período ───────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+//  BANNER
+// ═══════════════════════════════════════════════════════════════
+function showBanner(type,msg){
+  const b=$('err-banner'),m=$('err-msg'); if(!b||!m) return;
+  b.style.display='flex'; m.textContent=msg;
+  const styles={
+    err:  {bg:'var(--red-l)',  border:'rgba(239,68,68,.3)',  color:'var(--red)'},
+    ok:   {bg:'var(--green-l)',border:'rgba(34,197,94,.3)',  color:'var(--green)'},
+    warn: {bg:'var(--yellow-l)',border:'rgba(245,158,11,.3)',color:'var(--yellow)'},
+    info: {bg:'var(--blue-l)', border:'rgba(61,142,255,.3)', color:'var(--blue)'},
+  };
+  const st=styles[type]||styles.info;
+  b.style.background=st.bg; b.style.borderColor=st.border; b.style.color=st.color;
+  if(type!=='err') setTimeout(()=>{b.style.display='none';},5000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SELETOR DE PERÍODO
+// ═══════════════════════════════════════════════════════════════
 function selectDateRange(key) {
-  currentDR = key;
+  DR = key;
   renderAll();
 }
 
-// ── Theme ────────────────────────────────────────────────────────
-function toggleTheme() {
-  const root=document.documentElement, isL=root.getAttribute('data-theme')==='light';
-  if(isL){root.removeAttribute('data-theme');localStorage.setItem('tiger-theme','dark');$('theme-ico').textContent='🌙';$('theme-lbl').textContent='Modo Escuro';}
-  else{root.setAttribute('data-theme','light');localStorage.setItem('tiger-theme','light');$('theme-ico').textContent='☀️';$('theme-lbl').textContent='Modo Claro';}
+// ═══════════════════════════════════════════════════════════════
+//  PAINEL DE CONFIGURAÇÃO (URL do Apps Script)
+// ═══════════════════════════════════════════════════════════════
+function openConfig() {
+  const panel = $('config-panel');
+  if (panel) panel.style.display = panel.style.display==='none'?'block':'none';
+}
+function saveConfig() {
+  const inp = $('as-url-input');
+  if (!inp) return;
+  AS_URL = inp.value.trim();
+  localStorage.setItem('tiger_as_url', AS_URL);
+  $('config-panel').style.display='none';
+  if (AS_URL) syncData();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════════════════════════
+function toggleTheme(){
+  const r=document.documentElement,isL=r.getAttribute('data-theme')==='light';
+  if(isL){r.removeAttribute('data-theme');localStorage.setItem('tiger-theme','dark');$('theme-ico').textContent='🌙';$('theme-lbl').textContent='Modo Escuro';}
+  else{r.setAttribute('data-theme','light');localStorage.setItem('tiger-theme','light');$('theme-ico').textContent='☀️';$('theme-lbl').textContent='Modo Claro';}
 }
 function applyStoredTheme(){
   if(localStorage.getItem('tiger-theme')==='light'){document.documentElement.setAttribute('data-theme','light');$('theme-ico').textContent='☀️';$('theme-lbl').textContent='Modo Claro';}
 }
 
-// ── Inicialização ────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
   applyStoredTheme();
 
-  // Rende dados estáticos (BuyGoods / FB) imediatamente
-  renderIntervalBars('reimb-interval-bars', FB.intervalos_reimb, 'reimb');
-  renderIntervalBars('cb-interval-bars',    FB.intervalos_cb,    'cb');
+  // Preenche campo de URL se já salvo
+  const inp=$('as-url-input'); if(inp&&AS_URL) inp.value=AS_URL;
+
+  // Render estático imediato (BuyGoods / dados fixos)
+  renderIntervalBars('reimb-interval-bars',FB.intervalos_reimb,'reimb');
+  renderIntervalBars('cb-interval-bars',   FB.intervalos_cb,   'cb');
   renderScores(FB.afiliados);
   renderDiag(FB.afiliados);
   renderAfilTable(FB.afiliados);
@@ -1745,13 +1741,20 @@ window.addEventListener('DOMContentLoaded', () => {
   rpRender('S5');
 
   // Período inicial
-  currentDR = '60d';
-  renderAll(); // fallback FB enquanto carrega
+  DR = '60d';
+  renderAll();  // fallback estático
 
-  // Sincroniza dados reais da planilha
-  syncData().finally(() => {
-    setTimeout(() => { $('loading').classList.add('hidden'); animateBars(); }, 400);
-  });
+  // Sincroniza se já tem URL salvo
+  if (AS_URL) {
+    syncData().finally(()=>{
+      setTimeout(()=>{ $('loading').classList.add('hidden'); animateBars(); },400);
+    });
+  } else {
+    // Sem URL — mostra aviso e abre painel de config
+    setTimeout(()=>{ $('loading').classList.add('hidden'); animateBars(); },400);
+    showBanner('warn','⚠️ Configure o URL do Apps Script para sincronizar dados em tempo real. Clique em 🔄 Sincronizar.');
+    const panel=$('config-panel'); if(panel) panel.style.display='block';
+  }
 });
 </script>
 </body>
