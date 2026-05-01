@@ -10,8 +10,8 @@
 :root[data-theme="light"]{--bg:#F3F4F8;--surface:#FFFFFF;--surface2:#ECEEF2;--border:rgba(0,0,0,.1);--t1:#111827;--t2:#374151;--t3:#6B7280}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--t1);font-family:var(--font);transition:0.2s}
-.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
-.spinner{width:40px;height:40px;border:3px solid var(--surface2);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite}
+.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
+.spinner{width:40px;height:40px;border:3px solid var(--surface2);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .hidden{display:none !important}
 .hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:15px 30px;position:sticky;top:0;z-index:100}
@@ -35,6 +35,7 @@ button{padding:8px 15px;border-radius:8px;border:none;cursor:pointer;font-weight
 .kpi.or::before{background:var(--orange)}.kpi.rd::before{background:var(--red)}.kpi.gn::before{background:var(--green)}.kpi.bl::before{background:var(--blue)}.kpi.yl::before{background:var(--yellow)}
 .kpi-lbl{font-size:10px;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
 .kpi-val{font-size:26px;font-weight:800;font-family:var(--mono)}
+.kpi-sub{font-size:11px;color:var(--t3);margin-top:5px}
 .card{background:var(--surface);padding:25px;border-radius:15px;border:1px solid var(--border);margin-bottom:20px}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;font-size:11px;color:var(--t3);padding:12px;border-bottom:1px solid var(--border)}
@@ -43,19 +44,24 @@ td{padding:12px;border-bottom:1px solid var(--border);font-size:14px}
 .ag-card{background:var(--surface);padding:20px;border-radius:12px;border:1px solid var(--border);border-top:5px solid var(--green)}
 .pill{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700}
 .p-crit{background:rgba(239,68,68,0.2);color:var(--red)}
+.p-ok{background:rgba(34,197,94,0.2);color:var(--green)}
+.p-warn{background:rgba(245,158,11,0.2);color:var(--yellow)}
 </style>
 </head>
 <body>
-<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div style="font-size:12px; color:var(--t3); font-family:var(--mono)">Puxando dados do Apps Script...</div>
+</div>
 
 <div class="hdr">
   <div class="hdr-top">
     <div class="brand">
       <div class="brand-ico">🐯</div>
-      <div><div class="brand-name">Tiger Dashboard v3.0</div><div id="hdr-data" style="font-size:10px;color:var(--t3)">Sincronizando...</div></div>
+      <div><div class="brand-name" style="font-size:16px;font-weight:800">Tiger Dashboard v3.0</div><div id="hdr-data" style="font-size:10px;color:var(--t3)">Aguardando dados...</div></div>
     </div>
     <div class="period-selector">
-      <button class="period-hoje" id="btn-hoje" onclick="selectHoje(this)">📅 HOJE</button>
+      <button class="period-hoje" onclick="selectHoje(this)">📅 HOJE</button>
       <button class="week-btn" onclick="selectWeek('S1', this)">S1</button>
       <button class="week-btn" onclick="selectWeek('S2', this)">S2</button>
       <button class="week-btn" onclick="selectWeek('S3', this)">S3</button>
@@ -74,18 +80,20 @@ td{padding:12px;border-bottom:1px solid var(--border);font-size:14px}
   <div class="sec active" id="s-reimb">
     <div class="kpi-row">
       <div class="kpi yl"><div class="kpi-lbl">Vendas Brutas BG</div><div class="kpi-val" id="bg-kpi-vendas">$0</div></div>
-      <div class="kpi rd"><div class="kpi-lbl">Total Reembolsado</div><div class="kpi-val" id="bg-kpi-reimb">$0</div></div>
-      <div class="kpi rd"><div class="kpi-lbl">Total Chargeback</div><div class="kpi-val" id="bg-kpi-cb">$0</div></div>
+      <div class="kpi rd"><div class="kpi-lbl">Total Reembolsado</div><div class="kpi-val" id="bg-kpi-reimb">$0</div><div class="kpi-sub" id="bg-kpi-reimb-sub">0 pedidos</div></div>
+      <div class="kpi rd"><div class="kpi-lbl">Total Chargeback</div><div class="kpi-val" id="bg-kpi-cb">$0</div><div class="kpi-sub" id="bg-kpi-cb-sub">0 chargebacks</div></div>
       <div class="kpi or"><div class="kpi-lbl">Taxa Geral %</div><div class="kpi-val" id="bg-kpi-taxa">0%</div></div>
       <div class="kpi bl"><div class="kpi-lbl">HG Retido (Saved)</div><div class="kpi-val" id="bg-kpi-hg">0</div></div>
       <div class="kpi gn"><div class="kpi-lbl">Tiger Retido (Total)</div><div class="kpi-val" id="bg-kpi-tiger">0</div></div>
     </div>
     
     <div class="card">
-      <div style="font-weight:800; margin-bottom:15px">🏆 Ranking de Reembolsos por Afiliado (Período)</div>
+      <div style="font-weight:800; margin-bottom:15px; display:flex; gap:10px; align-items:center">
+        🏆 Ranking de Reembolsos por Afiliado <span id="afil-period-lbl" class="pill p-warn"></span>
+      </div>
       <div style="overflow-x:auto">
         <table>
-          <thead><tr><th>Afiliado</th><th>Reemb.</th><th>CBs</th><th>Valor</th><th>0-3d %</th><th>Status</th></tr></thead>
+          <thead><tr><th>Afiliado</th><th>Reemb.</th><th>CBs</th><th>Valor Perdido</th><th>0-3d %</th><th>Status</th></tr></thead>
           <tbody id="tbl-afil"></tbody>
         </table>
       </div>
@@ -97,8 +105,8 @@ td{padding:12px;border-bottom:1px solid var(--border);font-size:14px}
       <div class="kpi bl"><div class="kpi-lbl">Tickets Tabulados</div><div class="kpi-val" id="cs-kpi-tickets">0</div></div>
       <div class="kpi or"><div class="kpi-lbl">Retenções Totais</div><div class="kpi-val" id="cs-kpi-ret-qtd">0</div></div>
       <div class="kpi gn"><div class="kpi-lbl">Valor Retido</div><div class="kpi-val" id="cs-kpi-ret-val">$0</div></div>
-      <div class="kpi gn"><div class="kpi-lbl">Maior Retentora</div><div class="kpi-val" id="cs-kpi-best-val">$0</div><div id="cs-kpi-best-ag" style="font-size:10px; color:var(--t3)"></div></div>
-      <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-kpi-active-tick">0</div><div id="cs-kpi-active-ag" style="font-size:10px; color:var(--t3)"></div></div>
+      <div class="kpi gn"><div class="kpi-lbl">Maior Retentora</div><div class="kpi-val" id="cs-kpi-best-val">$0</div><div id="cs-kpi-best-ag" class="kpi-sub"></div></div>
+      <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-kpi-active-tick">0</div><div id="cs-kpi-active-ag" class="kpi-sub"></div></div>
       <div class="kpi or"><div class="kpi-lbl">Taxa de Retenção</div><div class="kpi-val" id="cs-kpi-taxa">0%</div></div>
     </div>
     <div class="ag-grid" id="ag-grid"></div>
@@ -110,19 +118,20 @@ const $ = id => document.getElementById(id);
 const fmt = (n, d=0) => n == null || isNaN(n) ? '0' : Number(n).toLocaleString('pt-BR', {minimumFractionDigits:d, maximumFractionDigits:d});
 const fmtM = n => n >= 1000 ? '$' + fmt(n/1000, 1) + 'K' : '$' + fmt(n);
 
+// ─── COLE A SUA URL DO APPS SCRIPT AQUI 👇 ───
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcysOaDI3YN_cectk-lWMhDY27SwqyYdItnZd0YlMzboiCfjybFfYuHx4fkn-epJPDnA/exec';
 window.dadosScript = null;
 
-// Datas de 2026
+// Datas de Corte de Abril de 2026
 const PERIOD_DATES = {
   'S1': [new Date(2026, 3, 1), new Date(2026, 3, 6, 23, 59)],
   'S2': [new Date(2026, 3, 7), new Date(2026, 3, 13, 23, 59)],
   'S3': [new Date(2026, 3, 14), new Date(2026, 3, 20, 23, 59)],
   'S4': [new Date(2026, 3, 21), new Date(2026, 3, 27, 23, 59)],
-  'S5': [new Date(2026, 3, 28), new Date(2026, 3, 30, 23, 59)],
-  'abril_total': [new Date(2026, 3, 1), new Date(2026, 3, 30, 23, 59)]
+  'S5': [new Date(2026, 3, 28), new Date(2026, 3, 30, 23, 59)]
 };
 
+// Alterna entre abas
 function show(id, el) {
   document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -130,27 +139,26 @@ function show(id, el) {
   el.classList.add('active');
 }
 
-// ─── MOTOR DE CÁLCULO DE REEMBOLSO (BUYGOODS) ───────────
+// ─── CAÇADOR DE COLUNAS ───
+// Ignora maiúsculas/minúsculas para encontrar a coluna certa no JSON do Apps Script
+const getVal = (obj, chaves) => {
+  const k = Object.keys(obj).find(key => chaves.includes(key.toLowerCase().trim()));
+  return k ? obj[k] : null;
+};
+
+// ─── MOTOR: BUYGOODS ───
 function processarReembolso(rows, start, end) {
   let stats = { vendas:0, reimb:0, cb:0, qtdR:0, qtdC:0, afil:{} };
   if (!rows || rows.length === 0) return stats;
 
-  // Caçador de colunas: ignora maiúsculas/minúsculas e acha o dado
-  const getVal = (obj, chaves) => {
-    const keyEncontrada = Object.keys(obj).find(k => chaves.includes(k.toLowerCase().trim()));
-    return keyEncontrada ? obj[keyEncontrada] : null;
-  };
-
   rows.forEach(r => {
-    const dataCriacao = getVal(r, ['create date', 'data de criação']);
-    if (!dataCriacao) return; // Se não tem data, ignora a linha (pula o lixo)
-    
-    const d = new Date(dataCriacao);
+    const dCriacao = getVal(r, ['create date', 'data de criação', 'data']);
+    if (!dCriacao) return;
+    const d = new Date(dCriacao);
     if (d < start || d > end) return;
 
-    // Pega o valor limpando símbolos de moeda caso existam
-    const valStr = getVal(r, ['amount', 'valor']) || 0;
-    const val = parseFloat(String(valStr).replace(/[^0-9.-]/g, '')) || 0;
+    const vStr = getVal(r, ['amount', 'valor do pedido', 'valor']) || 0;
+    const val = parseFloat(String(vStr).replace(/[^0-9.-]/g, '')) || 0;
     
     const isR = getVal(r, ['was refunded', 'refunded']) == 1;
     const isC = getVal(r, ['was chargeback', 'chargeback']) == 1;
@@ -162,117 +170,148 @@ function processarReembolso(rows, start, end) {
     if(isR || isC) {
       if(isC) { stats.cb += val; stats.qtdC++; stats.afil[name].c++; }
       else { stats.reimb += val; stats.qtdR++; stats.afil[name].r++; }
-      
       stats.afil[name].v += val;
       stats.afil[name].totalCanc++;
       
-      const dataCanc = getVal(r, ['canceled date', 'data de cancelamento']);
-      if (dataCanc) {
-        const dCanc = new Date(dataCanc);
-        const dias = Math.floor((dCanc - d) / (1000*60*60*24));
+      const dCancStr = getVal(r, ['canceled date', 'data de cancelamento']);
+      if (dCancStr) {
+        const dias = Math.floor((new Date(dCancStr) - d) / (1000*60*60*24));
         if(dias >= 0 && dias <= 3) stats.afil[name].zeroTres++;
       }
     }
   });
-  
   return stats;
 }
-// ─── MOTOR DE CÁLCULO DE CS (FORMULÁRIO) ───────────
+
+// ─── MOTOR: TIGER CS ───
 function processarCS(rows, start, end) {
   const agentes = {};
+  if(!rows) return [];
   rows.forEach(r => {
-    const d = new Date(r.Timestamp || r['Carimbo de data/hora']);
+    const dStr = getVal(r, ['carimbo de data/hora', 'timestamp', 'data']);
+    if(!dStr) return;
+    const d = new Date(dStr);
     if (d < start || d > end) return;
-    const nome = r.Atendente || r['Atendente'];
+
+    const nome = getVal(r, ['atendente']);
     if (!nome) return;
-    if (!agentes[nome]) agentes[nome] = { agente: nome, tickets_tab: 0, retido_reembolso_valor: 0, retidos_qtd: 0, parcial_compl_qtd: 0, parcial_valor: 0, total_retido: 0 };
+    
+    if (!agentes[nome]) agentes[nome] = { agente: nome, tickets: 0, ret_v: 0, ret_q: 0, parc_q: 0, parc_v: 0, tot_v: 0 };
     const a = agentes[nome];
-    a.tickets_tab++;
-    const res = r['Resultado da Retenção'] || '';
-    const val = parseFloat(String(r['Valor do pedido'] || 0).replace(',','.')) || 0;
-    if (res.includes('Nível 1')) { a.retidos_qtd++; a.retido_reembolso_valor += val; }
-    else if (res.includes('Nível 2')) { a.parcial_compl_qtd++; a.parcial_valor += val * 0.5; }
-    a.total_retido = a.retido_reembolso_valor + a.parcial_valor;
+    a.tickets++;
+    
+    const res = getVal(r, ['resultado da retenção', 'resultado']) || '';
+    const vStr = getVal(r, ['valor do pedido', 'valor']) || 0;
+    const val = parseFloat(String(vStr).replace(',', '.')) || 0;
+    
+    if (res.includes('Nível 1')) { a.ret_q++; a.ret_v += val; }
+    else if (res.includes('Nível 2')) { a.parc_q++; a.parc_v += val * 0.5; }
+    a.tot_v = a.ret_v + a.parc_v;
   });
   return Object.values(agentes);
 }
 
+// ─── RENDERIZADOR GERAL DA TELA ───
 function applyPeriod(key) {
   const [start, end] = PERIOD_DATES[key] || PERIOD_DATES['S5'];
   if (!window.dadosScript) return;
+  
+  $('afil-period-lbl').textContent = key === 'hoje' ? 'Hoje' : key;
 
-  // 1. Atualiza Reembolso & Afiliados
+  // 1. REEMBOLSO (BUYGOODS)
   const bg = processarReembolso(window.dadosScript.buygoods_raw, start, end);
   $('bg-kpi-vendas').textContent = fmtM(bg.vendas);
   $('bg-kpi-reimb').textContent = fmtM(bg.reimb);
+  $('bg-kpi-reimb-sub').textContent = fmt(bg.qtdR) + ' pedidos';
   $('bg-kpi-cb').textContent = fmtM(bg.cb);
-  $('bg-kpi-taxa').textContent = bg.vendas > 0 ? fmt((bg.reimb+bg.cb)/bg.vendas*100, 1) + '%' : '0%';
+  $('bg-kpi-cb-sub').textContent = fmt(bg.qtdC) + ' pedidos';
+  $('bg-kpi-taxa').textContent = bg.vendas > 0 ? fmt((bg.reimb+bg.cb)/bg.vendas*100, 2) + '%' : '0%';
   
   const afilArray = Object.values(bg.afil).sort((a,b) => b.r - a.r);
-  $('tbl-afil').innerHTML = afilArray.map(a => {
+  $('tbl-afil').innerHTML = afilArray.length > 0 ? afilArray.map(a => {
     const pct = a.totalCanc > 0 ? Math.round(a.zeroTres/a.totalCanc*100) : 0;
-    const status = a.c > 2 ? 'PAUSAR' : (pct > 50 ? 'CRÍTICO' : 'OK');
-    return `<tr><td>${a.n}</td><td>${a.r}</td><td>${a.c}</td><td>${fmtM(a.v)}</td><td>${pct}%</td><td><span class="pill ${status !== 'OK' ? 'p-crit' : ''}">${status}</span></td></tr>`;
-  }).join('');
+    let status = 'OK', cls = 'p-ok';
+    if(a.c > 2) { status = 'PAUSAR'; cls = 'p-crit'; }
+    else if(pct > 50 || a.r > 15) { status = 'CRÍTICO'; cls = 'p-crit'; }
+    else if(a.r > 8) { status = 'ALTO'; cls = 'p-warn'; }
+    return `<tr><td>${a.n}</td><td style="color:var(--red); font-weight:600">${a.r}</td><td style="color:var(--orange); font-weight:600">${a.c}</td><td>${fmtM(a.v)}</td><td>${pct}%</td><td><span class="pill ${cls}">${status}</span></td></tr>`;
+  }).join('') : '<tr><td colspan="6" style="text-align:center; color:var(--t3)">Sem vendas ou reembolsos no período.</td></tr>';
 
-  // 2. Atualiza Time CS
+  // 2. HELPGRID (Totais Simples se Existir)
+  let hgRetido = 0;
+  if (window.dadosScript.helpgrid_raw && window.dadosScript.helpgrid_raw.length > 0) {
+     window.dadosScript.helpgrid_raw.forEach(r => {
+        hgRetido += parseFloat(r['Total Refunded'] || 0); // Ajuste a coluna exata se precisar
+     });
+  }
+  $('bg-kpi-hg').textContent = hgRetido > 0 ? hgRetido : '⏳';
+
+  // 3. CS (TIGER)
   const cs = processarCS(window.dadosScript.respostas_brutas, start, end);
   let tTick=0, tRetQ=0, tVal=0, best={n:'-',v:0}, active={n:'-',t:0};
   
-  $('ag-grid').innerHTML = cs.map(r => {
-    tTick += r.tickets_tab; tRetQ += (r.retidos_qtd + r.parcial_compl_qtd); tVal += r.total_retido;
-    if(r.total_retido > best.v) best = {n:r.agente, v:r.total_retido};
-    if(r.tickets_tab > active.t) active = {n:r.agente, t:r.tickets_tab};
-    return `<div class="ag-card"><div style="font-weight:800">${r.agente}</div>
-      <div style="display:flex; justify-content:space-between; margin-top:10px">
-        <div><div class="as-lbl">Tickets</div><div class="as-val">${r.tickets_tab}</div></div>
-        <div><div class="as-lbl">Retido</div><div class="as-val">${fmtM(r.total_retido)}</div></div>
+  $('ag-grid').innerHTML = cs.length > 0 ? cs.map(r => {
+    tTick += r.tickets; tRetQ += (r.ret_q + r.parc_q); tVal += r.tot_v;
+    if(r.tot_v > best.v) best = {n:r.agente, v:r.tot_v};
+    if(r.tickets > active.t) active = {n:r.agente, t:r.tickets};
+    return `<div class="ag-card"><div style="font-weight:800; font-size:16px; margin-bottom:15px">${r.agente}</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+        <div><div class="as-lbl">Tickets</div><div class="as-val" style="color:var(--blue)">${r.tickets}</div></div>
+        <div><div class="as-lbl">Retido ($)</div><div class="as-val" style="color:var(--green)">${fmtM(r.tot_v)}</div></div>
       </div></div>`;
-  }).join('');
+  }).join('') : '<div style="color:var(--t3)">Nenhum ticket neste período.</div>';
 
   $('cs-kpi-tickets').textContent = tTick;
   $('cs-kpi-ret-qtd').textContent = tRetQ;
   $('cs-kpi-ret-val').textContent = fmtM(tVal);
+  $('bg-kpi-tiger').textContent = fmtM(tVal); // Atualiza o Tiger Retido na aba de Reembolso também!
+  
   $('cs-kpi-best-val').textContent = fmtM(best.v);
   $('cs-kpi-best-ag').textContent = best.n;
   $('cs-kpi-active-tick').textContent = active.t;
   $('cs-kpi-active-ag').textContent = active.n;
   $('cs-kpi-taxa').textContent = tTick > 0 ? fmt(tRetQ/tTick*100, 1) + '%' : '0%';
-
-  if(key === 'hoje') {
-    $('cs-hoje-tickets').textContent = tTick;
-    $('cs-hoje-retido').textContent = fmtM(tVal);
-    $('cs-hoje-taxa').textContent = $('cs-kpi-taxa').textContent;
-  }
 }
 
+// ─── BOTÕES DE SEMANA ───
 function selectWeek(key, btn) {
   document.querySelectorAll('.week-btn, .period-hoje').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  $('cs-hoje-panel').style.display = 'none';
   applyPeriod(key);
 }
 
 function selectHoje(btn) {
   document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  $('cs-hoje-panel').style.display = 'block';
   const t = new Date();
-  PERIOD_DATES['hoje'] = [new Date(t.setHours(0,0,0,0)), new Date(t.setHours(23,59,59))];
+  PERIOD_DATES['hoje'] = [new Date(t.setHours(0,0,0,0)), new Date(t.setHours(23,59,59,999))];
   applyPeriod('hoje');
 }
 
+// ─── INICIALIZAÇÃO E COMUNICAÇÃO COM APPS SCRIPT ───
 async function loadData() {
   try {
-    const r = await fetch(APPS_SCRIPT_URL + "?_=" + Date.now(), { redirect: 'follow' });
+    const url = APPS_SCRIPT_URL + "?_=" + Date.now();
+    const r = await fetch(url, { redirect: 'follow' });
+    if (!r.ok) throw new Error("Falha HTTP");
+    
     const data = await r.json();
-    window.dadosScript = data;
+    window.dadosScript = data; // Salva na memória do navegador
+    
+    // Atualiza a hora no topo
+    $('hdr-data').textContent = "Conectado. Última sincronização: " + new Date().toLocaleTimeString('pt-BR');
+    
+    // Esconde o loading e renderiza a tela
     $('loading').classList.add('hidden');
-    $('hdr-data').textContent = "Sincronizado: " + new Date().toLocaleTimeString();
-    applyPeriod('S5');
-  } catch(e) { console.error(e); alert("Erro ao carregar dados. Verifique a internet."); }
+    applyPeriod('S5'); // Inicia na Semana 5
+
+  } catch(e) { 
+    console.error(e); 
+    $('loading').innerHTML = '<div style="color:var(--red); font-weight:800; font-family:var(--mono)">❌ Erro ao acessar os dados. O Apps Script falhou ou está offline.</div>';
+  }
 }
 
+// ─── MODO CLARO/ESCURO ───
 function toggleTheme() {
   const isL = document.documentElement.getAttribute('data-theme') === 'light';
   const newT = isL ? 'dark' : 'light';
