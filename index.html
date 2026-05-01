@@ -1205,17 +1205,13 @@ function fetchTodayCS() {
 
 // ─── LOAD DATA (Acesso Único) ──────────
 async function loadData() {
+  // Preenche dados vazios de todas as abas (Fallback visual)
   renderIntervalBars('reimb-interval-bars', FB.intervalos_reimb, 'reimb');
   renderIntervalBars('cb-interval-bars', FB.intervalos_cb, 'cb');
   renderScores(FB.afiliados);
   renderDiag(FB.afiliados);
   renderAfilTable(FB.afiliados);
   renderVamp(FB.vamp);
-  renderReincidentes(FB.reincidentes);
-  renderImpacto(FB.impacto);
-  renderRetencao(FB.retencao);
-  renderHGProd(FB.hg_produtos);
-  renderTOProd(FB.tiger_produtos);
   renderCS(FB.cs); 
 
   try {
@@ -1228,6 +1224,7 @@ async function loadData() {
     
     if($('err-banner')) $('err-banner').style.display = 'none';
     
+    // Atualiza datas
     if (data.config && data.config.length) {
       const dataAtualizacao = data.config.find(c => c.chave === 'data_atualizacao');
       if (dataAtualizacao) {
@@ -1235,6 +1232,52 @@ async function loadData() {
         if ($('cs-hoje-data')) $('cs-hoje-data').textContent = dataAtualizacao.valor;
       }
     }
+
+    // 💥 RENDERIZA OS DADOS REAIS DA BUYGOODS NAS ABAS DE REEMBOLSO E AFILIADOS
+    if (data.buygoods_processada) {
+      const bg = data.buygoods_processada;
+      
+      // 1. Atualiza os KPIs Globais de Reembolso lá no topo
+      if($('k-vendas')) $('k-vendas').textContent = fmtM(bg.global.vendas);
+      if($('k-reimb')) $('k-reimb').textContent = fmtM(bg.global.reimb);
+      if($('k-reimb-sub')) $('k-reimb-sub').textContent = fmt(bg.global.qtd_reimb) + ' pedidos reembolsados';
+      if($('k-cb')) $('k-cb').textContent = fmtM(bg.global.cb);
+      if($('k-cb-sub')) $('k-cb-sub').textContent = fmt(bg.global.qtd_cb) + ' chargebacks';
+      
+      const taxaGlobal = bg.global.vendas > 0 ? ((bg.global.reimb + bg.global.cb) / bg.global.vendas) * 100 : 0;
+      if($('k-taxa')) $('k-taxa').textContent = fmt(taxaGlobal, 2) + '%';
+
+      // 2. Preenche os Gráficos de Intervalo (0-3d, 4-7d...)
+      const arrayReimb = [
+        {intervalo:'0-3d', label_culpa:'AFILIADO', qtd: bg.intervalos['0-3d'], pct: (bg.intervalos['0-3d']/bg.global.qtd_reimb)*100 || 0, valor: 0, cor:'red'},
+        {intervalo:'4-7d', label_culpa:'AFILIADO/OP', qtd: bg.intervalos['4-7d'], pct: (bg.intervalos['4-7d']/bg.global.qtd_reimb)*100 || 0, valor: 0, cor:'orange'},
+        {intervalo:'8-15d', label_culpa:'SUPORTE/CS', qtd: bg.intervalos['8-15d'], pct: (bg.intervalos['8-15d']/bg.global.qtd_reimb)*100 || 0, valor: 0, cor:'yellow'},
+        {intervalo:'16-30d', label_culpa:'OPERAÇÃO', qtd: bg.intervalos['16-30d'], pct: (bg.intervalos['16-30d']/bg.global.qtd_reimb)*100 || 0, valor: 0, cor:'blue'},
+        {intervalo:'31-45d', label_culpa:'MBG/GARANTIA', qtd: bg.intervalos['31-45d'], pct: (bg.intervalos['31-45d']/bg.global.qtd_reimb)*100 || 0, valor: 0, cor:'purple'},
+        {intervalo:'45d+', label_culpa:'FORA PRAZO', qtd: bg.intervalos['45d+'], pct: (bg.intervalos['45d+']/bg.global.qtd_reimb)*100 || 0, valor: 0, cor:'gray'}
+      ];
+      renderIntervalBars('reimb-interval-bars', arrayReimb, 'reimb');
+
+      // 3. Preenche as tabelas de Afiliados
+      if (bg.afiliados_ranking) {
+        renderScores(bg.afiliados_ranking);
+        renderDiag(bg.afiliados_ranking);
+        renderAfilTable(bg.afiliados_ranking);
+        
+        // Filtra os que têm Risco de VAMP (Alta taxa de CB)
+        const vampList = bg.afiliados_ranking
+          .filter(a => a.cbs > 0)
+          .map(a => ({
+             afiliado: a.afiliado, produto: 'Múltiplos', vendas: a.reemb + a.cbs, // Simplificado, você pode aprimorar
+             cbs: a.cbs, pct_cb: a.vendas > 0 ? (a.cbs / a.vendas)*100 : 0, valor_cb: a.valor_reimb, // ajuste para ler só CB
+             status_visa: a.cbs > 2 ? 'CRÍTICO (MATCH)' : 'ALERTA VAMP',
+             acao: a.cbs > 2 ? 'PAUSAR JÁ' : 'Monitorar'
+          }));
+        renderVamp(vampList);
+      }
+    }
+
+    // Processa o CS de hoje e semanas
     applyPeriod(currentPeriod); 
 
   } catch(e) {
@@ -1242,7 +1285,6 @@ async function loadData() {
     if($('err-banner')) $('err-banner').style.display = 'flex';
   }
 }
-
 // ─── TEMA ────────────────────────────
 function toggleTheme() {
   const root = document.documentElement;
