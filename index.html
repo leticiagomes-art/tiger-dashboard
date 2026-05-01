@@ -3,42 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tiger Offers — Dashboard Backend</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Tiger Offers — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0D0F14;--surface:#13161E;--surface2:#1A1E28;--surface3:#222736;--border:rgba(255,255,255,.07);--border-s:rgba(255,255,255,.13);--shadow:0 2px 12px rgba(0,0,0,.35);--orange:#FF6B35;--orange-glow:rgba(255,107,53,.18);--blue:#3D8EFF;--blue-l:rgba(61,142,255,.13);--green:#22C55E;--green-l:rgba(34,197,94,.13);--red:#EF4444;--red-l:rgba(239,68,68,.13);--yellow:#F59E0B;--yellow-l:rgba(245,158,11,.13);--purple:#A78BFA;--purple-l:rgba(167,139,250,.13);--t1:#F1F5F9;--t2:#94A3B8;--t3:#64748B;--t4:#475569;--radius:10px;--radius-lg:16px;--font:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace}
-:root[data-theme="light"]{--bg:#F3F4F8;--surface:#FFFFFF;--surface2:#F7F8FA;--surface3:#ECEEF2;--border:rgba(0,0,0,.07);--border-s:rgba(0,0,0,.11);--shadow:0 2px 12px rgba(0,0,0,.08);--orange:#E8541A;--orange-glow:rgba(232,84,26,.12);--blue:#2563EB;--blue-l:rgba(37,99,235,.1);--green:#16A34A;--green-l:rgba(22,163,74,.1);--red:#DC2626;--red-l:rgba(220,38,38,.1);--yellow:#B45309;--yellow-l:rgba(180,83,9,.1);--purple:#7C3AED;--purple-l:rgba(124,58,237,.1);--t1:#111827;--t2:#374151;--t3:#6B7280;--t4:#9CA3AF}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--t1);font-family:var(--font);font-size:13px;line-height:1.5;min-height:100vh;transition:background .25s,color .25s}
-.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;transition:opacity .4s}
-.loading-overlay.hidden{opacity:0;pointer-events:none}
-.spinner{width:36px;height:36px;border:2px solid var(--surface3);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite}
+:root{--bg:#0D0F14;--surface:#13161E;--surface2:#1A1E28;--border:rgba(255,255,255,.07);--orange:#FF6B35;--blue:#3D8EFF;--green:#22C55E;--red:#EF4444;--yellow:#F59E0B;--t1:#F1F5F9;--t2:#94A3B8;--t3:#64748B;--radius:10px;--font:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace}
+:root[data-theme="light"]{--bg:#F3F4F8;--surface:#FFFFFF;--surface2:#ECEEF2;--border:rgba(0,0,0,.1);--t1:#111827;--t2:#374151;--t3:#6B7280}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t1);font-family:var(--font);transition:0.2s}
+.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+.spinner{width:40px;height:40px;border:3px solid var(--surface2);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;position:sticky;top:0;z-index:100}
-.hdr-top{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0 10px;gap:16px;flex-wrap:wrap}
+.hidden{display:none !important}
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:15px 30px;position:sticky;top:0;z-index:100}
+.hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
 .brand{display:flex;align-items:center;gap:12px}
-.brand-ico{width:38px;height:38px;background:linear-gradient(135deg,var(--orange),#ff9a00);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 20px var(--orange-glow)}
-.brand-name{font-size:15px;font-weight:800;color:var(--t1)}
-.tabs{display:flex;gap:2px;overflow-x:auto}
-.tab{padding:12px 20px;font-size:13px;font-weight:600;color:var(--t3);cursor:pointer;border-bottom:3px solid transparent}
+.brand-ico{font-size:24px;background:var(--orange);padding:5px;border-radius:8px}
+.period-selector{display:flex;gap:5px}
+button{padding:8px 15px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-family:var(--font);transition:0.1s}
+.week-btn{background:var(--surface2);color:var(--t2)}
+.week-btn.active{background:var(--orange);color:white}
+.period-hoje{background:var(--green);color:white}
+.theme-toggle{background:var(--surface2);color:var(--t1);border:1px solid var(--border)}
+.tabs{display:flex;gap:20px}
+.tab{padding:10px 5px;color:var(--t3);cursor:pointer;border-bottom:3px solid transparent}
 .tab.active{color:var(--orange);border-bottom-color:var(--orange)}
-.body{padding:20px 32px;max-width:1600px;margin:0 auto}
+.body{padding:30px;max-width:1400px;margin:0 auto}
 .sec{display:none}.sec.active{display:block}
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
-.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:relative}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:10px 10px 0 0}
-.kpi.or::before{background:var(--orange)}.kpi.bl::before{background:var(--blue)}.kpi.gn::before{background:var(--green)}.kpi.rd::before{background:var(--red)}.kpi.yl::before{background:var(--yellow)}
-.kpi-lbl{font-size:10px;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
-.kpi-val{font-size:24px;font-weight:800;font-family:var(--mono)}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px}
-.theme-toggle{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:30px;background:var(--surface2);border:1px solid var(--border-s);color:var(--t1);cursor:pointer}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-bottom:25px}
+.kpi{background:var(--surface);padding:20px;border-radius:var(--radius);border:1px solid var(--border);position:relative}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:10px 10px 0 0}
+.kpi.or::before{background:var(--orange)}.kpi.rd::before{background:var(--red)}.kpi.gn::before{background:var(--green)}.kpi.bl::before{background:var(--blue)}.kpi.yl::before{background:var(--yellow)}
+.kpi-lbl{font-size:10px;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+.kpi-val{font-size:26px;font-weight:800;font-family:var(--mono)}
+.card{background:var(--surface);padding:25px;border-radius:15px;border:1px solid var(--border);margin-bottom:20px}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:10px;text-transform:uppercase;color:var(--t3);padding:10px;border-bottom:1px solid var(--border)}
-td{padding:12px 10px;border-bottom:1px solid var(--border);font-size:13px}
-.ag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}
-.ag-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px;border-top:4px solid var(--green)}
-.as-val{font-size:20px;font-weight:800;color:var(--t1)}
-.as-lbl{font-size:9px;color:var(--t3);text-transform:uppercase}
+th{text-align:left;font-size:11px;color:var(--t3);padding:12px;border-bottom:1px solid var(--border)}
+td{padding:12px;border-bottom:1px solid var(--border);font-size:14px}
+.ag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.ag-card{background:var(--surface);padding:20px;border-radius:12px;border:1px solid var(--border);border-top:5px solid var(--green)}
+.pill{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700}
+.p-crit{background:rgba(239,68,68,0.2);color:var(--red)}
 </style>
 </head>
 <body>
@@ -48,23 +52,20 @@ td{padding:12px 10px;border-bottom:1px solid var(--border);font-size:13px}
   <div class="hdr-top">
     <div class="brand">
       <div class="brand-ico">🐯</div>
-      <div><div class="brand-name">Tiger Offers Dashboard</div><div id="hdr-data" style="font-size:10px;color:var(--t3)">Carregando...</div></div>
+      <div><div class="brand-name">Tiger Dashboard v3.0</div><div id="hdr-data" style="font-size:10px;color:var(--t3)">Sincronizando...</div></div>
     </div>
     <div class="period-selector">
-      <button class="period-hoje" onclick="selectHoje(this)">📅 HOJE</button>
+      <button class="period-hoje" id="btn-hoje" onclick="selectHoje(this)">📅 HOJE</button>
       <button class="week-btn" onclick="selectWeek('S1', this)">S1</button>
       <button class="week-btn" onclick="selectWeek('S2', this)">S2</button>
       <button class="week-btn" onclick="selectWeek('S3', this)">S3</button>
       <button class="week-btn" onclick="selectWeek('S4', this)">S4</button>
       <button class="week-btn active" onclick="selectWeek('S5', this)">S5</button>
     </div>
-    <button class="theme-toggle" onclick="toggleTheme()">
-      <span id="theme-ico">🌙</span> <span id="theme-lbl">Modo Escuro</span>
-    </button>
+    <button class="theme-toggle" onclick="toggleTheme()"><span id="theme-ico">🌙</span> <span id="theme-lbl">Modo Escuro</span></button>
   </div>
   <div class="tabs">
-    <div class="tab active" onclick="show('reimb',this)">📊 Reembolso</div>
-    <div class="tab" onclick="show('afil',this)">🤝 Afiliados</div>
+    <div class="tab active" onclick="show('reimb',this)">📊 Reembolso & Afiliados</div>
     <div class="tab" onclick="show('cs',this)">🧑‍💻 Time CS</div>
   </div>
 </div>
@@ -72,44 +73,32 @@ td{padding:12px 10px;border-bottom:1px solid var(--border);font-size:13px}
 <div class="body">
   <div class="sec active" id="s-reimb">
     <div class="kpi-row">
-      <div class="kpi yl"><div class="kpi-lbl">Vendas Brutas BG</div><div class="kpi-val" id="k-vendas">$0</div></div>
-      <div class="kpi rd"><div class="kpi-lbl">Total Reembolsado</div><div class="kpi-val" id="k-reimb">$0</div></div>
-      <div class="kpi rd"><div class="kpi-lbl">Total Chargeback</div><div class="kpi-val" id="k-cb">$0</div></div>
-      <div class="kpi or"><div class="kpi-lbl">Taxa Geral %</div><div class="kpi-val" id="k-taxa">0%</div></div>
-      <div class="kpi bl"><div class="kpi-lbl">HG Retido (Saved)</div><div class="kpi-val" id="k-hg-ret">0</div></div>
-      <div class="kpi gn"><div class="kpi-lbl">Tiger Retido</div><div class="kpi-val" id="k-to-ret">0</div></div>
+      <div class="kpi yl"><div class="kpi-lbl">Vendas Brutas BG</div><div class="kpi-val" id="bg-kpi-vendas">$0</div></div>
+      <div class="kpi rd"><div class="kpi-lbl">Total Reembolsado</div><div class="kpi-val" id="bg-kpi-reimb">$0</div></div>
+      <div class="kpi rd"><div class="kpi-lbl">Total Chargeback</div><div class="kpi-val" id="bg-kpi-cb">$0</div></div>
+      <div class="kpi or"><div class="kpi-lbl">Taxa Geral %</div><div class="kpi-val" id="bg-kpi-taxa">0%</div></div>
+      <div class="kpi bl"><div class="kpi-lbl">HG Retido (Saved)</div><div class="kpi-val" id="bg-kpi-hg">0</div></div>
+      <div class="kpi gn"><div class="kpi-lbl">Tiger Retido (Total)</div><div class="kpi-val" id="bg-kpi-tiger">0</div></div>
     </div>
+    
     <div class="card">
-      <div class="card-ttl">🔄 Reembolsos por Intervalo</div>
-      <div id="reimb-interval-bars" style="margin-top:15px"></div>
-    </div>
-  </div>
-
-  <div class="sec" id="s-afil">
-    <div class="sec-ttl">🏆 Ranking de Reembolsos por Afiliado</div>
-    <div class="score-grid" id="score-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin: 20px 0;"></div>
-    <div class="card">
-      <table>
-        <thead><tr><th>Afiliado</th><th>Reemb.</th><th>CBs</th><th>Valor</th><th>0-3d %</th><th>Status</th></tr></thead>
-        <tbody id="tbl-afil"></tbody>
-      </table>
+      <div style="font-weight:800; margin-bottom:15px">🏆 Ranking de Reembolsos por Afiliado (Período)</div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Afiliado</th><th>Reemb.</th><th>CBs</th><th>Valor</th><th>0-3d %</th><th>Status</th></tr></thead>
+          <tbody id="tbl-afil"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <div class="sec" id="s-cs">
-    <div class="cs-hoje-panel" id="cs-hoje-panel" style="background:var(--surface2); padding:15px; border-radius:10px; margin-bottom:20px; display:none">
-       <div style="display:flex; gap:30px">
-          <div><div class="as-lbl">Tickets Hoje</div><div class="as-val" id="cs-hoje-tickets">0</div></div>
-          <div><div class="as-lbl">Retido Hoje</div><div class="as-val" id="cs-hoje-retido">$0</div></div>
-          <div><div class="as-lbl">Taxa Hoje</div><div class="as-val" id="cs-hoje-taxa">0%</div></div>
-       </div>
-    </div>
     <div class="kpi-row">
       <div class="kpi bl"><div class="kpi-lbl">Tickets Tabulados</div><div class="kpi-val" id="cs-kpi-tickets">0</div></div>
       <div class="kpi or"><div class="kpi-lbl">Retenções Totais</div><div class="kpi-val" id="cs-kpi-ret-qtd">0</div></div>
       <div class="kpi gn"><div class="kpi-lbl">Valor Retido</div><div class="kpi-val" id="cs-kpi-ret-val">$0</div></div>
-      <div class="kpi gn"><div class="kpi-lbl">Maior Retentora</div><div class="kpi-val" id="cs-kpi-best-val">$0</div><div id="cs-kpi-best-ag" style="font-size:10px"></div></div>
-      <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-kpi-active-tick">0</div><div id="cs-kpi-active-ag" style="font-size:10px"></div></div>
+      <div class="kpi gn"><div class="kpi-lbl">Maior Retentora</div><div class="kpi-val" id="cs-kpi-best-val">$0</div><div id="cs-kpi-best-ag" style="font-size:10px; color:var(--t3)"></div></div>
+      <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-kpi-active-tick">0</div><div id="cs-kpi-active-ag" style="font-size:10px; color:var(--t3)"></div></div>
       <div class="kpi or"><div class="kpi-lbl">Taxa de Retenção</div><div class="kpi-val" id="cs-kpi-taxa">0%</div></div>
     </div>
     <div class="ag-grid" id="ag-grid"></div>
@@ -124,14 +113,14 @@ const fmtM = n => n >= 1000 ? '$' + fmt(n/1000, 1) + 'K' : '$' + fmt(n);
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcysOaDI3YN_cectk-lWMhDY27SwqyYdItnZd0YlMzboiCfjybFfYuHx4fkn-epJPDnA/exec';
 window.dadosScript = null;
 
+// Datas de 2026
 const PERIOD_DATES = {
   'S1': [new Date(2026, 3, 1), new Date(2026, 3, 6, 23, 59)],
   'S2': [new Date(2026, 3, 7), new Date(2026, 3, 13, 23, 59)],
   'S3': [new Date(2026, 3, 14), new Date(2026, 3, 20, 23, 59)],
   'S4': [new Date(2026, 3, 21), new Date(2026, 3, 27, 23, 59)],
   'S5': [new Date(2026, 3, 28), new Date(2026, 3, 30, 23, 59)],
-  'abril_total': [new Date(2026, 3, 1), new Date(2026, 3, 30, 23, 59)],
-  'marco': [new Date(2026, 2, 1), new Date(2026, 2, 31, 23, 59)]
+  'abril_total': [new Date(2026, 3, 1), new Date(2026, 3, 30, 23, 59)]
 };
 
 function show(id, el) {
@@ -141,14 +130,43 @@ function show(id, el) {
   el.classList.add('active');
 }
 
-function processarCSBruto(rows, start, end) {
+// ─── MOTOR DE CÁLCULO DE REEMBOLSO (BUYGOODS) ───────────
+function processarReembolso(rows, start, end) {
+  let stats = { vendas:0, reimb:0, cb:0, qtdR:0, qtdC:0, afil:{} };
+  rows.forEach(r => {
+    const d = new Date(r['Create Date'] || r['create date']);
+    if (d < start || d > end) return;
+    const val = parseFloat(r.Amount) || 0;
+    const isR = r['Was Refunded'] == 1;
+    const isC = r['Was Chargeback'] == 1;
+    const name = r['Affiliate Name'] || 'Direto';
+
+    stats.vendas += val;
+    if(!stats.afil[name]) stats.afil[name] = { n:name, r:0, c:0, v:0, totalCanc:0, zeroTres:0 };
+    
+    if(isR || isC) {
+      if(isC) { stats.cb += val; stats.qtdC++; stats.afil[name].c++; }
+      else { stats.reimb += val; stats.qtdR++; stats.afil[name].r++; }
+      stats.afil[name].v += val;
+      stats.afil[name].totalCanc++;
+      
+      const dCanc = new Date(r['Canceled Date']);
+      const dias = Math.floor((dCanc - d) / (1000*60*60*24));
+      if(dias <= 3) stats.afil[name].zeroTres++;
+    }
+  });
+  return stats;
+}
+
+// ─── MOTOR DE CÁLCULO DE CS (FORMULÁRIO) ───────────
+function processarCS(rows, start, end) {
   const agentes = {};
   rows.forEach(r => {
-    const d = new Date(r.Timestamp || r.timestamp || r['Carimbo de data/hora']);
+    const d = new Date(r.Timestamp || r['Carimbo de data/hora']);
     if (d < start || d > end) return;
-    const nome = r.Atendente || r.atendente;
+    const nome = r.Atendente || r['Atendente'];
     if (!nome) return;
-    if (!agentes[nome]) agentes[nome] = { agente: nome, tickets_tab: 0, retido_reembolso_valor: 0, retidos_qtd: 0, parcial_compl_qtd: 0, parcial_valor: 0, gateway_hg: 0, propostas_env: 0, total_retido: 0 };
+    if (!agentes[nome]) agentes[nome] = { agente: nome, tickets_tab: 0, retido_reembolso_valor: 0, retidos_qtd: 0, parcial_compl_qtd: 0, parcial_valor: 0, total_retido: 0 };
     const a = agentes[nome];
     a.tickets_tab++;
     const res = r['Resultado da Retenção'] || '';
@@ -160,60 +178,68 @@ function processarCSBruto(rows, start, end) {
   return Object.values(agentes);
 }
 
-function renderCS(rows) {
-  let tTick=0, tRetQ=0, tParcQ=0, tVal=0;
-  let best = {n:'', v:0}, active = {n:'', t:0};
+function applyPeriod(key) {
+  const [start, end] = PERIOD_DATES[key] || PERIOD_DATES['S5'];
+  if (!window.dadosScript) return;
+
+  // 1. Atualiza Reembolso & Afiliados
+  const bg = processarReembolso(window.dadosScript.buygoods_raw, start, end);
+  $('bg-kpi-vendas').textContent = fmtM(bg.vendas);
+  $('bg-kpi-reimb').textContent = fmtM(bg.reimb);
+  $('bg-kpi-cb').textContent = fmtM(bg.cb);
+  $('bg-kpi-taxa').textContent = bg.vendas > 0 ? fmt((bg.reimb+bg.cb)/bg.vendas*100, 1) + '%' : '0%';
   
-  $('ag-grid').innerHTML = rows.map(r => {
-    tTick += r.tickets_tab; tRetQ += r.retidos_qtd; tParcQ += r.parcial_compl_qtd; tVal += r.total_retido;
+  const afilArray = Object.values(bg.afil).sort((a,b) => b.r - a.r);
+  $('tbl-afil').innerHTML = afilArray.map(a => {
+    const pct = a.totalCanc > 0 ? Math.round(a.zeroTres/a.totalCanc*100) : 0;
+    const status = a.c > 2 ? 'PAUSAR' : (pct > 50 ? 'CRÍTICO' : 'OK');
+    return `<tr><td>${a.n}</td><td>${a.r}</td><td>${a.c}</td><td>${fmtM(a.v)}</td><td>${pct}%</td><td><span class="pill ${status !== 'OK' ? 'p-crit' : ''}">${status}</span></td></tr>`;
+  }).join('');
+
+  // 2. Atualiza Time CS
+  const cs = processarCS(window.dadosScript.respostas_brutas, start, end);
+  let tTick=0, tRetQ=0, tVal=0, best={n:'-',v:0}, active={n:'-',t:0};
+  
+  $('ag-grid').innerHTML = cs.map(r => {
+    tTick += r.tickets_tab; tRetQ += (r.retidos_qtd + r.parcial_compl_qtd); tVal += r.total_retido;
     if(r.total_retido > best.v) best = {n:r.agente, v:r.total_retido};
     if(r.tickets_tab > active.t) active = {n:r.agente, t:r.tickets_tab};
-    return `<div class="ag-card">
-      <div class="ag-name">${r.agente}</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px">
+    return `<div class="ag-card"><div style="font-weight:800">${r.agente}</div>
+      <div style="display:flex; justify-content:space-between; margin-top:10px">
         <div><div class="as-lbl">Tickets</div><div class="as-val">${r.tickets_tab}</div></div>
         <div><div class="as-lbl">Retido</div><div class="as-val">${fmtM(r.total_retido)}</div></div>
-      </div>
-    </div>`;
+      </div></div>`;
   }).join('');
 
   $('cs-kpi-tickets').textContent = tTick;
-  $('cs-kpi-ret-qtd').textContent = tRetQ + tParcQ;
+  $('cs-kpi-ret-qtd').textContent = tRetQ;
   $('cs-kpi-ret-val').textContent = fmtM(tVal);
   $('cs-kpi-best-val').textContent = fmtM(best.v);
   $('cs-kpi-best-ag').textContent = best.n;
   $('cs-kpi-active-tick').textContent = active.t;
   $('cs-kpi-active-ag').textContent = active.n;
-  $('cs-kpi-taxa').textContent = tTick > 0 ? fmt((tRetQ+tParcQ)/tTick*100, 1) + '%' : '0%';
-}
+  $('cs-kpi-taxa').textContent = tTick > 0 ? fmt(tRetQ/tTick*100, 1) + '%' : '0%';
 
-function applyPeriod(key) {
-  const [start, end] = PERIOD_DATES[key] || PERIOD_DATES['S5'];
-  if (window.dadosScript && window.dadosScript.respostas_brutas) {
-    const filtrados = processarCSBruto(window.dadosScript.respostas_brutas, start, end);
-    renderCS(filtrados);
-    if (key === 'hoje') {
-      $('cs-hoje-panel').style.display = 'block';
-      $('cs-hoje-tickets').textContent = $('cs-kpi-tickets').textContent;
-      $('cs-hoje-retido').textContent = $('cs-kpi-ret-val').textContent;
-      $('cs-hoje-taxa').textContent = $('cs-kpi-taxa').textContent;
-    } else {
-      $('cs-hoje-panel').style.display = 'none';
-    }
+  if(key === 'hoje') {
+    $('cs-hoje-tickets').textContent = tTick;
+    $('cs-hoje-retido').textContent = fmtM(tVal);
+    $('cs-hoje-taxa').textContent = $('cs-kpi-taxa').textContent;
   }
 }
 
 function selectWeek(key, btn) {
   document.querySelectorAll('.week-btn, .period-hoje').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  $('cs-hoje-panel').style.display = 'none';
   applyPeriod(key);
 }
 
 function selectHoje(btn) {
   document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  $('cs-hoje-panel').style.display = 'block';
   const t = new Date();
-  PERIOD_DATES['hoje'] = [new Date(t.setHours(0,0,0,0)), new Date(t.setHours(23,59,59,999))];
+  PERIOD_DATES['hoje'] = [new Date(t.setHours(0,0,0,0)), new Date(t.setHours(23,59,59))];
   applyPeriod('hoje');
 }
 
@@ -223,31 +249,18 @@ async function loadData() {
     const data = await r.json();
     window.dadosScript = data;
     $('loading').classList.add('hidden');
-    
-    if (data.buygoods_processada) {
-      const bg = data.buygoods_processada;
-      $('k-vendas').textContent = fmtM(bg.global.vendas);
-      $('k-reimb').textContent = fmtM(bg.global.reimb);
-      $('k-cb').textContent = fmtM(bg.global.cb);
-      $('k-taxa').textContent = fmt(((bg.global.reimb+bg.global.cb)/bg.global.vendas)*100, 2) + '%';
-      
-      $('tbl-afil').innerHTML = bg.afiliados_ranking.map(a => `<tr><td>${a.afiliado}</td><td>${a.reemb}</td><td>${a.cbs}</td><td>${fmtM(a.valor_reimb)}</td><td>${a.pct_0_3d}%</td><td>${a.status}</td></tr>`).join('');
-    }
-    
-    if (data.helpgrid_processada) {
-       $('k-hg-ret').textContent = data.helpgrid_processada.total_saved;
-    }
-
+    $('hdr-data').textContent = "Sincronizado: " + new Date().toLocaleTimeString();
     applyPeriod('S5');
-  } catch(e) { console.error(e); }
+  } catch(e) { console.error(e); alert("Erro ao carregar dados. Verifique a internet."); }
 }
 
 function toggleTheme() {
   const isL = document.documentElement.getAttribute('data-theme') === 'light';
-  document.documentElement.setAttribute('data-theme', isL ? 'dark' : 'light');
+  const newT = isL ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', newT);
   $('theme-ico').textContent = isL ? '🌙' : '☀️';
   $('theme-lbl').textContent = isL ? 'Modo Escuro' : 'Modo Claro';
-  localStorage.setItem('tiger-theme', isL ? 'dark' : 'light');
+  localStorage.setItem('tiger-theme', newT);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
