@@ -362,21 +362,19 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
 <!-- ═══ ABA REEMBOLSO ═══ -->
 <div class="sec active" id="s-reimb">
 
-  <!-- Period selector bar -->
-  <div class="tab-period-bar">
-    <div class="tab-period-left">
-      <span class="date-bar-label">Período — CS &amp; Retenção</span>
-      <div class="period-selector">
-        <button class="dr-btn active" data-dr="hoje" onclick="selectDateRange('hoje')">📅 Hoje</button>
-        <button class="dr-btn" data-dr="ontem" onclick="selectDateRange('ontem')">Ontem</button>
-        <div class="period-sep"></div>
-        <button class="dr-btn" data-dr="7d" onclick="selectDateRange('7d')">Últ. 7 dias</button>
-        <button class="dr-btn" data-dr="15d" onclick="selectDateRange('15d')">15 dias</button>
-        <button class="dr-btn" data-dr="30d" onclick="selectDateRange('30d')">30 dias</button>
-        <button class="dr-btn" data-dr="60d" onclick="selectDateRange('60d')">60 dias</button>
-      </div>
+  <!-- ── SELETOR DE PERÍODO ── -->
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:9px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;margin-right:4px;white-space:nowrap">PERÍODO — CS &amp; RETENÇÃO</span>
+      <button class="dr-btn active" data-dr="hoje"  onclick="selectDateRange('hoje')">📅 Hoje</button>
+      <button class="dr-btn" data-dr="ontem" onclick="selectDateRange('ontem')">Ontem</button>
+      <div style="width:1px;height:18px;background:var(--border-s)"></div>
+      <button class="dr-btn" data-dr="7d"    onclick="selectDateRange('7d')">Últ. 7 dias</button>
+      <button class="dr-btn" data-dr="15d"   onclick="selectDateRange('15d')">15 dias</button>
+      <button class="dr-btn" data-dr="30d"   onclick="selectDateRange('30d')">30 dias</button>
+      <button class="dr-btn" data-dr="60d"   onclick="selectDateRange('60d')">60 dias</button>
     </div>
-    <div class="tab-period-right">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
       <span class="week-lbl">BuyGoods:</span>
       <div class="month-group" style="gap:1px">
         <button class="month-btn" onclick="toggleMonth('marco',this)" id="mb-marco">Março</button>
@@ -503,20 +501,16 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
 <!-- ═══ ABA AFILIADOS ═══ -->
 <div class="sec" id="s-afil">
 
-  <!-- Period selector bar -->
-  <div class="tab-period-bar">
-    <div class="tab-period-left">
-      <span class="date-bar-label">Período — CS &amp; Retenção</span>
-      <div class="period-selector">
-        <button class="dr-btn" data-dr="hoje" onclick="selectDateRange('hoje')">📅 Hoje</button>
-        <button class="dr-btn" data-dr="ontem" onclick="selectDateRange('ontem')">Ontem</button>
-        <div class="period-sep"></div>
-        <button class="dr-btn" data-dr="7d" onclick="selectDateRange('7d')">Últ. 7 dias</button>
-        <button class="dr-btn" data-dr="15d" onclick="selectDateRange('15d')">15 dias</button>
-        <button class="dr-btn" data-dr="30d" onclick="selectDateRange('30d')">30 dias</button>
-        <button class="dr-btn" data-dr="60d" onclick="selectDateRange('60d')">60 dias</button>
-      </div>
-    </div>
+  <!-- ── SELETOR DE PERÍODO ── -->
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap">
+    <span style="font-size:9px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;margin-right:4px;white-space:nowrap">PERÍODO — CS &amp; RETENÇÃO</span>
+    <button class="dr-btn" data-dr="hoje"  onclick="selectDateRange('hoje')">📅 Hoje</button>
+    <button class="dr-btn" data-dr="ontem" onclick="selectDateRange('ontem')">Ontem</button>
+    <div style="width:1px;height:18px;background:var(--border-s)"></div>
+    <button class="dr-btn" data-dr="7d"    onclick="selectDateRange('7d')">Últ. 7 dias</button>
+    <button class="dr-btn" data-dr="15d"   onclick="selectDateRange('15d')">15 dias</button>
+    <button class="dr-btn" data-dr="30d"   onclick="selectDateRange('30d')">30 dias</button>
+    <button class="dr-btn" data-dr="60d"   onclick="selectDateRange('60d')">60 dias</button>
   </div>
 
   <div class="kpi-row">
@@ -602,20 +596,16 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
 <!-- ═══ ABA CS ═══ -->
 <div class="sec" id="s-cs">
 
-  <!-- Period selector bar -->
-  <div class="tab-period-bar">
-    <div class="tab-period-left">
-      <span class="date-bar-label">Período — CS &amp; Retenção</span>
-      <div class="period-selector">
-        <button class="dr-btn" data-dr="hoje" onclick="selectDateRange('hoje')">📅 Hoje</button>
-        <button class="dr-btn" data-dr="ontem" onclick="selectDateRange('ontem')">Ontem</button>
-        <div class="period-sep"></div>
-        <button class="dr-btn" data-dr="7d" onclick="selectDateRange('7d')">Últ. 7 dias</button>
-        <button class="dr-btn" data-dr="15d" onclick="selectDateRange('15d')">15 dias</button>
-        <button class="dr-btn" data-dr="30d" onclick="selectDateRange('30d')">30 dias</button>
-        <button class="dr-btn" data-dr="60d" onclick="selectDateRange('60d')">60 dias</button>
-      </div>
-    </div>
+  <!-- ── SELETOR DE PERÍODO ── -->
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap">
+    <span style="font-size:9px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;margin-right:4px;white-space:nowrap">PERÍODO — CS &amp; RETENÇÃO</span>
+    <button class="dr-btn" data-dr="hoje"  onclick="selectDateRange('hoje')">📅 Hoje</button>
+    <button class="dr-btn" data-dr="ontem" onclick="selectDateRange('ontem')">Ontem</button>
+    <div style="width:1px;height:18px;background:var(--border-s)"></div>
+    <button class="dr-btn" data-dr="7d"    onclick="selectDateRange('7d')">Últ. 7 dias</button>
+    <button class="dr-btn" data-dr="15d"   onclick="selectDateRange('15d')">15 dias</button>
+    <button class="dr-btn" data-dr="30d"   onclick="selectDateRange('30d')">30 dias</button>
+    <button class="dr-btn" data-dr="60d"   onclick="selectDateRange('60d')">60 dias</button>
   </div>
 
   <div class="cs-hoje-panel" id="cs-hoje-panel">
@@ -812,7 +802,9 @@ function show(id, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   $('s-'+id).classList.add('active');
   if (el) el.classList.add('active');
-  animateBars();
+  // Re-renderiza para garantir que dados aparecem ao trocar de aba
+  renderAll();
+  setTimeout(animateBars, 50);
 }
 
 // ─── LABELS MAP ─────────────────────────────
@@ -1300,6 +1292,7 @@ async function syncData() {
       : '';
     showBanner('err','❌ ' + err.message + hint);
     if (btn) { btn.textContent='❌ Erro'; btn.style.color='var(--red)'; }
+    renderAll(); // mostra dados estáticos mesmo com erro
   } finally {
     if (btn) btn.disabled=false;
     setTimeout(()=>{ if(btn){btn.textContent='🔄 Sincronizar';btn.style.color='';} },6000);
@@ -1380,27 +1373,39 @@ function renderAll() {
   ['hdr-semana','footer-periodo','ret-cmp-period-lbl','cmp-efic-period'].forEach(id => { const e=$(id); if(e) e.textContent=dr.label; });
 
   if (RAW.ok && RAW.form.length > 0) {
+    // ✅ Dados reais do Apps Script — filtra por período
     renderFromRaw(dr.from, dr.to, dr.label);
   } else {
-    // Fallback estático — CS com dados FB
-    renderCSStatic();
+    // 📋 Sem conexão — mostra dados estáticos completos (60 dias)
+    // CS sempre visível com dados FB
+    renderCSCards(FB.cs.map(a => ({
+      agente: a.agente,
+      tickets: a.tickets_tab,
+      retidos: a.retidos_qtd,
+      parcial: a.parcial_compl_qtd,
+      gateway: a.gateway_hg,
+      reimb: 0,
+      taxa: a.tickets_tab > 0 ? (a.retidos_qtd + a.parcial_compl_qtd) / a.tickets_tab * 100 : 0,
+      perf: a.performance
+    })));
+    $('cs-total').textContent = FB.cs.reduce((s,a)=>s+a.tickets_tab,0);
     renderRetencao(FB.retencao);
     renderHGProd(FB.hg_produtos);
     renderTOProd(FB.tiger_produtos);
     renderRetComp(null);
+
+    // Aviso no afil-live-section
+    const div = $('afil-live-section');
+    if (div) div.innerHTML = `<div class="card gfull" style="margin-top:14px;border-color:rgba(245,158,11,.3)">
+      <div style="padding:20px;text-align:center;color:var(--yellow)">
+        <div style="font-size:24px;margin-bottom:8px">⚠️</div>
+        <div style="font-weight:700;margin-bottom:4px">Aguardando conexão com Apps Script</div>
+        <div style="font-size:11px;color:var(--t3)">Configure o URL do Apps Script (botão ⚙️ URL) e clique em 🔄 Sincronizar.<br>
+        Os dados de CS e Afiliados por período só funcionam com dados reais da planilha.</div>
+      </div>
+    </div>`;
   }
   setTimeout(animateBars, 80);
-}
-
-// Fallback CS com dados estáticos do FB (para quando sem conexão)
-function renderCSStatic() {
-  renderCSCards(FB.cs.map(a => ({
-    agente: a.agente, tickets: a.tickets_tab,
-    retidos: a.retidos_qtd, parcial: a.parcial_compl_qtd,
-    gateway: a.gateway_hg, reimb: 0,
-    taxa: a.tickets_tab>0?(a.retidos_qtd+a.parcial_compl_qtd)/a.tickets_tab*100:0,
-    perf: a.performance
-  })));
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1729,7 +1734,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   // Preenche campo de URL se já salvo
   const inp=$('as-url-input'); if(inp&&AS_URL) inp.value=AS_URL;
 
-  // Render estático imediato (BuyGoods / dados fixos)
+  // Render estático imediato (BuyGoods / dados fixos — não dependem de período)
   renderIntervalBars('reimb-interval-bars',FB.intervalos_reimb,'reimb');
   renderIntervalBars('cb-interval-bars',   FB.intervalos_cb,   'cb');
   renderScores(FB.afiliados);
@@ -1740,20 +1745,22 @@ window.addEventListener('DOMContentLoaded',()=>{
   renderImpacto(FB.impacto);
   rpRender('S5');
 
-  // Período inicial
+  // Período inicial = 60 dias
   DR = '60d';
-  renderAll();  // fallback estático
 
-  // Sincroniza se já tem URL salvo
+  // Renderiza dados estáticos IMEDIATAMENTE — CS nunca fica vazio
+  renderAll();
+
+  // Remove loading overlay imediatamente após primeiro render
+  $('loading').classList.add('hidden');
+  animateBars();
+
+  // Sincroniza dados reais em background (não bloqueia UI)
   if (AS_URL) {
-    syncData().finally(()=>{
-      setTimeout(()=>{ $('loading').classList.add('hidden'); animateBars(); },400);
-    });
+    showBanner('info','🔄 Conectando ao Apps Script…');
+    syncData();
   } else {
-    // Sem URL — mostra aviso e abre painel de config
-    setTimeout(()=>{ $('loading').classList.add('hidden'); animateBars(); },400);
-    showBanner('warn','⚠️ Configure o URL do Apps Script para sincronizar dados em tempo real. Clique em 🔄 Sincronizar.');
-    const panel=$('config-panel'); if(panel) panel.style.display='block';
+    showBanner('warn','⚙️ Cole o URL do Apps Script em ⚙️ URL para dados em tempo real. Exibindo dados estáticos.');
   }
 });
 </script>
