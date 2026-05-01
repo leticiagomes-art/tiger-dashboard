@@ -890,7 +890,7 @@ function renderDiag(rows) {
   const bar = (lbl, col, pct, raw) => `<div class="diag-row">
     <div class="diag-lrow"><span class="diag-lbl">${lbl}</span><span class="diag-val" style="color:${col}">${pct}% (${raw})</span></div>
     <div class="diag-track"><div class="diag-fill" data-pct="${pct}" style="background:${col}"></div></div>
-  </div>`;
+  </div>`
   const card = r => `<div class="diag-card">
     <div class="diag-name">${r.afiliado}${r.tipo==='HelpGrid'?'<span class="pill p-bl" style="font-size:8px;margin-left:5px">HG</span>':''}</div>
     <div class="diag-meta">${r.reemb} reembolsos · ${r.cbs} CBs · Mediana: ${r.mediana_dias}d</div>
