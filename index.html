@@ -356,14 +356,13 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
 <div class="alert-banner" id="taxa-alert" style="background:var(--red-l);border-color:rgba(239,68,68,.3);color:var(--red)"><span id="taxa-alert-msg"></span></div>
 
 <!-- ═══ ABA REEMBOLSO ═══ -->
-<div class="sec active" id="s-reimb">
-  <div class="kpi-row">
-    <div class="kpi yl"><div class="kpi-lbl">Vendas Brutas BG</div><div class="kpi-val" id="k-vendas">—</div><div class="kpi-sub" id="k-vendas-sub" title="Líquido = bruto excluindo reembolsados e CBs">↳ Líq: —</div></div>
-    <div class="kpi rd"><div class="kpi-lbl">Total Reembolsado</div><div class="kpi-val" id="k-reimb">—</div><div class="kpi-sub" id="k-reimb-sub">—</div></div>
-    <div class="kpi rd"><div class="kpi-lbl">Total Chargeback</div><div class="kpi-val" id="k-cb">—</div><div class="kpi-sub" id="k-cb-sub">—</div></div>
-    <div class="kpi or" id="kpi-taxa"><div class="kpi-lbl">Taxa Geral (Reimb+CB)</div><div class="kpi-val" id="k-taxa">—</div><div class="kpi-sub warn">⚠ Benchmark ideal ≤ 8%</div></div>
-    <div class="kpi bl"><div class="kpi-lbl">HG Retido (Saved Sales)</div><div class="kpi-val" id="k-hg-ret">—</div><div class="kpi-sub" id="k-hg-ret-sub">—</div></div>
-    <div class="kpi gn"><div class="kpi-lbl">Tiger Retido (Total)</div><div class="kpi-val" id="k-to-ret">—</div><div class="kpi-sub" id="k-to-ret-sub">—</div></div>
+<div class="kpi-row">
+    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-kpi-tickets">—</div><div class="kpi-sub" id="cs-kpi-tickets-sub">Time CS Tiger</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Retenções Totais (Tiger)</div><div class="kpi-val" id="cs-kpi-ret-qtd">—</div><div class="kpi-sub" id="cs-kpi-ret-sub">—</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val" id="cs-kpi-ret-val">—</div><div class="kpi-sub ok" id="cs-kpi-ret-val-sub">—</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Maior Retentora</div><div class="kpi-val" id="cs-kpi-best-val">—</div><div class="kpi-sub ok" id="cs-kpi-best-ag">—</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-kpi-active-tick">—</div><div class="kpi-sub" id="cs-kpi-active-ag">—</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Taxa de Retenção Tiger</div><div class="kpi-val" id="cs-kpi-taxa">—</div><div class="kpi-sub ok" id="cs-kpi-taxa-sub">—</div></div>
   </div>
 
   <div class="card gfull">
@@ -749,11 +748,64 @@ function renderHGProd(r) { $('tbl-hg-prod').innerHTML = ''; }
 function renderTOProd(r) { $('tbl-to-prod').innerHTML = ''; }
 function rpRender(key) { /* Logica de dashboard de reembolso */ }
 
-// FUNÇÃO ATUALIZADA: Renderiza os cards dos atendentes
+// FUNÇÃO ATUALIZADA: Renderiza os cards e os KPIs do topo
 function renderCS(rows) {
-  if (!rows || rows.length === 0) return;
-  const perfCol = {EXCELENTE:'var(--green)', BOM:'var(--blue)', 'EM DESENVOLVIMENTO':'var(--yellow)', MONIT:'var(--t4)'};
+  // Limpa tudo caso não haja dados hoje
+  if (!rows || rows.length === 0) {
+    $('ag-grid').innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--t4);">Nenhum ticket registrado neste período.</div>';
+    if($('tbl-cs')) $('tbl-cs').innerHTML = '<tr><td colspan="10" class="center">Sem dados</td></tr>';
+    ['cs-kpi-tickets','cs-kpi-ret-qtd','cs-kpi-ret-val','cs-kpi-best-val','cs-kpi-active-tick','cs-kpi-taxa'].forEach(id => { if($(id)) $(id).textContent = '0'; });
+    return;
+  }
+
+  // 1. Calcula as métricas somando o array que chegou (Total ou Hoje)
+  let tTickets = 0, tRetQtd = 0, tParcQtd = 0, tRetVal = 0, tParcVal = 0, tPropostas = 0, tGateway = 0;
+  let bestAg = { nome: '—', val: 0, ret: 0 };
+  let activeAg = { nome: '—', tick: 0, prop: 0 };
+
+  rows.forEach(r => {
+    const tick = (+r.tickets_tab||0);
+    const retQ = (+r.retidos_qtd||0);
+    const parcQ = (+r.parcial_compl_qtd||0);
+    const retV = (+r.retido_reembolso_valor||0);
+    const parcV = (+r.parcial_valor||0);
+    const totV = retV + parcV;
+
+    tTickets += tick;
+    tRetQtd += retQ;
+    tParcQtd += parcQ;
+    tRetVal += retV;
+    tParcVal += parcV;
+    tPropostas += (+r.propostas_env||0);
+    tGateway += (+r.gateway_hg||0);
+
+    if (totV > bestAg.val) { bestAg = { nome: r.agente, val: totV, ret: retQ + parcQ }; }
+    if (tick > activeAg.tick) { activeAg = { nome: r.agente, tick: tick, prop: (+r.propostas_env||0) }; }
+  });
+
+  const totalQtd = tRetQtd + tParcQtd;
+  const totalVal = tRetVal + tParcVal;
+  const taxa = tTickets > 0 ? (totalQtd / tTickets) * 100 : 0;
+
+  // 2. Atualiza os BLOCOS DE KPI LÁ DO TOPO
+  if($('cs-kpi-tickets')) $('cs-kpi-tickets').textContent = tTickets;
+  if($('cs-kpi-ret-qtd')) $('cs-kpi-ret-qtd').textContent = totalQtd;
+  if($('cs-kpi-ret-sub')) $('cs-kpi-ret-sub').textContent = `${tRetQtd} diretas + ${tParcQtd} parc.→ret.`;
   
+  if($('cs-kpi-ret-val')) $('cs-kpi-ret-val').textContent = '$' + fmt(totalVal/1000, 1) + 'K';
+  if($('cs-kpi-ret-val-sub')) $('cs-kpi-ret-val-sub').textContent = `$${fmt(tRetVal)} direto + $${fmt(tParcVal)} reclassif.`;
+
+  if($('cs-kpi-best-val')) $('cs-kpi-best-val').textContent = bestAg.val > 0 ? '$' + fmt(bestAg.val/1000, 1) + 'K' : '$0';
+  if($('cs-kpi-best-ag')) $('cs-kpi-best-ag').textContent = `${bestAg.nome} — ${bestAg.ret} ret. totais`;
+
+  if($('cs-kpi-active-tick')) $('cs-kpi-active-tick').textContent = activeAg.tick;
+  if($('cs-kpi-active-ag')) $('cs-kpi-active-ag').textContent = `${activeAg.nome} — ${activeAg.prop} propostas`;
+
+  if($('cs-kpi-taxa')) $('cs-kpi-taxa').textContent = fmt(taxa, 1) + '%';
+  if($('cs-kpi-taxa-sub')) $('cs-kpi-taxa-sub').textContent = `Retenção no período`;
+
+  // 3. Atualiza os CARDS DOS AGENTES
+  const perfCol = {EXCELENTE:'var(--green)', BOM:'var(--blue)', 'EM DESENVOLVIMENTO':'var(--yellow)', 'MONIT.':'var(--t4)'};
   $('ag-grid').innerHTML = rows.map(r => {
     const perf = (r.performance || 'MONIT.').toUpperCase();
     const c = perfCol[perf] || 'var(--t4)';
@@ -765,13 +817,37 @@ function renderCS(rows) {
         <div><div class="as-lbl">Ret. Total (qtd)</div><div class="as-val c-or">${r.retidos_qtd||0}</div></div>
         <div><div class="as-lbl">Parc.→Ret.</div><div class="as-val c-yl">${r.parcial_compl_qtd||0}</div></div>
         <div><div class="as-lbl">Gateway HG</div><div class="as-val c-mu">${r.gateway_hg||0}</div></div>
-        <div><div class="as-lbl">Total ($)</div><div class="as-val c-gn">$${fmt((r.total_retido||0)/1000,1)}K</div></div>
+        <div><div class="as-lbl">Total ($)</div><div class="as-val c-gn">$${fmt(((+r.total_retido)||0)/1000,1)}K</div></div>
       </div>
     </div>`;
   }).join('');
-  
-  const totalTickets = rows.reduce((s,r) => s+(+r.tickets_tab||0), 0);
-  if($('cs-total')) $('cs-total').textContent = totalTickets;
+
+  // 4. Atualiza a TABELA NO FINAL DA PÁGINA
+  if($('tbl-cs')) {
+    const tRows = rows.map(r => {
+      const perf = (r.performance || 'MONIT.').toUpperCase();
+      const c = perfCol[perf] || 'var(--t4)';
+      return `<tr>
+        <td class="bold" style="color:${c}">${r.agente}</td>
+        <td class="center">${r.tickets_tab||0}</td>
+        <td class="right ok">$${fmt(r.retido_reembolso_valor||0)}</td>
+        <td class="center" style="color:var(--orange);font-weight:700">${r.retidos_qtd||0}</td>
+        <td class="center warn">${r.parcial_compl_qtd||0}</td>
+        <td class="right warn">$${fmt(r.parcial_valor||0)}</td>
+        <td class="center" style="color:var(--t4)">${r.gateway_hg||0}</td>
+        <td class="center" style="color:var(--orange)">${r.propostas_env||0}</td>
+        <td class="right ok bold">$${fmt(r.total_retido||0)}</td>
+        <td class="center">${statusPill(perf)}</td>
+      </tr>`;
+    });
+    
+    $('tbl-cs').innerHTML = tRows.join('') + `<tr style="background:var(--surface2);font-weight:700">
+      <td>TOTAL</td><td class="center bl">${tTickets}</td><td class="right ok">$${fmt(tRetVal)}</td>
+      <td class="center" style="color:var(--orange)">${tRetQtd}</td><td class="center warn">${tParcQtd}</td>
+      <td class="right warn">$${fmt(tParcVal)}</td><td class="center">${tGateway}</td>
+      <td class="center" style="color:var(--orange)">${tPropostas}</td><td class="right ok bold">$${fmt(totalVal)}</td><td>—</td>
+    </tr>`;
+  }
 }
 
 // ─── FETCH TODAY CS ──────────────────────────
