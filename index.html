@@ -680,83 +680,125 @@ function show(id, el) {
 const PERIOD_LABELS = { hoje: null, S5:'Semana 5 — 27 a 30/04' };
 const RP_KEY_MAP = { S5:'S5' };
 
-// ─── APPLY PERIOD (A Mágica Acontece Aqui) ─────────────
+// ─── DICIONÁRIO DE DATAS DE CORTE (2026) ────────────────────────
+const PERIOD_DATES = {
+  'S1': [new Date(2026, 3, 1), new Date(2026, 3, 6, 23, 59, 59)],   // 01 a 06/Abril
+  'S2': [new Date(2026, 3, 7), new Date(2026, 3, 13, 23, 59, 59)],  // 07 a 13/Abril
+  'S3': [new Date(2026, 3, 14), new Date(2026, 3, 20, 23, 59, 59)], // 14 a 20/Abril
+  'S4': [new Date(2026, 3, 21), new Date(2026, 3, 27, 23, 59, 59)], // 21 a 27/Abril
+  'S5': [new Date(2026, 3, 28), new Date(2026, 3, 30, 23, 59, 59)], // 28 a 30/Abril
+  'abril_total': [new Date(2026, 3, 1), new Date(2026, 3, 30, 23, 59, 59)],
+  'marco': [new Date(2026, 2, 1), new Date(2026, 2, 31, 23, 59, 59)]
+};
+
+// ─── MOTOR DE FILTRAGEM (Javascript no Front-end) ───────────────
+function processarCSBruto(rows, dataInicio, dataFim) {
+  if (!rows || rows.length === 0) return [];
+  const agentes = {};
+  
+  // Encontra dinamicamente as chaves das colunas do Form
+  const getCol = (aliases) => Object.keys(rows[0]).find(k => aliases.some(a => k.toLowerCase().includes(a)));
+  const cTime = getCol(['carimbo', 'timestamp', 'data']);
+  const cAtend = getCol(['atendente']);
+  const cRes = getCol(['resultado', 'retenção', 'retencao']);
+  const cVal = getCol(['valor']);
+  const cResp = getCol(['responsável', 'responsavel']);
+
+  rows.forEach(r => {
+    if (!r[cTime]) return;
+    const d = new Date(r[cTime]);
+    
+    // Filtro cirúrgico de data!
+    if (d < dataInicio || d > dataFim) return;
+
+    const nome = (r[cAtend] || '').toString().trim();
+    const responsavel = (r[cResp] || '').toString().trim();
+
+    if (!nome || responsavel === 'HelpGrid') return;
+
+    if (!agentes[nome]) {
+      agentes[nome] = {
+        agente: nome, tickets_tab: 0, retido_reembolso_valor: 0, 
+        retidos_qtd: 0, parcial_compl_qtd: 0, parcial_valor: 0, 
+        gateway_hg: 0, propostas_env: 0, total_retido: 0
+      };
+    }
+
+    const a = agentes[nome];
+    a.tickets_tab++;
+
+    const res = (r[cRes] || '').toString();
+    const valStr = String(r[cVal] || '0').replace(/[^0-9.,]/g, '').replace(',', '.');
+    const val = parseFloat(valStr) || 0;
+
+    if (res.includes('Retenção Nível 1')) { a.retidos_qtd++; a.retido_reembolso_valor += val; }
+    else if (res.includes('Retenção Nível 2')) { a.parcial_compl_qtd++; a.parcial_valor += val * 0.5; }
+    else if (res.includes('Gateway')) { a.gateway_hg++; }
+    else if (res.includes('Proposta')) { a.propostas_env++; }
+
+    a.total_retido = a.retido_reembolso_valor + a.parcial_valor;
+  });
+
+  // Calcula a performance e ordena pelo que mais reteve
+  return Object.values(agentes).map(a => {
+    const tx = a.tickets_tab > 0 ? (a.retidos_qtd + a.parcial_compl_qtd) / a.tickets_tab * 100 : 0;
+    a.performance = tx >= 20 ? 'EXCELENTE' : tx >= 12 ? 'BOM' : 'EM DESENVOLVIMENTO';
+    return a;
+  }).sort((a, b) => b.total_retido - a.total_retido);
+}
+
+
+// ─── APPLY PERIOD (A Mágica da Interface) ─────────────
 function applyPeriod(key) {
   currentPeriod = key;
-  const today = new Date().toLocaleDateString('pt-BR');
-  const label = key === 'hoje' ? `Hoje — ${today}` : (PERIOD_LABELS[key] || key);
+  const today = new Date();
+  const todayStr = today.toLocaleDateString('pt-BR');
+  const label = key === 'hoje' ? `Hoje — ${todayStr}` : (PERIOD_LABELS[key] || key);
+  
   $('global-period-badge').textContent = '📅 ' + label;
   $('footer-periodo').textContent = label;
   $('hdr-semana').textContent = label;
+  
+  // Atualiza as tabelas lá da aba "Reembolso" (que você já tinha)
   rpRender(RP_KEY_MAP[key] || 'S5');
   
+  // Define o range de data "Hoje" (da meia noite até as 23:59 de hoje)
+  const hojeStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+  const hojeEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+  PERIOD_DATES['hoje'] = [hojeStart, hojeEnd];
+
   if (key === 'hoje') {
     $('cs-hoje-panel').classList.add('visible');
-    $('cs-hoje-data').textContent = today;
-    fetchTodayCS(); 
-    
-    // Atualiza os paineis grandes com os dados SÓ DE HOJE (os ~80 tickets)
-    if (window.dadosScript && window.dadosScript.cs_agentes_hoje) {
-        renderCS(window.dadosScript.cs_agentes_hoje);
-    }
+    $('cs-hoje-data').textContent = todayStr;
   } else {
     $('cs-hoje-panel').classList.remove('visible');
-    
-    // Atualiza os paineis grandes com os dados TOTAIS da planilha
-    if (window.dadosScript && window.dadosScript.cs_agentes) {
-        renderCS(window.dadosScript.cs_agentes);
-    } else {
-        renderCS(FB.cs);
-    }
   }
+
+  // PEGA AS DATAS DE CORTE
+  const [start, end] = PERIOD_DATES[key] || PERIOD_DATES['S5'];
+
+  // SE O JSON JÁ VEIO COM AS RESPOSTAS BRUTAS, FAZEMOS TUDO AQUI MESMO
+  if (window.dadosScript && window.dadosScript.respostas_brutas) {
+      const dadosFiltrados = processarCSBruto(window.dadosScript.respostas_brutas, start, end);
+      renderCS(dadosFiltrados);
+      
+      // Atualiza os resuminhos no painel de "Hoje" também se precisar
+      if (key === 'hoje') {
+          fetchTodayCS(); // (O fetchTodayCS só atualiza o bloquinho superior visual, e vai puxar direto dos dados calculados se quisermos)
+      }
+  } else {
+      // Fallback: se as respostas brutas ainda não baixaram ou deu erro
+      if (key === 'hoje' && window.dadosScript && window.dadosScript.cs_agentes_hoje) {
+          renderCS(window.dadosScript.cs_agentes_hoje);
+      } else if (window.dadosScript && window.dadosScript.cs_agentes) {
+          renderCS(window.dadosScript.cs_agentes);
+      } else {
+          renderCS(FB.cs); // Dado estático padrão
+      }
+  }
+  
   setTimeout(animateBars, 100);
 }
-
-function selectHoje(btn) {
-  document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('month-active','has-active'));
-  document.querySelectorAll('.period-hoje').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  applyPeriod('hoje');
-}
-
-function toggleMonth(month, btn) { /* Mantido leve para poupar espaço */ }
-function selectTotal(month, btn) { /* Mantido leve para poupar espaço */ }
-function selectWeek(key, btn) {
-  document.querySelectorAll('.week-btn, .period-hoje').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  applyPeriod(key);
-}
-
-function animateBars() {
-  document.querySelectorAll('[data-pct]').forEach(el => {
-    const pct = Math.min(Math.max(parseFloat(el.dataset.pct)||0, 0), 100);
-    el.style.width = pct + '%';
-  });
-}
-
-// ─── FUNÇÕES DE RENDERIZAÇÃO (Grid, Tabelas, etc) ───────────────────
-function renderIntervalBars(c, r, t) { $(c).innerHTML = ''; }
-function renderScores(r) { $('score-grid').innerHTML = ''; }
-function renderDiag(r) { $('diag-grid').innerHTML = ''; }
-function renderAfilTable(r) { $('tbl-afil').innerHTML = ''; }
-function renderVamp(r) { $('tbl-vamp').innerHTML = ''; }
-function renderReincidentes(r) { $('reincidentes-grid').innerHTML = ''; }
-function renderImpacto(r) { $('impact-bars').innerHTML = ''; }
-function renderRetencao(r) { $('ret-bars').innerHTML = ''; }
-function renderHGProd(r) { $('tbl-hg-prod').innerHTML = ''; }
-function renderTOProd(r) { $('tbl-to-prod').innerHTML = ''; }
-function rpRender(key) { /* Logica de dashboard de reembolso */ }
-
-// FUNÇÃO ATUALIZADA: Renderiza os cards e os KPIs do topo
-function renderCS(rows) {
-  // Limpa tudo caso não haja dados hoje
-  if (!rows || rows.length === 0) {
-    $('ag-grid').innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--t4);">Nenhum ticket registrado neste período.</div>';
-    if($('tbl-cs')) $('tbl-cs').innerHTML = '<tr><td colspan="10" class="center">Sem dados</td></tr>';
-    ['cs-kpi-tickets','cs-kpi-ret-qtd','cs-kpi-ret-val','cs-kpi-best-val','cs-kpi-active-tick','cs-kpi-taxa'].forEach(id => { if($(id)) $(id).textContent = '0'; });
-    return;
-  }
 
   // 1. Calcula as métricas somando o array que chegou (Total ou Hoje)
   let tTickets = 0, tRetQtd = 0, tParcQtd = 0, tRetVal = 0, tParcVal = 0, tPropostas = 0, tGateway = 0;
@@ -851,14 +893,13 @@ function renderCS(rows) {
 }
 
 // ─── FETCH TODAY CS ──────────────────────────
+// ─── FETCH TODAY CS (Simplificada) ──────────────────────────
 function fetchTodayCS() {
-  const data = window.dadosScript;
-  if (data && data.cs_agentes_hoje && data.cs_agentes_hoje.length) {
-    const rowsHoje = data.cs_agentes_hoje;
-    const tot = rowsHoje.reduce((s, r) => s + (+r.tickets_tab || 0), 0);
-    const retV = rowsHoje.reduce((s, r) => s + (+r.retido_reembolso_valor || 0) + (+r.parcial_valor || 0), 0);
-    const retQ = rowsHoje.reduce((s, r) => s + (+r.retidos_qtd || 0) + (+r.parcial_compl_qtd || 0), 0);
-    const taxa = tot > 0 ? (retQ / tot) * 100 : 0;
+  // Apenas puxa o que já está na tela
+  $('cs-hoje-tickets').textContent = $('cs-kpi-tickets').textContent || '0';
+  $('cs-hoje-retido').textContent = $('cs-kpi-ret-val').textContent || '$0';
+  $('cs-hoje-taxa').textContent = $('cs-kpi-taxa').textContent || '0%';
+}
     
     // ATUALIZA A TELA SEM OS TILS (~)!
     $('cs-hoje-tickets').textContent = tot;
@@ -905,8 +946,30 @@ async function loadData() {
 }
 
 // ─── TEMA ────────────────────────────
-function toggleTheme() { /* Mantido */ }
-function applyStoredTheme() { /* Mantido */ }
+function toggleTheme() {
+  const root = document.documentElement;
+  const isLight = root.getAttribute('data-theme') === 'light';
+  if (isLight) {
+    root.removeAttribute('data-theme');
+    localStorage.setItem('tiger-theme', 'dark');
+    document.getElementById('theme-ico').textContent = '🌙';
+    document.getElementById('theme-lbl').textContent = 'Modo Escuro';
+  } else {
+    root.setAttribute('data-theme', 'light');
+    localStorage.setItem('tiger-theme', 'light');
+    document.getElementById('theme-ico').textContent = '☀️';
+    document.getElementById('theme-lbl').textContent = 'Modo Claro';
+  }
+}
+
+function applyStoredTheme() {
+  const saved = localStorage.getItem('tiger-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.getElementById('theme-ico').textContent = '☀️';
+    document.getElementById('theme-lbl').textContent = 'Modo Claro';
+  }
+}
 
 // ─── INIT ────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
