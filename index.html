@@ -3,152 +3,530 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tiger Offers — Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<title>Tiger Offers — Dashboard Backend</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0D0F14;--surface:#13161E;--surface2:#1A1E28;--border:rgba(255,255,255,.07);--orange:#FF6B35;--blue:#3D8EFF;--green:#22C55E;--red:#EF4444;--yellow:#F59E0B;--t1:#F1F5F9;--t2:#94A3B8;--t3:#64748B;--radius:10px;--font:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace}
-:root[data-theme="light"]{--bg:#F3F4F8;--surface:#FFFFFF;--surface2:#ECEEF2;--border:rgba(0,0,0,.1);--t1:#111827;--t2:#374151;--t3:#6B7280}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--t1);font-family:var(--font);transition:0.2s}
-.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
-.spinner{width:40px;height:40px;border:3px solid var(--surface2);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
+:root{--bg:#0D0F14;--surface:#13161E;--surface2:#1A1E28;--surface3:#222736;--border:rgba(255,255,255,.07);--border-s:rgba(255,255,255,.13);--shadow:0 2px 12px rgba(0,0,0,.35);--orange:#FF6B35;--orange-glow:rgba(255,107,53,.18);--blue:#3D8EFF;--blue-l:rgba(61,142,255,.13);--green:#22C55E;--green-l:rgba(34,197,94,.13);--red:#EF4444;--red-l:rgba(239,68,68,.13);--yellow:#F59E0B;--yellow-l:rgba(245,158,11,.13);--purple:#A78BFA;--purple-l:rgba(167,139,250,.13);--t1:#F1F5F9;--t2:#94A3B8;--t3:#64748B;--t4:#475569;--radius:10px;--radius-lg:16px;--font:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace}
+:root[data-theme="light"]{--bg:#F3F4F8;--surface:#FFFFFF;--surface2:#F7F8FA;--surface3:#ECEEF2;--border:rgba(0,0,0,.07);--border-s:rgba(0,0,0,.11);--shadow:0 2px 12px rgba(0,0,0,.08);--orange:#E8541A;--orange-glow:rgba(232,84,26,.12);--blue:#2563EB;--blue-l:rgba(37,99,235,.1);--green:#16A34A;--green-l:rgba(22,163,74,.1);--red:#DC2626;--red-l:rgba(220,38,38,.1);--yellow:#B45309;--yellow-l:rgba(180,83,9,.1);--purple:#7C3AED;--purple-l:rgba(124,58,237,.1);--t1:#111827;--t2:#374151;--t3:#6B7280;--t4:#9CA3AF}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t1);font-family:var(--font);font-size:13px;line-height:1.5;min-height:100vh;transition:background .25s,color .25s}
+.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;transition:opacity .4s}
+.loading-overlay.hidden{opacity:0;pointer-events:none}
+.spinner{width:36px;height:36px;border:2px solid var(--surface3);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.hidden{display:none !important}
-.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:15px 30px;position:sticky;top:0;z-index:100}
-.hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.loading-txt{font-size:12px;color:var(--t3);font-family:var(--mono)}
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;position:sticky;top:0;z-index:100}
+.hdr-top{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0 10px;gap:16px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:12px}
-.brand-ico{font-size:24px;background:var(--orange);padding:5px;border-radius:8px}
-.period-selector{display:flex;gap:5px}
-button{padding:8px 15px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-family:var(--font);transition:0.1s}
-.week-btn{background:var(--surface2);color:var(--t2)}
-.week-btn.active{background:var(--orange);color:white}
-.period-hoje{background:var(--green);color:white}
-.theme-toggle{background:var(--surface2);color:var(--t1);border:1px solid var(--border)}
-.tabs{display:flex;gap:20px}
-.tab{padding:10px 5px;color:var(--t3);cursor:pointer;border-bottom:3px solid transparent}
-.tab.active{color:var(--orange);border-bottom-color:var(--orange)}
-.body{padding:30px;max-width:1400px;margin:0 auto}
+.brand-ico{width:38px;height:38px;background:linear-gradient(135deg,var(--orange),#ff9a00);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 20px var(--orange-glow);flex-shrink:0}
+.brand-name{font-family:var(--font);font-size:15px;font-weight:800;color:var(--t1);letter-spacing:-.3px}
+.brand-sub{font-size:10px;color:var(--t3);font-family:var(--mono)}
+.date-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.date-bar-label{font-size:9px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+.period-selector{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.period-hoje{padding:5px 12px;border-radius:7px;border:none;background:linear-gradient(135deg,#FF6B35,#ff9a00);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap;box-shadow:0 2px 8px var(--orange-glow);transition:opacity .15s;}
+.period-hoje:hover{opacity:.88}
+.period-hoje.active{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--orange)}
+.period-sep{width:1px;height:18px;background:var(--border-s);flex-shrink:0}
+.month-group{display:flex;align-items:center;gap:2px;background:var(--surface2);border:1px solid var(--border-s);border-radius:9px;padding:2px;overflow:hidden}
+.month-btn{padding:4px 11px;border-radius:7px;border:none;background:transparent;color:var(--t3);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;transition:all .15s;position:relative;}
+.month-btn:hover{color:var(--t1);background:var(--surface3)}
+.month-btn.month-active{background:var(--surface);color:var(--t1);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.month-btn.has-active::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--orange);}
+.week-row{display:flex;align-items:center;gap:3px;height:0;overflow:hidden;transition:height .22s ease,opacity .2s;opacity:0;}
+.week-row.open{height:28px;opacity:1}
+.week-btn{padding:3px 10px;border-radius:6px;border:1px solid var(--border-s);background:var(--surface2);color:var(--t3);font-size:10.5px;font-weight:500;cursor:pointer;font-family:var(--font);white-space:nowrap;transition:all .15s;}
+.week-btn:hover{background:var(--surface3);color:var(--t1)}
+.week-btn.active{background:var(--orange);color:#fff;border-color:var(--orange);font-weight:700;box-shadow:0 0 8px var(--orange-glow)}
+.week-lbl{font-size:9px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.5px;padding:0 4px}
+.live-dot{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--t3);font-family:var(--mono)}
+.live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{opacity:.6;box-shadow:0 0 0 4px rgba(34,197,94,0)}}
+.hoje-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:linear-gradient(135deg,rgba(255,107,53,.2),rgba(255,154,0,.15));border:1px solid rgba(255,107,53,.4);border-radius:20px;font-size:10px;font-weight:700;color:var(--orange);font-family:var(--mono)}
+.tabs{display:flex;gap:2px;overflow-x:auto;padding:0 2px;}
+.tab{padding:9px 16px;font-size:12.5px;font-weight:600;color:var(--t3);border-radius:10px 10px 0 0;cursor:pointer;transition:all .15s;border:1px solid transparent;border-bottom:none;position:relative;bottom:-1px;white-space:nowrap;display:flex;align-items:center;gap:7px;font-family:var(--font);letter-spacing:-.1px;}
+.tab:hover{color:var(--t1);background:var(--surface2);}
+.tab.active{color:var(--t1);background:var(--bg);border-color:var(--border-s);border-bottom-color:var(--bg);font-weight:700;}
+.tab-ico{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:var(--surface3);transition:background .15s;}
+.tab:nth-child(1).active .tab-ico{background:rgba(255,107,53,.18);box-shadow:0 0 8px var(--orange-glow);}
+.tab:nth-child(2).active .tab-ico{background:rgba(61,142,255,.18);}
+.tab:nth-child(3).active .tab-ico{background:rgba(34,197,94,.18);}
+.body{padding:20px 32px 48px;max-width:1600px;margin:0 auto}
 .sec{display:none}.sec.active{display:block}
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-bottom:25px}
-.kpi{background:var(--surface);padding:20px;border-radius:var(--radius);border:1px solid var(--border);position:relative}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:10px 10px 0 0}
-.kpi.or::before{background:var(--orange)}.kpi.rd::before{background:var(--red)}.kpi.gn::before{background:var(--green)}.kpi.bl::before{background:var(--blue)}.kpi.yl::before{background:var(--yellow)}
-.kpi-lbl{font-size:10px;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
-.kpi-val{font-size:26px;font-weight:800;font-family:var(--mono)}
-.kpi-sub{font-size:11px;color:var(--t3);margin-top:5px}
-.card{background:var(--surface);padding:25px;border-radius:15px;border:1px solid var(--border);margin-bottom:20px}
+.alert-banner{display:none;align-items:center;gap:10px;padding:10px 16px;border-radius:var(--radius);background:var(--yellow-l);border:1px solid rgba(245,158,11,.3);margin-bottom:14px;font-size:12px;color:var(--yellow)}
+.alert-banner.show,.alert-banner.visible{display:flex}
+.alert-banner.err{background:var(--red-l);border-color:rgba(239,68,68,.3);color:var(--red)}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.or::before{background:var(--orange)}.kpi.rd::before{background:var(--red)}.kpi.gn::before{background:var(--green)}.kpi.bl::before{background:var(--blue)}.kpi.yl::before{background:var(--yellow)}.kpi.pu::before{background:var(--purple)}
+.kpi-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px}
+.kpi-val{font-size:22px;font-weight:800;letter-spacing:-1px;line-height:1;color:var(--t1);font-family:var(--font);}
+.kpi-sub{font-size:10px;color:var(--t4);margin-top:4px}
+.kpi-sub.warn{color:var(--yellow)}.kpi-sub.ok{color:var(--green)}.kpi-sub.crit{color:var(--red)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:12px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.card-ttl{font-size:12px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:6px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.gfull{margin-bottom:12px}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:11px;color:var(--t3);padding:12px;border-bottom:1px solid var(--border)}
-td{padding:12px;border-bottom:1px solid var(--border);font-size:14px}
-.ag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
-.ag-card{background:var(--surface);padding:20px;border-radius:12px;border:1px solid var(--border);border-top:5px solid var(--green)}
-.pill{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700}
-.p-crit{background:rgba(239,68,68,0.2);color:var(--red)}
-.p-ok{background:rgba(34,197,94,0.2);color:var(--green)}
-.p-warn{background:rgba(245,158,11,0.2);color:var(--yellow)}
+thead th{font-size:9px;font-weight:600;letter-spacing:.4px;color:var(--t3);text-transform:uppercase;padding:7px 10px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border)}
+thead th.center{text-align:center}thead th.right{text-align:right}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+tbody td{padding:8px 10px;font-size:12px;color:var(--t2)}
+td.mono{font-family:var(--mono);font-size:11px}td.center{text-align:center}td.right{text-align:right;font-family:var(--mono);font-size:11px}
+td.bold{font-weight:700;color:var(--t1)}td.crit{color:var(--red);font-weight:700}td.warn{color:var(--yellow);font-weight:600}td.ok{color:var(--green);font-weight:600}td.bl{color:var(--blue);font-weight:600}
+.th-group-or{background:rgba(255,107,53,.08)!important;color:var(--orange)!important;text-align:center}
+.th-group-bl{background:rgba(61,142,255,.08)!important;color:var(--blue)!important;text-align:center}
+.th-group-gn{background:rgba(34,197,94,.08)!important;color:var(--green)!important;text-align:center}
+.bdg{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.4px;font-family:var(--mono)}
+.bdg-or{background:var(--orange-glow);color:var(--orange);border:1px solid rgba(255,107,53,.3)}
+.bdg-rd{background:var(--red-l);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.bdg-gn{background:var(--green-l);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.bdg-bl{background:var(--blue-l);color:var(--blue);border:1px solid rgba(61,142,255,.3)}
+.bdg-yl{background:var(--yellow-l);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
+.bdg-mu{background:var(--surface3);color:var(--t3);border:1px solid var(--border)}
+.pill{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.3px}
+.p-crit{background:var(--red-l);color:var(--red)}.p-warn{background:var(--yellow-l);color:var(--yellow)}.p-ok{background:var(--green-l);color:var(--green)}.p-bl{background:var(--blue-l);color:var(--blue)}.p-or{background:var(--orange-glow);color:var(--orange)}.p-mu{background:var(--surface3);color:var(--t3)}.p-pu{background:var(--purple-l);color:var(--purple)}
+.sec-ttl{font-family:var(--font);font-size:14px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:8px;margin-bottom:4px;letter-spacing:-.3px;}
+.sec-sub{font-size:11px;color:var(--t4);margin-bottom:12px}
+.divider{height:1px;background:var(--border);margin:18px 0}
+.ibar-wrap{margin-bottom:9px}
+.ibar-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.ibar-label{font-size:11px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:6px}
+.ibar-tag{font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px}
+.ibar-vals{font-size:10px;font-family:var(--mono)}
+.ibar-track{height:9px;background:var(--surface2);border-radius:5px;overflow:hidden}
+.ibar-fill{height:9px;border-radius:5px;width:0;transition:width .9s ease}
+.diag-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;margin-bottom:9px}
+.diag-name{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:2px}
+.diag-meta{font-size:10px;color:var(--t3);margin-bottom:9px}
+.diag-row{margin-bottom:6px}
+.diag-lrow{display:flex;justify-content:space-between;margin-bottom:3px}
+.diag-lbl{font-size:10px;color:var(--t2)}.diag-val{font-size:10px;font-weight:700;font-family:var(--mono)}
+.diag-track{height:7px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.diag-fill{height:7px;border-radius:4px;width:0;transition:width .8s ease}
+.diag-verdict{margin-top:9px;padding:5px 10px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.3px}
+.dv-afil{background:var(--red-l);color:var(--red)}.dv-comp{background:var(--yellow-l);color:var(--yellow)}.dv-sup{background:var(--blue-l);color:var(--blue)}.dv-op{background:var(--green-l);color:var(--green)}
+.score-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px;margin-bottom:12px}
+.score-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;position:relative;overflow:hidden}
+.score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc-crit::before{background:var(--red)}.sc-high::before{background:var(--orange)}.sc-med::before{background:var(--yellow)}.sc-ok::before{background:var(--green)}.sc-hg::before{background:var(--blue)}
+.sc-rank{font-size:9px;color:var(--t4);margin-bottom:3px;font-family:var(--mono)}.sc-name{font-size:12px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}.sc-type{font-size:9px;color:var(--t4);margin-bottom:9px}
+.sc-num{font-size:26px;font-weight:800;letter-spacing:-1.5px;line-height:1;font-family:var(--font);}
+.sc-num-lbl{font-size:9px;color:var(--t4);margin-top:2px}
+.sc-mini-row{display:flex;justify-content:space-between;margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
+.sc-mini{text-align:center}.sc-mini-v{font-size:12px;font-weight:700;color:var(--t1);font-family:var(--mono)}.sc-mini-l{font-size:8px;color:var(--t4);text-transform:uppercase;letter-spacing:.3px}
+.hbox{border-radius:var(--radius);padding:11px 14px;margin-bottom:9px;border:1px solid;display:flex;gap:10px;align-items:flex-start}
+.hbox.rd{background:var(--red-l);border-color:rgba(239,68,68,.25)}.hbox.yl{background:var(--yellow-l);border-color:rgba(245,158,11,.25)}.hbox.gn{background:var(--green-l);border-color:rgba(34,197,94,.25)}.hbox.bl{background:var(--blue-l);border-color:rgba(61,142,255,.25)}.hbox.or{background:var(--orange-glow);border-color:rgba(255,107,53,.25)}
+.hbox-ico{font-size:16px;flex-shrink:0}.hbox-ttl{font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px}.hbox-txt{font-size:10px;color:var(--t2);line-height:1.7}
+.cmp-wrap{margin-bottom:11px}
+.cmp-labels{display:flex;justify-content:space-between;margin-bottom:4px}
+.cmp-name{font-size:11px;font-weight:500}.cmp-vals{font-size:10px;color:var(--t3);font-family:var(--mono)}
+.cmp-track{height:8px;background:var(--surface2);border-radius:4px;display:flex;overflow:hidden}
+.cmp-hg{background:var(--blue);border-radius:4px 0 0 4px;width:0;transition:width .9s ease}.cmp-to{background:var(--green);border-radius:0 4px 4px 0;width:0;transition:width .9s ease}
+.impact-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.impact-name{width:145px;font-size:11px;color:var(--t1);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.impact-track{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.impact-fill{height:8px;border-radius:4px;width:0;transition:width .9s ease}
+.impact-val{width:125px;font-size:10px;font-family:var(--mono);text-align:right;flex-shrink:0}
+.motivo-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.motivo-lbl{font-size:11px;color:var(--t1);flex:1}.motivo-track{width:100px;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;flex-shrink:0}.motivo-fill{height:6px;border-radius:3px;transition:width .8s ease}.motivo-pct{font-size:10px;font-family:var(--mono);color:var(--t3);width:34px;text-align:right;flex-shrink:0}
+.ret-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ret-lbl{width:185px;font-size:11px;color:var(--t2);flex-shrink:0}.ret-track{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden}.ret-fill{height:8px;border-radius:4px;width:0;transition:width .9s ease}.ret-pct{width:38px;font-size:10px;font-family:var(--mono);text-align:right;color:var(--t3);flex-shrink:0}
+.ag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:12px}
+.ag-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px;position:relative;overflow:hidden}
+.ag-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--green)}
+.ag-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px}
+.ag-name{font-family:var(--font);font-size:15px;font-weight:800;color:var(--t1);letter-spacing:-.3px;}.ag-role{font-size:9px;color:var(--t4);font-family:var(--mono)}
+.ag-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.as-lbl{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--t4)}.as-val{font-size:17px;font-weight:700;letter-spacing:-.5px;margin-top:1px;font-family:var(--mono)}
+.c-or{color:var(--orange)}.c-rd{color:var(--red)}.c-gn{color:var(--green)}.c-bl{color:var(--blue)}.c-yl{color:var(--yellow)}.c-mu{color:var(--t4)}
+.act-list{display:flex;flex-direction:column;gap:8px}
+.act-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;display:flex;gap:11px;align-items:flex-start}
+.act-num{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;font-family:var(--mono)}
+.an-rd{background:var(--red-l);color:var(--red)}.an-or{background:var(--orange-glow);color:var(--orange)}.an-bl{background:var(--blue-l);color:var(--blue)}.an-gn{background:var(--green-l);color:var(--green)}
+.act-ttl{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:3px}.act-txt{font-size:10px;color:var(--t3);line-height:1.7}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:8px;font-weight:700}
+.rc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:8px;flex-wrap:wrap}
+.rc-name{font-size:12px;font-weight:600;color:var(--t1)}.rc-email{font-size:9px;color:var(--t4);font-family:var(--mono)}.rc-val{font-size:18px;font-weight:700;color:var(--red);font-family:var(--mono)}.rc-vlbl{font-size:8px;color:var(--t4);text-transform:uppercase}
+.mini-stat{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.mini-stat-label{width:65px;font-size:10px;color:var(--t3)}.mini-stat-bar{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}.mini-stat-fill{height:6px;border-radius:3px;width:0;transition:width 1s ease}.mini-stat-val{font-size:10px;font-family:var(--mono);color:var(--t2);width:50px;text-align:right}
+.hg-wait{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:var(--yellow);background:var(--yellow-l);border:1px solid rgba(245,158,11,.3);padding:2px 7px;border-radius:4px}
+.cs-hoje-panel{background:var(--surface);border:1px solid rgba(255,107,53,.3);border-radius:var(--radius-lg);padding:13px 16px;margin-bottom:12px;display:none}
+.cs-hoje-panel.visible{display:block}
+footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--surface);display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--t4);flex-wrap:wrap;gap:8px;font-family:var(--mono)}
+@media(max-width:900px){.hdr,.body,footer{padding-left:16px;padding-right:16px}.g2,.g3,.g4{grid-template-columns:1fr}.kpi-row{grid-template-columns:1fr 1fr}.impact-name{width:100px}}
+.theme-toggle{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:30px;border:1px solid var(--border-s);background:var(--surface2);cursor:pointer;transition:all .2s;font-size:12px;font-weight:600;color:var(--t2);font-family:var(--font);white-space:nowrap;user-select:none;}
+.theme-toggle:hover{background:var(--surface3);color:var(--t1);}
+.theme-toggle .tgl-ico{font-size:15px;line-height:1;}
+.theme-toggle .tgl-track{width:32px;height:18px;border-radius:9px;background:var(--surface3);border:1px solid var(--border-s);position:relative;transition:background .2s;flex-shrink:0;}
+.theme-toggle .tgl-thumb{width:12px;height:12px;border-radius:50%;background:var(--t4);position:absolute;top:2px;left:2px;transition:transform .2s,background .2s;}
+:root[data-theme="light"] .theme-toggle .tgl-track{background:#2563EB;}
+:root[data-theme="light"] .theme-toggle .tgl-thumb{background:#fff;transform:translateX(14px);}
+:root[data-theme="light"] .theme-toggle{background:#EEF2FF;border-color:rgba(37,99,235,.2);color:#2563EB;}
+:root[data-theme="light"] .card{box-shadow:var(--shadow);}
+:root[data-theme="light"] .kpi{box-shadow:0 1px 6px rgba(0,0,0,.06);}
+:root[data-theme="light"] .hdr{box-shadow:0 1px 0 var(--border),0 2px 8px rgba(0,0,0,.05);}
+:root[data-theme="light"] .score-card{box-shadow:0 1px 6px rgba(0,0,0,.06);}
+:root[data-theme="light"] .ag-card{box-shadow:0 1px 6px rgba(0,0,0,.06);}
+:root[data-theme="light"] tbody tr:hover{background:#F0F2F7;}
+:root[data-theme="light"] thead th{background:#F0F2F6;}
 </style>
 </head>
 <body>
-<div class="loading-overlay" id="loading">
-  <div class="spinner"></div>
-  <div style="font-size:12px; color:var(--t3); font-family:var(--mono)">Puxando dados do Apps Script...</div>
-</div>
+<div class="loading-overlay" id="loading"><div class="spinner"></div><div class="loading-txt">carregando dados…</div></div>
 
 <div class="hdr">
   <div class="hdr-top">
     <div class="brand">
       <div class="brand-ico">🐯</div>
-      <div><div class="brand-name" style="font-size:16px;font-weight:800">Tiger Dashboard v3.0</div><div id="hdr-data" style="font-size:10px;color:var(--t3)">Aguardando dados...</div></div>
+      <div>
+        <div class="brand-name">Tiger Offers — Dashboard Backend</div>
+        <div class="brand-sub">BuyGoods · HelpGrid · Tiger CS · Apps Script sync</div>
+      </div>
     </div>
-    <div class="period-selector">
-      <button class="period-hoje" onclick="selectHoje(this)">📅 HOJE</button>
-      <button class="week-btn" onclick="selectWeek('S1', this)">S1</button>
-      <button class="week-btn" onclick="selectWeek('S2', this)">S2</button>
-      <button class="week-btn" onclick="selectWeek('S3', this)">S3</button>
-      <button class="week-btn" onclick="selectWeek('S4', this)">S4</button>
-      <button class="week-btn active" onclick="selectWeek('S5', this)">S5</button>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <div class="date-bar" style="flex-direction:column;align-items:flex-start;gap:5px">
+        <span class="date-bar-label">Período global</span>
+        <div class="period-selector" id="period-selector">
+          <button class="period-hoje" onclick="selectHoje(this)" id="btn-hoje">📅 HOJE</button>
+          <div class="period-sep"></div>
+          <div class="month-group" id="mg-marco">
+            <button class="month-btn" onclick="toggleMonth('marco',this)" id="mb-marco">Março</button>
+            <button class="month-btn" onclick="selectTotal('marco',this)" id="mb-marco-total" style="font-size:10px;color:var(--t4)">Total</button>
+          </div>
+          <div class="month-group" id="mg-abril">
+            <button class="month-btn month-active" onclick="toggleMonth('abril',this)" id="mb-abril">Abril</button>
+            <button class="month-btn" onclick="selectTotal('abril',this)" id="mb-abril-total" style="font-size:10px;color:var(--t4)">Total</button>
+          </div>
+        </div>
+        <div class="week-row" id="weeks-marco">
+          <span class="week-lbl">Semanas:</span>
+          <button class="week-btn" onclick="selectWeek('marco_S1',this)">S1 Mar</button>
+          <button class="week-btn" onclick="selectWeek('marco_S2',this)">S2 Mar</button>
+          <button class="week-btn" onclick="selectWeek('marco_S3',this)">S3 Mar</button>
+          <button class="week-btn" onclick="selectWeek('marco_S4',this)">S4 Mar</button>
+        </div>
+        <div class="week-row open" id="weeks-abril">
+          <span class="week-lbl">Semanas:</span>
+          <button class="week-btn" onclick="selectWeek('S1',this)">S1</button>
+          <button class="week-btn" onclick="selectWeek('S2',this)">S2</button>
+          <button class="week-btn" onclick="selectWeek('S3',this)">S3</button>
+          <button class="week-btn" onclick="selectWeek('S4',this)">S4</button>
+          <button class="week-btn active" onclick="selectWeek('S5',this)">S5 ←atual</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="live-dot">Atualizado <span id="hdr-data" style="margin-left:4px">—</span></div>
+        <div class="hoje-badge" id="global-period-badge">📅 20–27/04/2026</div>
+        <span style="font-size:10px;color:var(--t4)">Fontes: BuyGoods (real) + HG (pendente) + Tiger (pendente)</span>
+      </div>
     </div>
-    <button class="theme-toggle" onclick="toggleTheme()"><span id="theme-ico">🌙</span> <span id="theme-lbl">Modo Escuro</span></button>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" title="Alternar tema">
+        <span class="tgl-ico" id="theme-ico">🌙</span>
+        <span id="theme-lbl">Modo Escuro</span>
+        <div class="tgl-track"><div class="tgl-thumb"></div></div>
+      </button>
+      <div style="text-align:right">
+        <div style="font-size:11px;font-weight:700;color:var(--t1);font-family:var(--mono)" id="hdr-semana">—</div>
+        <div style="font-size:10px;color:var(--t4)">Dashboard Backend v2.0</div>
+      </div>
+    </div>
   </div>
   <div class="tabs">
-    <div class="tab active" onclick="show('reimb',this)">📊 Reembolso & Afiliados</div>
-    <div class="tab" onclick="show('cs',this)">🧑‍💻 Time CS</div>
+    <div class="tab active" onclick="show('reimb',this)"><span class="tab-ico">📊</span>Reembolso — Operação</div>
+    <div class="tab" onclick="show('afil',this)"><span class="tab-ico">🤝</span>Afiliados — Período</div>
+    <div class="tab" onclick="show('cs',this)"><span class="tab-ico">🧑‍💻</span>Time CS — Tiger Offers</div>
   </div>
 </div>
 
 <div class="body">
-  <div class="sec active" id="s-reimb">
-    <div class="kpi-row">
-      <div class="kpi yl"><div class="kpi-lbl">Vendas Brutas BG</div><div class="kpi-val" id="bg-kpi-vendas">$0</div></div>
-      <div class="kpi rd"><div class="kpi-lbl">Total Reembolsado</div><div class="kpi-val" id="bg-kpi-reimb">$0</div><div class="kpi-sub" id="bg-kpi-reimb-sub">0 pedidos</div></div>
-      <div class="kpi rd"><div class="kpi-lbl">Total Chargeback</div><div class="kpi-val" id="bg-kpi-cb">$0</div><div class="kpi-sub" id="bg-kpi-cb-sub">0 chargebacks</div></div>
-      <div class="kpi or"><div class="kpi-lbl">Taxa Geral %</div><div class="kpi-val" id="bg-kpi-taxa">0%</div></div>
-      <div class="kpi bl"><div class="kpi-lbl">HG Retido (Saved)</div><div class="kpi-val" id="bg-kpi-hg">0</div></div>
-      <div class="kpi gn"><div class="kpi-lbl">Tiger Retido (Total)</div><div class="kpi-val" id="bg-kpi-tiger">0</div></div>
+<div class="alert-banner err" id="err-banner"><span id="err-msg">Modo offline — dados da última versão salva.</span></div>
+<div class="alert-banner" id="taxa-alert" style="background:var(--red-l);border-color:rgba(239,68,68,.3);color:var(--red)"><span id="taxa-alert-msg"></span></div>
+
+<div class="sec active" id="s-reimb">
+  <div class="kpi-row">
+    <div class="kpi yl"><div class="kpi-lbl">Vendas Brutas BG</div><div class="kpi-val" id="k-vendas">—</div><div class="kpi-sub" id="k-vendas-sub" title="Líquido = bruto excluindo reembolsados e CBs">↳ Líq: —</div></div>
+    <div class="kpi rd"><div class="kpi-lbl">Total Reembolsado</div><div class="kpi-val" id="k-reimb">—</div><div class="kpi-sub" id="k-reimb-sub">—</div></div>
+    <div class="kpi rd"><div class="kpi-lbl">Total Chargeback</div><div class="kpi-val" id="k-cb">—</div><div class="kpi-sub" id="k-cb-sub">—</div></div>
+    <div class="kpi or" id="kpi-taxa"><div class="kpi-lbl">Taxa Geral (Reimb+CB)</div><div class="kpi-val" id="k-taxa">—</div><div class="kpi-sub warn">⚠ Benchmark ideal ≤ 8%</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">HG Retido (Saved Sales)</div><div class="kpi-val" id="k-hg-ret">—</div><div class="kpi-sub" id="k-hg-ret-sub">—</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Tiger Retido (Total)</div><div class="kpi-val" id="k-to-ret">—</div><div class="kpi-sub" id="k-to-ret-sub">—</div></div>
+  </div>
+
+  <div class="card gfull">
+    <div class="card-hdr">
+      <div class="card-ttl">📊 Tabela Unificada — BuyGoods × HelpGrid × Tiger Offers</div>
+      <div style="display:flex;align-items:center;gap:8px"><span class="bdg bdg-yl" id="tbl-periodo">—</span><span class="hg-wait" id="hg-wait-badge" style="display:none">⏳ HG aguardando</span></div>
     </div>
-    
+    <div style="overflow-x:auto"><table>
+      <thead>
+        <tr><th colspan="4" class="th-group-or">📊 BUYGOODS — PLATAFORMA</th><th colspan="4" class="th-group-bl">🤝 HELPGRID — RETENÇÃO</th><th colspan="4" class="th-group-gn">🐯 TIGER OFFERS — RETENÇÃO TOTAL</th></tr>
+        <tr><th>Vendas ($)</th><th class="right">Reimb. ($)</th><th class="right">CB ($)</th><th class="center">Taxa %</th><th class="right">Retido HG ($)</th><th class="center">Parc.</th><th class="center">Full Ref.</th><th class="center">% Ret. HG</th><th class="right">Retido Tiger ($)</th><th class="center">Escritos</th><th class="center">Ret. Total</th><th class="center">% Ret. Tiger</th></tr>
+      </thead>
+      <tbody id="tbl-unificada"><tr><td colspan="12" style="text-align:center;padding:20px;color:var(--t4)">Atualizado via JS</td></tr></tbody>
+    </table></div>
+    <div style="font-size:9px;color:var(--t4);margin-top:8px;display:flex;gap:16px;flex-wrap:wrap">
+      <span>* Tiger não oferta reembolso parcial — parciais reclassificados como retenções completas.</span>
+      <span>** % Ret. Tiger = Retido Tiger / (Reimb + CB) — deve ser sempre ≥ % HG.</span>
+    </div>
+  </div>
+
+  <div class="g2">
     <div class="card">
-      <div style="font-weight:800; margin-bottom:15px; display:flex; gap:10px; align-items:center">
-        🏆 Ranking de Reembolsos por Afiliado <span id="afil-period-lbl" class="pill p-warn"></span>
+      <div class="card-hdr"><div class="card-ttl">⚖️ HG vs Tiger — Comparativo de Retenção</div><span class="bdg bdg-gn">TIGER DEVE ≥ HG</span></div>
+      <div class="cmp-wrap"><div class="cmp-labels"><span class="cmp-name" style="color:var(--blue)">🤝 HelpGrid</span><span class="cmp-vals" id="cmp-hg-vals">—</span></div><div class="cmp-track"><div class="cmp-hg" id="cmp-hg-bar"></div></div></div>
+      <div class="cmp-wrap"><div class="cmp-labels"><span class="cmp-name" style="color:var(--green)">🐯 Tiger Offers</span><span class="cmp-vals" id="cmp-to-vals">—</span></div><div class="cmp-track"><div class="cmp-to" id="cmp-to-bar"></div></div></div>
+      <div style="margin-top:12px;padding:10px 14px;background:var(--surface2);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--green)" id="ret-total-combinado">—</div><div style="font-size:9px;color:var(--t4)">HG + Tiger retido combinado</div></div>
+        <div style="text-align:right"><div style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--orange)" id="ret-pct-combinado">—</div><div style="font-size:9px;color:var(--t4)">% do total reembolsável</div></div>
       </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr><th>Afiliado</th><th>Reemb.</th><th>CBs</th><th>Valor Perdido</th><th>0-3d %</th><th>Status</th></tr></thead>
-          <tbody id="tbl-afil"></tbody>
-        </table>
+      <div class="hbox gn" style="margin-top:10px"><div class="hbox-ico">✅</div><div><div class="hbox-ttl">Tiger supera HG em retenção</div><div class="hbox-txt">Parciais reclassificados como retenções totais. Tiger não oferta reembolso parcial ao cliente.</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-ttl">📅 Comparativo Mensal — Março vs Abril</div></div>
+      <table><thead><tr><th>Mês</th><th class="center">Vendas</th><th class="right">Reimb. ($)</th><th class="right">CB ($)</th><th class="center">Taxa</th></tr></thead>
+      <tbody>
+        <tr><td class="bold"><tr><td class="bold">Março 2026</td><td class="center mono">$2,53M</td><td class="right crit">$287.734</td><td class="right warn">$14.438</td><td class="center"><span class="pill p-crit">11,94%</span></td></tr>
+          <tr><td class="bold">Abril 2026</td><td class="center mono">$2,57M</td><td class="right crit">$245.340</td><td class="right warn">$10.754</td><td class="center"><span class="pill p-crit">9,97%</span></td></tr>
+          <tr style="background:var(--green-l)"><td class="bold ok">Δ Variação</td><td class="center" style="color:var(--green);font-size:11px">+$38K ↑</td><td class="right ok">-$42.394 ↓</td><td class="right ok">-$3.684 ↓</td><td class="center" style="color:var(--green);font-weight:700">-1,97pp ✅</td></tr>
+      </tbody></table>
+      <div class="hbox or" style="margin-top:10px"><div class="hbox-ico">⚡</div><div><div class="hbox-ttl">S3 (14–20/04): Prostafense 19,8% + Gluco 19,8% → puxam taxa → S4: 7,1% ✅ → S5: 2,9% ✅</div><div class="hbox-txt">S5 (28–30/04): 2,94% — melhor semana dos 60 dias. Abril fechou 9,97% (acima de 8% mas em queda). Dois produtos críticos: Prostafense 19,8% na S3 e Gluco Recover 19,8% na S2.</div></div></div>
+    </div>
+  </div>
+
+  <div class="card gfull">
+    <div class="card-hdr">
+      <div class="card-ttl">⏱️ Intervalo de Tempo — Reembolso & Chargeback (60d acumulado)</div>
+      <div style="display:flex;gap:8px"><span class="bdg bdg-rd" id="bdg-reimb-total">— REEMBOLSOS</span><span class="bdg bdg-or" id="bdg-cb-total">— CHARGEBACKS</span></div>
+    </div>
+    <div class="g4" style="margin-bottom:16px">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:4px">Mediana Reimb.</div><div style="font-size:22px;font-weight:700;color:var(--red);font-family:var(--mono)"><span id="chip-med-reimb">6</span><span style="font-size:12px">d</span></div><div style="font-size:9px;color:var(--t4)">Média: <span id="chip-avg-reimb">10.2</span>d</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:4px">Mediana CB</div><div style="font-size:22px;font-weight:700;color:var(--orange);font-family:var(--mono)"><span id="chip-med-cb">15</span><span style="font-size:12px">d</span></div><div style="font-size:9px;color:var(--t4)">Média: <span id="chip-avg-cb">17.2</span>d</div></div>
+      <div style="background:var(--red-l);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:11px;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--red);text-transform:uppercase;margin-bottom:4px">Reimb. 0-3d</div><div style="font-size:22px;font-weight:700;color:var(--red);font-family:var(--mono)"><span id="chip-pct-03">44,5</span><span style="font-size:12px">%</span></div><div style="font-size:9px;color:var(--red);font-weight:600">→ CULPA AFILIADO</div></div>
+      <div style="background:var(--orange-glow);border:1px solid rgba(255,107,53,.25);border-radius:8px;padding:11px;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--orange);text-transform:uppercase;margin-bottom:4px">CB pico 8-15d</div><div style="font-size:22px;font-weight:700;color:var(--orange);font-family:var(--mono)"><span id="chip-cb-peak">41,7</span><span style="font-size:12px">%</span></div><div style="font-size:9px;color:var(--orange);font-weight:600">→ SUPORTE</div></div>
+    </div>
+    <div class="g2"><div id="reimb-interval-bars"></div><div id="cb-interval-bars"></div></div>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:10px">📊 Matriz de Responsabilidade por Intervalo</div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Intervalo</th><th class="center">Reimb.</th><th class="center">CB</th><th class="center">Valor Total</th><th>Responsável</th><th>Ação CS Tiger</th></tr></thead>
+        <tbody>
+          <tr style="background:rgba(239,68,68,.04)"><td style="color:var(--red);font-weight:700">0 – 3 dias</td><td class="center crit" id="mz-03-r">1.007</td><td class="center" id="mz-03-c">5</td><td class="center mono" id="mz-03-v">$240.464</td><td><strong style="color:var(--red)">AFILIADO</strong><br><span style="font-size:10px;color:var(--t4)">Oferta / VSL / Descritor</span></td><td style="font-size:10px">Auditar landing/VSL. Exigir ajuste imediato.</td></tr>
+          <tr><td style="color:var(--orange);font-weight:700">4 – 7 dias</td><td class="center warn" id="mz-47-r">243</td><td class="center" id="mz-47-c">9</td><td class="center mono" id="mz-47-v">$60.064</td><td><strong style="color:var(--orange)">COMPARTILHADA</strong><br><span style="font-size:10px;color:var(--t4)">Afiliado + Logística</span></td><td style="font-size:10px">Verificar prazo + retenção via CS.</td></tr>
+          <tr style="background:rgba(245,158,11,.03)"><td style="color:var(--yellow);font-weight:700">8 – 15 dias</td><td class="center" id="mz-815-r">401</td><td class="center warn" id="mz-815-c">43</td><td class="center mono" id="mz-815-v">$105.121</td><td><strong style="color:var(--yellow)">SUPORTE / CS</strong><br><span style="font-size:10px;color:var(--t4)">Entrega + Atendimento</span></td><td style="font-size:10px">CB aqui = cliente não atendido. CS Tiger: pedidos 7d+.</td></tr>
+          <tr><td style="color:var(--blue);font-weight:700">16 – 30 dias</td><td class="center" id="mz-1630-r">426</td><td class="center" id="mz-1630-c">33</td><td class="center mono" id="mz-1630-v">$106.517</td><td><strong style="color:var(--blue)">OPERAÇÃO / PRODUTO</strong><br><span style="font-size:10px;color:var(--t4)">Insatisfação pós-uso</span></td><td style="font-size:10px">Investigar fulfillment e lote.</td></tr>
+          <tr style="background:rgba(167,139,250,.03)"><td style="color:var(--purple);font-weight:700">31 – 45 dias</td><td class="center" id="mz-3145-r">165</td><td class="center" id="mz-3145-c">11</td><td class="center mono" id="mz-3145-v">$40.772</td><td><strong style="color:var(--purple)">MBG / GARANTIA</strong><br><span style="font-size:10px;color:var(--t4)">Dentro do prazo MBG</span></td><td style="font-size:10px">Verificar tentativa de retenção. Avaliar política.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-hdr"><div class="card-ttl">📦 Reembolsos por Produto</div><span class="bdg bdg-yl" id="prod-periodo-lbl">—</span></div>
+      <table><thead><tr><th>Produto</th><th class="right">Vendas Bruto</th><th class="right">Líquido</th><th class="right">Reimb. ($)</th><th class="right">CB ($)</th><th class="center">Taxa</th><th class="right">HG Retido</th><th class="right">Tiger Retido</th></tr></thead>
+      <tbody id="tbl-prod-body"><tr><td colspan="6" style="text-align:center;padding:16px;color:var(--t4)">Atualizado via JS</td></tr></tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-ttl" style="color:var(--blue)">🤝 HelpGrid — Desempenho por Produto</div><span class="hg-wait" id="hg-desemp-status" style="display:none">⏳ Aguardando HG</span></div>
+      <table><thead><tr><th>Produto</th><th class="center">Ligações</th><th class="center">Escritos</th><th class="center">Parc.</th><th class="center">Full Ref.</th></tr></thead>
+      <tbody id="tbl-hg-prod"><tr><td colspan="5" style="text-align:center;padding:16px;color:var(--t4)">Atualizado via JS</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <div class="card gfull">
+    <div class="card-hdr"><div class="card-ttl" style="color:var(--green)">🐯 Tiger Offers — Desempenho por Produto</div><span class="bdg bdg-gn">COMPLETO = RETENÇÃO TOTAL · SEM PARCIAL</span></div>
+    <table><thead><tr><th>Produto</th><th class="center">Escritos</th><th class="center">Parc.→Ret. Total</th><th class="center">Ret. Totais (qtd)</th><th class="right">Retido ($)</th></tr></thead>
+    <tbody id="tbl-to-prod"><tr><td colspan="5" style="text-align:center;padding:16px;color:var(--t4)">Atualizado via JS</td></tr></tbody></table>
+    <div style="font-size:9px;color:var(--t4);margin-top:8px">* Parciais reclassificados como retenções totais — Tiger Offers não oferta reembolso parcial ao cliente.</div>
+  </div>
+</div><div class="sec" id="s-afil">
+  <div class="kpi-row">
+    <div class="kpi rd"><div class="kpi-lbl">Reimb. (Período)</div><div class="kpi-val" id="ka-reimb">—</div><div class="kpi-sub">Total BuyGoods</div></div>
+    <div class="kpi rd"><div class="kpi-lbl">CBs (Período)</div><div class="kpi-val" id="ka-cbs">—</div><div class="kpi-sub crit">Risco VAMP ativo</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">HG Full Refunds</div><div class="kpi-val" id="ka-hg">—</div><div class="kpi-sub">Impactam taxa BuyGoods</div></div>
+  </div>
+
+  <div class="hbox rd" style="margin-bottom:12px"><div class="hbox-ico">🔴</div><div><div class="hbox-ttl">HelpGrid: Full Refunds em 7d → inflacionam taxa BuyGoods diretamente</div><div class="hbox-txt">Reembolsos processados pela HG são registrados como reembolsos na BuyGoods e impactam a taxa geral. 63% dos casos HG ocorrem em 0-3d = culpa do afiliado, não do produto. Protocolo de retenção obrigatório (mínimo 3 etapas) antes de qualquer gateway.</div></div></div>
+
+  <div class="sec-ttl">🏆 Ranking por Volume de Reembolsos</div>
+  <div class="sec-sub">Score: taxa reimb. + CB + concentração 0-3d. Vermelho = ação imediata necessária.</div>
+  <div class="score-grid" id="score-grid"></div>
+
+  <div class="divider"></div>
+  <div class="sec-ttl">🔍 Diagnóstico por Afiliado — Intervalo de Dias</div>
+  <div class="sec-sub">0-3d = culpa do afiliado · 4-7d = compartilhada · 8-15d = logística/suporte · 16-30d = produto/operação</div>
+  <div class="g2" id="diag-grid"></div>
+
+  <div class="divider"></div>
+  <div class="sec-ttl">📋 Motivos de Reembolso</div>
+  <div class="sec-sub">Baseado nos Cancel Reason e Comments dos pedidos cancelados (export BuyGoods).</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-hdr"><div class="card-ttl">🔍 Motivos Declarados pelo Cliente</div><span class="bdg bdg-rd">TOP RAZÕES</span></div>
+      <div class="motivo-row"><span class="motivo-lbl">Efeito colateral / Reação adversa</span><div class="motivo-track"><div class="motivo-fill" data-pct="31" style="background:var(--red);width:31%"></div></div><span class="motivo-pct">31%</span></div>
+      <div class="motivo-row"><span class="motivo-lbl">Produto não funcionou</span><div class="motivo-track"><div class="motivo-fill" data-pct="24" style="background:var(--orange);width:24%"></div></div><span class="motivo-pct">24%</span></div>
+      <div class="motivo-row"><span class="motivo-lbl">Comprou por engano / cancelamento</span><div class="motivo-track"><div class="motivo-fill" data-pct="18" style="background:var(--orange);width:18%"></div></div><span class="motivo-pct">18%</span></div>
+      <div class="motivo-row"><span class="motivo-lbl">Produto não chegou / atraso</span><div class="motivo-track"><div class="motivo-fill" data-pct="14" style="background:var(--yellow);width:14%"></div></div><span class="motivo-pct">14%</span></div>
+      <div class="motivo-row"><span class="motivo-lbl">Ameaça de chargeback (CB threat)</span><div class="motivo-track"><div class="motivo-fill" data-pct="8" style="background:var(--blue);width:8%"></div></div><span class="motivo-pct">8%</span></div>
+      <div class="motivo-row"><span class="motivo-lbl">Outros / Não especificado</span><div class="motivo-track"><div class="motivo-fill" data-pct="5" style="background:var(--t4);width:5%"></div></div><span class="motivo-pct">5%</span></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-ttl">🧩 Diagnóstico por Motivo</div></div>
+      <div class="hbox rd"><div class="hbox-ico">🔴</div><div><div class="hbox-ttl">Efeito colateral (31%) → Produto / Afiliado</div><div class="hbox-txt">Promessas exageradas da VSL ou incompatibilidade. CS oferece orientação antes do reembolso.</div></div></div>
+      <div class="hbox or"><div class="hbox-ico">⚠️</div><div><div class="hbox-ttl">Não funcionou (24%) → VSL exagerado / expectativa inadequada</div><div class="hbox-txt">Expectativas infladas pela VSL. Retenção com bônus ou extensão de prazo é eficaz neste caso.</div></div></div>
+      <div class="hbox yl"><div class="hbox-ico">⚡</div><div><div class="hbox-ttl">CB Threat (8%) → Risco VAMP — CS em até 2h</div><div class="hbox-txt">Clientes que ameaçam CB devem ser priorizados. CS Tiger: abordar em até 2h para evitar o CB.</div></div></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="sec-ttl">📋 Tabela Completa de Afiliados</div>
+  <div class="card gfull"><div style="overflow-x:auto"><table>
+    <thead><tr><th>Afiliado</th><th class="center">Reimb.</th><th class="center">CBs</th><th class="right">Valor ($)</th><th class="center">Med. Dias</th><th class="center">0-3d %</th><th class="center">Veredicto</th><th class="center">Status</th><th>Ação</th></tr></thead>
+    <tbody id="tbl-afil"></tbody>
+  </table></div></div>
+
+  <div class="divider"></div>
+  <div class="sec-ttl">🚨 Risco Bandeira — Visa VAMP / Mastercard MATCH</div>
+  <div class="sec-sub">VAMP: alerta 0,65% · excessivo 0,9%. MATCH: acima 1,5%. Ideal: CB &lt; 0,5%.</div>
+  <div class="card gfull"><table>
+    <thead><tr><th>Afiliado</th><th>Produto</th><th class="center">Vendas</th><th class="center">CBs</th><th class="center">% CB</th><th class="right">$ CB Perdido</th><th class="center">Status</th><th>Ação</th></tr></thead>
+    <tbody id="tbl-vamp"></tbody>
+  </table></div>
+  
+  <div class="divider"></div>
+  <div class="sec-ttl">💸 Impacto Financeiro — Período Global</div>
+  <div class="sec-sub">Projeção anual = perda × 52 semanas.</div>
+  <div class="card gfull"><div id="impact-bars"></div></div>
+
+</div><div class="sec" id="s-cs">
+
+  <div class="cs-hoje-panel" id="cs-hoje-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="live-dot"></div>
+        <div><div style="font-size:12px;font-weight:700;color:var(--t1)">📊 Dados de Hoje — <span id="cs-hoje-data">—</span></div><div style="font-size:10px;color:var(--t4)">Apps Script sync · Planilha atualizada em tempo real</div></div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div style="text-align:center"><div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--blue)" id="cs-hoje-tickets">—</div><div style="font-size:9px;color:var(--t4)">Tickets hoje</div></div>
+        <div style="text-align:center"><div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--green)" id="cs-hoje-retido">—</div><div style="font-size:9px;color:var(--t4)">Retido hoje</div></div>
+        <div style="text-align:center"><div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--orange)" id="cs-hoje-taxa">—</div><div style="font-size:9px;color:var(--t4)">Taxa retenção</div></div>
       </div>
     </div>
   </div>
 
-  <div class="sec" id="s-cs">
-    <div class="kpi-row">
-      <div class="kpi bl"><div class="kpi-lbl">Tickets Tabulados</div><div class="kpi-val" id="cs-kpi-tickets">0</div></div>
-      <div class="kpi or"><div class="kpi-lbl">Retenções Totais</div><div class="kpi-val" id="cs-kpi-ret-qtd">0</div></div>
-      <div class="kpi gn"><div class="kpi-lbl">Valor Retido</div><div class="kpi-val" id="cs-kpi-ret-val">$0</div></div>
-      <div class="kpi gn"><div class="kpi-lbl">Maior Retentora</div><div class="kpi-val" id="cs-kpi-best-val">$0</div><div id="cs-kpi-best-ag" class="kpi-sub"></div></div>
-      <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-kpi-active-tick">0</div><div id="cs-kpi-active-ag" class="kpi-sub"></div></div>
-      <div class="kpi or"><div class="kpi-lbl">Taxa de Retenção</div><div class="kpi-val" id="cs-kpi-taxa">0%</div></div>
-    </div>
-    <div class="ag-grid" id="ag-grid"></div>
+  <div class="kpi-row">
+    <div class="kpi bl"><div class="kpi-lbl">Total Tickets Tabulados</div><div class="kpi-val" id="cs-total">—</div><div class="kpi-sub">Time CS Tiger</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Retenções Totais (Tiger)</div><div class="kpi-val" id="cs-kpi-ret-qtd">—</div><div class="kpi-sub" id="cs-kpi-ret-sub">—</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Valor Total Retido</div><div class="kpi-val" id="cs-kpi-ret-val">—</div><div class="kpi-sub ok" id="cs-kpi-ret-val-sub">—</div></div>
+    <div class="kpi gn"><div class="kpi-lbl">Maior Retentora</div><div class="kpi-val" id="cs-kpi-best-val">—</div><div class="kpi-sub ok" id="cs-kpi-best-ag">—</div></div>
+    <div class="kpi bl"><div class="kpi-lbl">Mais Ativo</div><div class="kpi-val" id="cs-kpi-active-tick">—</div><div class="kpi-sub" id="cs-kpi-active-ag">—</div></div>
+    <div class="kpi or"><div class="kpi-lbl">Taxa de Retenção</div><div class="kpi-val" id="cs-kpi-taxa">—</div><div class="kpi-sub ok" id="cs-kpi-taxa-sub">—</div></div>
   </div>
-</div>
+
+  <div class="ag-grid" id="ag-grid"></div>
+
+  <div class="card gfull">
+    <div class="card-hdr"><div class="card-ttl">📋 Desempenho Consolidado — Time CS Tiger</div><span class="bdg bdg-gn">RET. TOTAL (TIGER) = SEM PARCIAL AO CLIENTE</span></div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>Agente</th><th class="center">Tickets</th><th class="right">Retido Direto ($)</th><th class="center">Ret. Total (qtd)</th><th class="center">Parc.→Ret. Total</th><th class="right">Val. Parc. ($)</th><th class="center">Gateway HG</th><th class="center">Propostas</th><th class="right">Total Retido ($)</th><th class="center">Performance</th></tr></thead>
+      <tbody id="tbl-cs"></tbody>
+    </table></div>
+    <div style="font-size:9px;color:var(--t4);margin-top:8px">* "Ret. Total (Tiger = Retenção Total)" é o indicador real — Tiger não oferta reembolso parcial ao cliente. Parciais = retidos e reclassificados como completos.</div>
+  </div>
+</div></div><footer><div>🐯 Tiger Offers — Dashboard Backend v3.0</div><div id="footer-periodo">—</div><div>BuyGoods · HG Tracker · Tabulação Tiger · Apps Script</div></footer>
 
 <script>
+// ─── UTILS ──────────────────────────────────
 const $ = id => document.getElementById(id);
-const fmt = (n, d=0) => n == null || isNaN(n) ? '0' : Number(n).toLocaleString('pt-BR', {minimumFractionDigits:d, maximumFractionDigits:d});
-const fmtM = n => n >= 1000 ? '$' + fmt(n/1000, 1) + 'K' : '$' + fmt(n);
+const fmt = (n, d=0) => n == null || isNaN(n) ? '—' : Number(n).toLocaleString('pt-BR', {minimumFractionDigits:d, maximumFractionDigits:d});
+const fmtM = n => {
+  if (n == null || isNaN(n)) return '—';
+  if (n >= 1e6) return '$' + fmt(n/1e6, 2) + 'M';
+  if (n >= 1e3) return '$' + fmt(n/1e3, 1) + 'K';
+  return '$' + fmt(n);
+};
+const colorMap = {
+  red:'var(--red)', orange:'var(--orange)', yellow:'var(--yellow)',
+  blue:'var(--blue)', lightred:'rgba(239,68,68,.5)', lightorange:'rgba(255,107,53,.5)',
+  lightgreen:'var(--green)', green:'var(--green)', gray:'var(--t4)', purple:'var(--purple)'
+};
+const statusPill = s => {
+  const m = {
+    'CRÍTICO':'<span class="pill p-crit">CRÍTICO</span>',
+    'PAUSAR JÁ':'<span class="pill p-crit">PAUSAR JÁ</span>',
+    'ALTO':'<span class="pill p-warn">ALTO</span>',
+    'ALINHAR HG':'<span class="pill p-bl">ALINHAR HG</span>',
+    'HG':'<span class="pill p-bl">HG</span>',
+    'MONIT.':'<span class="pill p-mu">MONIT.</span>',
+    'OK':'<span class="pill p-ok">OK</span>',
+    'EXCELENTE':'<span class="pill p-ok">EXCELENTE</span>',
+    'BOM':'<span class="pill p-bl">BOM</span>',
+    'EM DESENVOLVIMENTO':'<span class="pill p-warn">EM DESENVOLVIMENTO</span>',
+  };
+  return m[s] || `<span class="pill p-mu">${s}</span>`;
+};
+const verdictStyle = v => {
+  if (!v) return 'dv-op';
+  if (v.includes('AFILIADO')) return 'dv-afil';
+  if (v.includes('SUPORTE')) return 'dv-sup';
+  if (v.includes('COMPARTILHADA') || v.includes('COMP')) return 'dv-comp';
+  return 'dv-op';
+};
 
-// ─── COLE A SUA URL DO APPS SCRIPT AQUI 👇 ───
+// ─── DADOS DE FALLBACK (Para a tela não ficar vazia até o JS carregar) ───
+const FB = {
+  intervalos_reimb: [{intervalo:'0-3d',label_culpa:'AFILIADO',qtd:1007,pct:44.5,valor:240464,cor:'red'},{intervalo:'4-7d',label_culpa:'AFILIADO/OP',qtd:243,pct:10.7,valor:60064,cor:'orange'},{intervalo:'8-15d',label_culpa:'SUPORTE/CS',qtd:401,pct:17.7,valor:105121,cor:'yellow'},{intervalo:'16-30d',label_culpa:'OPERAÇÃO',qtd:426,pct:18.8,valor:106517,cor:'blue'},{intervalo:'31-45d',label_culpa:'MBG/GARANTIA',qtd:165,pct:7.3,valor:40772,cor:'purple'},{intervalo:'45d+',label_culpa:'FORA PRAZO',qtd:23,pct:1.0,valor:5328,cor:'gray'}],
+  intervalos_cb: [{intervalo:'0-3d',label_culpa:'DESCRITOR',qtd:5,pct:4.9,valor:1190,cor:'lightred'},{intervalo:'4-7d',label_culpa:'OP/AFILIADO',qtd:9,pct:8.7,valor:2143,cor:'lightorange'},{intervalo:'8-15d',label_culpa:'SUPORTE',qtd:43,pct:41.7,valor:10233,cor:'orange'},{intervalo:'16-30d',label_culpa:'TARDIO',qtd:33,pct:32.0,valor:7853,cor:'blue'},{intervalo:'31-45d',label_culpa:'MBG',qtd:11,pct:10.7,valor:2618,cor:'purple'},{intervalo:'45d+',label_culpa:'EXCEÇÃO',qtd:2,pct:1.9,valor:476,cor:'gray'}],
+  afiliados: [{afiliado:'Walife Garcias',tipo:'Afiliado',reemb:30,cbs:1,valor_reimb:7226,mediana_dias:2,pct_0_3d:70,pct_4_7d:20,pct_8_15d:0,pct_16_30d:10,raw_0_3d:21,raw_4_7d:6,raw_8_15d:0,raw_16_30d:3,veredicto:'CULPA DO AFILIADO',status:'CRÍTICO',acao:'Reunião 24h. VSL agressiva. KPI ≤6% ou pausa.'},{afiliado:'Rodrigo Passos',tipo:'Afiliado',reemb:19,cbs:0,valor_reimb:4149,mediana_dias:4,pct_0_3d:47,pct_4_7d:11,pct_8_15d:42,pct_16_30d:0,raw_0_3d:9,raw_4_7d:2,raw_8_15d:8,raw_16_30d:0,veredicto:'COMPARTILHADA',status:'CRÍTICO',acao:'Taxa 100% em 7d. Pausa preventiva.'}],
+  vamp: [{afiliado:'Alexandre Biasoli',produto:'Prostafense',vendas:291,cbs:6,pct_cb:2.1,valor_cb:900,status_visa:'CRÍTICO (MATCH)',acao:'PAUSAR imediatamente.'},{afiliado:'Sandra Lima',produto:'NervoLyn',vendas:221,cbs:3,pct_cb:1.4,valor_cb:654,status_visa:'ALERTA VAMP',acao:'Pausar. Revisar landing.'}],
+  impacto: [{afiliado:'Walife Garcias',reemb:30,cbs:1,perda_7d:7442,projecao_anual:386984},{afiliado:'HelpGrid Calls',reemb:16,cbs:3,perda_7d:5001,projecao_anual:260052}]
+};
+
+// ─── APPS SCRIPT CONFIG ───────────────────────────
+// COLE AQUI SEU LINK:
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcysOaDI3YN_cectk-lWMhDY27SwqyYdItnZd0YlMzboiCfjybFfYuHx4fkn-epJPDnA/exec';
-window.dadosScript = null;
+window.dadosScript = null; 
 
-// Datas de Corte de Abril de 2026
+let currentPeriod = 'S5';
+let openMonth = 'abril';
+
+function show(id, el) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  $('s-'+id).classList.add('active');
+  if (el) el.classList.add('active');
+  animateBars();
+}
+
+const PERIOD_LABELS = { hoje: null, S1:'Semana 1', S2:'Semana 2', S3:'Semana 3', S4:'Semana 4', S5:'Semana 5', abril_total:'Abril Total', marco:'Março Total' };
+const RP_KEY_MAP = { S1:'S1', S2:'S2', S3:'S3', S4:'S4', S5:'S5', abril_total:'abril_total', marco:'marco' };
 const PERIOD_DATES = {
   'S1': [new Date(2026, 3, 1), new Date(2026, 3, 6, 23, 59)],
   'S2': [new Date(2026, 3, 7), new Date(2026, 3, 13, 23, 59)],
   'S3': [new Date(2026, 3, 14), new Date(2026, 3, 20, 23, 59)],
   'S4': [new Date(2026, 3, 21), new Date(2026, 3, 27, 23, 59)],
-  'S5': [new Date(2026, 3, 28), new Date(2026, 3, 30, 23, 59)]
+  'S5': [new Date(2026, 3, 28), new Date(2026, 3, 30, 23, 59)],
+  'abril_total': [new Date(2026, 3, 1), new Date(2026, 3, 30, 23, 59)],
+  'marco': [new Date(2026, 2, 1), new Date(2026, 2, 31, 23, 59)]
 };
 
-// Alterna entre abas
-function show(id, el) {
-  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  $('s-'+id).classList.add('active');
-  el.classList.add('active');
-}
-
 // ─── CAÇADOR DE COLUNAS ───
-// Ignora maiúsculas/minúsculas para encontrar a coluna certa no JSON do Apps Script
 const getVal = (obj, chaves) => {
   const k = Object.keys(obj).find(key => chaves.includes(key.toLowerCase().trim()));
   return k ? obj[k] : null;
 };
 
-// ─── MOTOR: BUYGOODS ───
+// ─── MOTORES DE CÁLCULO ───
 function processarReembolso(rows, start, end) {
-  let stats = { vendas:0, reimb:0, cb:0, qtdR:0, qtdC:0, afil:{} };
+  let stats = { vendas:0, reimb:0, cb:0, qtdR:0, qtdC:0, afil:{}, intervalos: {'0-3d':0, '4-7d':0, '8-15d':0, '16-30d':0, '31-45d':0, '45d+':0}, int_cb: {'0-3d':0, '4-7d':0, '8-15d':0, '16-30d':0, '31-45d':0, '45d+':0} };
   if (!rows || rows.length === 0) return stats;
 
   rows.forEach(r => {
@@ -159,171 +537,436 @@ function processarReembolso(rows, start, end) {
 
     const vStr = getVal(r, ['amount', 'valor do pedido', 'valor']) || 0;
     const val = parseFloat(String(vStr).replace(/[^0-9.-]/g, '')) || 0;
-    
+
     const isR = getVal(r, ['was refunded', 'refunded']) == 1;
     const isC = getVal(r, ['was chargeback', 'chargeback']) == 1;
     const name = getVal(r, ['affiliate name', 'afiliado']) || 'Direto';
 
     stats.vendas += val;
-    if(!stats.afil[name]) stats.afil[name] = { n:name, r:0, c:0, v:0, totalCanc:0, zeroTres:0 };
-    
+    if(!stats.afil[name]) stats.afil[name] = { afiliado:name, reemb:0, cbs:0, valor_reimb:0, totalCanc:0, zeroTres:0, diasArr: [] };
+
     if(isR || isC) {
-      if(isC) { stats.cb += val; stats.qtdC++; stats.afil[name].c++; }
-      else { stats.reimb += val; stats.qtdR++; stats.afil[name].r++; }
-      stats.afil[name].v += val;
+      if(isC) { stats.cb += val; stats.qtdC++; stats.afil[name].cbs++; }
+      else { stats.reimb += val; stats.qtdR++; stats.afil[name].reemb++; }
+      stats.afil[name].valor_reimb += val;
       stats.afil[name].totalCanc++;
-      
+
       const dCancStr = getVal(r, ['canceled date', 'data de cancelamento']);
       if (dCancStr) {
         const dias = Math.floor((new Date(dCancStr) - d) / (1000*60*60*24));
-        if(dias >= 0 && dias <= 3) stats.afil[name].zeroTres++;
+        if(dias >= 0) stats.afil[name].diasArr.push(dias);
+        
+        let faixas = isC ? stats.int_cb : stats.intervalos;
+        if(dias >= 0 && dias <= 3) { stats.afil[name].zeroTres++; faixas['0-3d']++; }
+        else if(dias <= 7) faixas['4-7d']++;
+        else if(dias <= 15) faixas['8-15d']++;
+        else if(dias <= 30) faixas['16-30d']++;
+        else if(dias <= 45) faixas['31-45d']++;
+        else faixas['45d+']++;
       }
     }
   });
+
+  stats.afilArray = Object.values(stats.afil).filter(a => a.totalCanc > 0).map(a => {
+    a.pct_0_3d = Math.round(a.zeroTres/a.totalCanc*100);
+    a.mediana_dias = a.diasArr.length ? Math.round(a.diasArr.reduce((x,y)=>x+y,0)/a.diasArr.length) : 0;
+    a.tipo = 'Afiliado';
+    
+    // Calcula campos de diagnóstico simplificados
+    a.pct_4_7d = 0; a.pct_8_15d = 0; a.pct_16_30d = 0; a.raw_0_3d = a.zeroTres;
+    const faixas = { '4-7d':0, '8-15d':0, '16-30d':0 };
+    a.diasArr.forEach(d => { if(d>3 && d<=7) faixas['4-7d']++; else if(d<=15) faixas['8-15d']++; else if(d<=30) faixas['16-30d']++; });
+    a.pct_4_7d = Math.round(faixas['4-7d']/a.totalCanc*100);
+    a.pct_8_15d = Math.round(faixas['8-15d']/a.totalCanc*100);
+    a.pct_16_30d = Math.round(faixas['16-30d']/a.totalCanc*100);
+    a.raw_4_7d = faixas['4-7d']; a.raw_8_15d = faixas['8-15d']; a.raw_16_30d = faixas['16-30d'];
+
+    if(a.cbs > 2) { a.status = 'PAUSAR JÁ'; a.veredicto = 'CULPA + SUPORTE'; a.acao = 'Pausar imediatamente.'; }
+    else if(a.pct_0_3d > 50 || a.reemb > 15) { a.status = 'CRÍTICO'; a.veredicto = 'CULPA DO AFILIADO'; a.acao = 'Revisar VSL.'; }
+    else if(a.reemb > 8) { a.status = 'ALTO'; a.veredicto = 'COMPARTILHADA'; a.acao = 'Auditoria 7 dias.'; }
+    else { a.status = 'OK'; a.veredicto = 'MONIT.'; a.acao = 'Volume baixo.'; }
+    return a;
+  }).sort((a,b) => b.reemb - a.reemb);
+
   return stats;
 }
 
-// ─── MOTOR: TIGER CS ───
-function processarCS(rows, start, end) {
+function processarCSBruto(rows, start, end) {
+  if (!rows || rows.length === 0) return [];
   const agentes = {};
-  if(!rows) return [];
+  
   rows.forEach(r => {
-    const dStr = getVal(r, ['carimbo de data/hora', 'timestamp', 'data']);
-    if(!dStr) return;
+    const dStr = getVal(r, ['carimbo', 'timestamp', 'data']);
+    if (!dStr) return;
     const d = new Date(dStr);
     if (d < start || d > end) return;
 
     const nome = getVal(r, ['atendente']);
     if (!nome) return;
-    
-    if (!agentes[nome]) agentes[nome] = { agente: nome, tickets: 0, ret_v: 0, ret_q: 0, parc_q: 0, parc_v: 0, tot_v: 0 };
+
+    if (!agentes[nome]) {
+      agentes[nome] = { agente: nome, tickets_tab: 0, retido_reembolso_valor: 0, retidos_qtd: 0, parcial_compl_qtd: 0, parcial_valor: 0, gateway_hg: 0, propostas_env: 0, total_retido: 0 };
+    }
     const a = agentes[nome];
-    a.tickets++;
-    
-    const res = getVal(r, ['resultado da retenção', 'resultado']) || '';
-    const vStr = getVal(r, ['valor do pedido', 'valor']) || 0;
-    const val = parseFloat(String(vStr).replace(',', '.')) || 0;
-    
-    if (res.includes('Nível 1')) { a.ret_q++; a.ret_v += val; }
-    else if (res.includes('Nível 2')) { a.parc_q++; a.parc_v += val * 0.5; }
-    a.tot_v = a.ret_v + a.parc_v;
+    a.tickets_tab++;
+
+    const res = getVal(r, ['resultado', 'retenção', 'retencao']) || '';
+    const vStr = getVal(r, ['valor', 'valor do pedido']) || 0;
+    const val = parseFloat(String(vStr).replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
+
+    if (res.includes('Nível 1')) { a.retidos_qtd++; a.retido_reembolso_valor += val; }
+    else if (res.includes('Nível 2')) { a.parcial_compl_qtd++; a.parcial_valor += val * 0.5; }
+    else if (res.includes('Gateway')) { a.gateway_hg++; }
+    else if (res.includes('Proposta')) { a.propostas_env++; }
+
+    a.total_retido = a.retido_reembolso_valor + a.parcial_valor;
   });
-  return Object.values(agentes);
+
+  return Object.values(agentes).map(a => {
+    const tx = a.tickets_tab > 0 ? (a.retidos_qtd + a.parcial_compl_qtd) / a.tickets_tab * 100 : 0;
+    a.performance = tx >= 20 ? 'EXCELENTE' : tx >= 12 ? 'BOM' : 'EM DESENVOLVIMENTO';
+    return a;
+  }).sort((a, b) => b.total_retido - a.total_retido);
 }
 
-// ─── RENDERIZADOR GERAL DA TELA ───
+// ─── APPLY PERIOD ─────────────
 function applyPeriod(key) {
-  const [start, end] = PERIOD_DATES[key] || PERIOD_DATES['S5'];
-  if (!window.dadosScript) return;
+  currentPeriod = key;
+  const today = new Date();
+  const todayStr = today.toLocaleDateString('pt-BR');
+  const label = key === 'hoje' ? `Hoje — ${todayStr}` : (PERIOD_LABELS[key] || key);
   
-  $('afil-period-lbl').textContent = key === 'hoje' ? 'Hoje' : key;
-
-  // 1. REEMBOLSO (BUYGOODS)
-  const bg = processarReembolso(window.dadosScript.buygoods_raw, start, end);
-  $('bg-kpi-vendas').textContent = fmtM(bg.vendas);
-  $('bg-kpi-reimb').textContent = fmtM(bg.reimb);
-  $('bg-kpi-reimb-sub').textContent = fmt(bg.qtdR) + ' pedidos';
-  $('bg-kpi-cb').textContent = fmtM(bg.cb);
-  $('bg-kpi-cb-sub').textContent = fmt(bg.qtdC) + ' pedidos';
-  $('bg-kpi-taxa').textContent = bg.vendas > 0 ? fmt((bg.reimb+bg.cb)/bg.vendas*100, 2) + '%' : '0%';
+  $('global-period-badge').textContent = '📅 ' + label;
+  $('footer-periodo').textContent = label;
+  $('hdr-semana').textContent = label;
   
-  const afilArray = Object.values(bg.afil).sort((a,b) => b.r - a.r);
-  $('tbl-afil').innerHTML = afilArray.length > 0 ? afilArray.map(a => {
-    const pct = a.totalCanc > 0 ? Math.round(a.zeroTres/a.totalCanc*100) : 0;
-    let status = 'OK', cls = 'p-ok';
-    if(a.c > 2) { status = 'PAUSAR'; cls = 'p-crit'; }
-    else if(pct > 50 || a.r > 15) { status = 'CRÍTICO'; cls = 'p-crit'; }
-    else if(a.r > 8) { status = 'ALTO'; cls = 'p-warn'; }
-    return `<tr><td>${a.n}</td><td style="color:var(--red); font-weight:600">${a.r}</td><td style="color:var(--orange); font-weight:600">${a.c}</td><td>${fmtM(a.v)}</td><td>${pct}%</td><td><span class="pill ${cls}">${status}</span></td></tr>`;
-  }).join('') : '<tr><td colspan="6" style="text-align:center; color:var(--t3)">Sem vendas ou reembolsos no período.</td></tr>';
+  const hojeStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+  const hojeEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+  PERIOD_DATES['hoje'] = [hojeStart, hojeEnd];
 
-  // 2. HELPGRID (Totais Simples se Existir)
-  let hgRetido = 0;
-  if (window.dadosScript.helpgrid_raw && window.dadosScript.helpgrid_raw.length > 0) {
-     window.dadosScript.helpgrid_raw.forEach(r => {
-        hgRetido += parseFloat(r['Total Refunded'] || 0); // Ajuste a coluna exata se precisar
-     });
+  if (key === 'hoje') {
+    $('cs-hoje-panel').classList.add('visible');
+    $('cs-hoje-data').textContent = todayStr;
+  } else {
+    $('cs-hoje-panel').classList.remove('visible');
   }
-  $('bg-kpi-hg').textContent = hgRetido > 0 ? hgRetido : '⏳';
 
-  // 3. CS (TIGER)
-  const cs = processarCS(window.dadosScript.respostas_brutas, start, end);
-  let tTick=0, tRetQ=0, tVal=0, best={n:'-',v:0}, active={n:'-',t:0};
-  
-  $('ag-grid').innerHTML = cs.length > 0 ? cs.map(r => {
-    tTick += r.tickets; tRetQ += (r.ret_q + r.parc_q); tVal += r.tot_v;
-    if(r.tot_v > best.v) best = {n:r.agente, v:r.tot_v};
-    if(r.tickets > active.t) active = {n:r.agente, t:r.tickets};
-    return `<div class="ag-card"><div style="font-weight:800; font-size:16px; margin-bottom:15px">${r.agente}</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-        <div><div class="as-lbl">Tickets</div><div class="as-val" style="color:var(--blue)">${r.tickets}</div></div>
-        <div><div class="as-lbl">Retido ($)</div><div class="as-val" style="color:var(--green)">${fmtM(r.tot_v)}</div></div>
-      </div></div>`;
-  }).join('') : '<div style="color:var(--t3)">Nenhum ticket neste período.</div>';
+  const [start, end] = PERIOD_DATES[key] || PERIOD_DATES['S5'];
 
-  $('cs-kpi-tickets').textContent = tTick;
-  $('cs-kpi-ret-qtd').textContent = tRetQ;
-  $('cs-kpi-ret-val').textContent = fmtM(tVal);
-  $('bg-kpi-tiger').textContent = fmtM(tVal); // Atualiza o Tiger Retido na aba de Reembolso também!
+  if (window.dadosScript) {
+    // REEMBOLSO (BuyGoods)
+    if (window.dadosScript.buygoods_raw) {
+      const bg = processarReembolso(window.dadosScript.buygoods_raw, start, end);
+      $('k-vendas').textContent = fmtM(bg.vendas);
+      $('k-reimb').textContent = fmtM(bg.reimb);
+      $('k-cb').textContent = fmtM(bg.cb);
+      $('k-taxa').textContent = bg.vendas > 0 ? fmt((bg.reimb+bg.cb)/bg.vendas*100, 2) + '%' : '0%';
+      $('ka-reimb').textContent = bg.qtdR;
+      $('ka-cbs').textContent = bg.qtdC;
+      
+      const arrReimb = [
+        {intervalo:'0-3d', label_culpa:'AFILIADO', qtd: bg.intervalos['0-3d'], pct: (bg.intervalos['0-3d']/bg.qtdR)*100 || 0, valor: 0, cor:'red'},
+        {intervalo:'4-7d', label_culpa:'COMP.', qtd: bg.intervalos['4-7d'], pct: (bg.intervalos['4-7d']/bg.qtdR)*100 || 0, valor: 0, cor:'orange'},
+        {intervalo:'8-15d', label_culpa:'SUPORTE', qtd: bg.intervalos['8-15d'], pct: (bg.intervalos['8-15d']/bg.qtdR)*100 || 0, valor: 0, cor:'yellow'},
+        {intervalo:'16-30d', label_culpa:'OPERAÇÃO', qtd: bg.intervalos['16-30d'], pct: (bg.intervalos['16-30d']/bg.qtdR)*100 || 0, valor: 0, cor:'blue'}
+      ];
+      renderIntervalBars('reimb-interval-bars', arrReimb, 'reimb');
+
+      renderScores(bg.afilArray);
+      renderDiag(bg.afilArray);
+      renderAfilTable(bg.afilArray);
+
+      const vampList = bg.afilArray.filter(a => a.cbs > 0).map(a => ({
+         afiliado: a.afiliado, produto: 'Múltiplos', vendas: a.reemb + a.cbs, 
+         cbs: a.cbs, pct_cb: a.totalCanc > 0 ? (a.cbs / a.totalCanc)*100 : 0, valor_cb: a.valor_reimb, 
+         status_visa: a.cbs > 2 ? 'CRÍTICO (MATCH)' : 'ALERTA VAMP',
+         acao: a.cbs > 2 ? 'PAUSAR JÁ' : 'Monitorar'
+      }));
+      renderVamp(vampList);
+
+      const impactoList = bg.afilArray.map(a => ({ afiliado: a.afiliado, perda_7d: a.valor_reimb, projecao_anual: a.valor_reimb * 52 }));
+      renderImpacto(impactoList.slice(0, 8));
+    }
+
+    // CS (Formulário)
+    if (window.dadosScript.respostas_brutas) {
+      const csDados = processarCSBruto(window.dadosScript.respostas_brutas, start, end);
+      renderCS(csDados);
+      if (key === 'hoje') fetchTodayCS();
+    }
+  }
   
-  $('cs-kpi-best-val').textContent = fmtM(best.v);
-  $('cs-kpi-best-ag').textContent = best.n;
-  $('cs-kpi-active-tick').textContent = active.t;
-  $('cs-kpi-active-ag').textContent = active.n;
-  $('cs-kpi-taxa').textContent = tTick > 0 ? fmt(tRetQ/tTick*100, 1) + '%' : '0%';
+  setTimeout(animateBars, 100);
 }
 
-// ─── BOTÕES DE SEMANA ───
-function selectWeek(key, btn) {
-  document.querySelectorAll('.week-btn, .period-hoje').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  applyPeriod(key);
-}
-
+// ─── CONTROLES ─────────────
 function selectHoje(btn) {
-  document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.week-btn, .month-btn, .period-hoje').forEach(b => b.classList.remove('active', 'month-active', 'has-active'));
   btn.classList.add('active');
-  const t = new Date();
-  PERIOD_DATES['hoje'] = [new Date(t.setHours(0,0,0,0)), new Date(t.setHours(23,59,59,999))];
   applyPeriod('hoje');
 }
 
-// ─── INICIALIZAÇÃO E COMUNICAÇÃO COM APPS SCRIPT ───
-async function loadData() {
-  try {
-    const url = APPS_SCRIPT_URL + "?_=" + Date.now();
-    const r = await fetch(url, { redirect: 'follow' });
-    if (!r.ok) throw new Error("Falha HTTP");
-    
-    const data = await r.json();
-    window.dadosScript = data; // Salva na memória do navegador
-    
-    // Atualiza a hora no topo
-    $('hdr-data').textContent = "Conectado. Última sincronização: " + new Date().toLocaleTimeString('pt-BR');
-    
-    // Esconde o loading e renderiza a tela
-    $('loading').classList.add('hidden');
-    applyPeriod('S5'); // Inicia na Semana 5
+function toggleMonth(month, btn) {
+  const isOpen = openMonth === month;
+  ['marco','abril'].forEach(m => {
+    const wr = $('weeks-' + m);
+    if (wr) wr.classList.remove('open');
+    const mb = $('mb-' + m);
+    if (mb) mb.classList.remove('month-active');
+  });
+  document.querySelectorAll('.period-hoje').forEach(b => b.classList.remove('active'));
 
-  } catch(e) { 
-    console.error(e); 
-    $('loading').innerHTML = '<div style="color:var(--red); font-weight:800; font-family:var(--mono)">❌ Erro ao acessar os dados. O Apps Script falhou ou está offline.</div>';
+  if (!isOpen) {
+    openMonth = month;
+    const wr = $('weeks-' + month);
+    if (wr) wr.classList.add('open');
+    btn.classList.add('month-active');
+    if (wr) wr.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+    applyPeriod(month === 'marco' ? 'marco' : 'abril_total');
+  } else {
+    openMonth = null;
+    btn.classList.remove('month-active');
   }
 }
 
-// ─── MODO CLARO/ESCURO ───
+function selectTotal(month, btn) {
+  document.querySelectorAll('.week-btn, .period-hoje').forEach(b => b.classList.remove('active'));
+  const mb = $('mb-' + month);
+  const wr = $('weeks-' + month);
+  ['marco','abril'].forEach(m => {
+    const w = $('weeks-' + m);
+    const b = $('mb-' + m);
+    if (w) w.classList.remove('open');
+    if (b) b.classList.remove('month-active','has-active');
+  });
+  if (mb) mb.classList.add('month-active');
+  if (wr) wr.classList.add('open');
+  openMonth = month;
+  applyPeriod(month === 'marco' ? 'marco' : 'abril_total');
+}
+
+function selectWeek(key, btn) {
+  document.querySelectorAll('.week-btn, .period-hoje').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const isMarco = key.startsWith('marco_');
+  const month = isMarco ? 'marco' : 'abril';
+  document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('has-active'));
+  const mb = $('mb-' + month);
+  if (mb) mb.classList.add('month-active','has-active');
+  applyPeriod(key);
+}
+
+function animateBars() {
+  document.querySelectorAll('[data-pct]').forEach(el => {
+    const pct = Math.min(Math.max(parseFloat(el.dataset.pct)||0, 0), 100);
+    el.style.width = pct + '%';
+  });
+}
+
+// ─── RENDERS VISUAIS ─────────────
+function renderIntervalBars(containerId, rows, type) {
+  const total = rows.reduce((s,r) => s+(+r.qtd||0), 0);
+  const title = type==='reimb' ? `🔄 Reembolsos por Intervalo <span style="font-size:10px;color:var(--t4)">(${fmt(total)} casos)</span>` : `⚡ Chargebacks por Intervalo <span style="font-size:10px;color:var(--t4)">(${fmt(total)} casos)</span>`;
+  const bars = rows.map(r => {
+    const cor = colorMap[r.cor]||'var(--t4)';
+    return `<div class="ibar-wrap">
+      <div class="ibar-hdr"><div class="ibar-label">${r.intervalo} <span class="ibar-tag" style="background:${cor}22;color:${cor};border:1px solid ${cor}44">${r.label_culpa}</span></div>
+      <div class="ibar-vals" style="color:${cor}">${fmt(r.qtd)} · ${fmt(+r.pct,1)}%</div></div>
+      <div class="ibar-track"><div class="ibar-fill" data-pct="${+r.pct}" style="background:${cor}"></div></div>
+    </div>`;
+  }).join('');
+  if($(containerId)) $(containerId).innerHTML = `<div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:10px">${title}</div>${bars}`;
+}
+
+function renderScores(rows) {
+  const top = rows.slice(0, 8);
+  const sc = r => r.status==='CRÍTICO'||r.status==='PAUSAR JÁ'?'sc-crit':r.status==='ALTO'?'sc-high':r.status==='ALINHAR HG'||r.status==='HG'?'sc-hg':r.status==='MONIT.'?'sc-med':'sc-ok';
+  if($('score-grid')) $('score-grid').innerHTML = top.map((r,i) => `<div class="score-card ${sc(r)}">
+    <div class="sc-rank">#${i+1} · período global</div><div class="sc-name">${r.afiliado}</div><div class="sc-type">Afiliado · Med. ${r.mediana_dias}d</div>
+    <div class="sc-num" style="color:${r.cbs>1?'var(--red)':r.reemb>15?'var(--orange)':'var(--t1)'}">${r.reemb}</div><div class="sc-num-lbl">Reembolsos</div>
+    <div class="sc-mini-row"><div class="sc-mini"><div class="sc-mini-v" style="color:${r.cbs>0?'var(--red)':'var(--t4)'}">${r.cbs}</div><div class="sc-mini-l">CBs</div></div>
+    <div class="sc-mini"><div class="sc-mini-v" style="color:var(--red)">$${fmt(r.valor_reimb)}</div><div class="sc-mini-l">Perda</div></div>
+    <div class="sc-mini"><div class="sc-mini-v" style="color:${r.pct_0_3d>50?'var(--red)':r.pct_0_3d>30?'var(--orange)':'var(--t4)'}">${r.pct_0_3d}%</div><div class="sc-mini-l">0-3d</div></div></div></div>`).join('');
+}
+
+function renderDiag(rows) {
+  const top = rows.filter(r => r.reemb >= 4).slice(0, 6);
+  const col1 = top.slice(0, 3), col2 = top.slice(3);
+  const bar = (lbl, col, pct, raw) => `<div class="diag-row"><div class="diag-lrow"><span class="diag-lbl">${lbl}</span><span class="diag-val" style="color:${col}">${pct}% (${raw})</span></div>
+    <div class="diag-track"><div class="diag-fill" data-pct="${pct}" style="background:${col}"></div></div></div>`;
+  const card = r => `<div class="diag-card"><div class="diag-name">${r.afiliado}</div><div class="diag-meta">${r.reemb} reembolsos · ${r.cbs} CBs · Mediana: ${r.mediana_dias}d</div>
+    ${bar('0 – 3 dias','var(--red)',r.pct_0_3d,r.raw_0_3d)} ${bar('4 – 7 dias','var(--orange)',r.pct_4_7d,r.raw_4_7d)} ${bar('8 – 15 dias','var(--yellow)',r.pct_8_15d,r.raw_8_15d)}
+    ${bar('16 – 30 dias','var(--blue)',r.pct_16_30d,r.raw_16_30d)}<div class="diag-verdict ${verdictStyle(r.veredicto)}">${r.veredicto}</div></div>`;
+  if($('diag-grid')) $('diag-grid').innerHTML = `<div>${col1.map(card).join('')}</div><div>${col2.map(card).join('')}</div>`;
+}
+
+function renderAfilTable(rows) {
+  const bgMap = {'CRÍTICO':'rgba(239,68,68,.04)','PAUSAR JÁ':'rgba(239,68,68,.06)','ALTO':'rgba(245,158,11,.03)'};
+  if($('tbl-afil')) $('tbl-afil').innerHTML = rows.map(r => `<tr style="background:${bgMap[r.status]||''}">
+    <td class="bold" style="color:${r.status==='PAUSAR JÁ'?'var(--red)':'var(--t1)'}">${r.afiliado}</td><td class="center" style="font-size:13px;font-weight:700;color:${r.reemb>15?'var(--red)':r.reemb>8?'var(--orange)':'var(--t2)'}">${r.reemb}</td>
+    <td class="center" style="font-weight:700;color:${r.cbs>0?'var(--red)':'var(--t4)'}">${r.cbs||0}</td><td class="right bold">$${fmt(r.valor_reimb)}</td><td class="center mono">${r.mediana_dias}d</td>
+    <td class="center" style="font-size:11px;font-weight:700;color:${r.pct_0_3d>50?'var(--red)':r.pct_0_3d>30?'var(--orange)':'var(--t4)'}">${r.pct_0_3d}%</td><td class="center"><div class="diag-verdict ${verdictStyle(r.veredicto)}" style="font-size:8px;white-space:nowrap;display:inline-block">${r.veredicto}</div></td>
+    <td class="center">${statusPill(r.status)}</td><td style="font-size:10px;color:var(--t3)">${r.acao}</td></tr>`).join('');
+}
+
+function renderVamp(rows) {
+  if($('tbl-vamp')) $('tbl-vamp').innerHTML = rows.map(r => `<tr style="background:${r.status_visa.includes('CRÍTICO')?'rgba(239,68,68,.04)':r.status_visa.includes('ALERTA')?'rgba(245,158,11,.03)':''}">
+    <td class="bold" style="color:${r.status_visa.includes('CRÍTICO')?'var(--red)':r.status_visa.includes('ALERTA')?'var(--orange)':'var(--t1)'}">${r.afiliado}</td><td>${r.produto}</td><td class="center">${r.vendas}</td>
+    <td class="center" style="font-weight:700;color:${r.cbs>2?'var(--red)':r.cbs>0?'var(--orange)':'var(--t2)'}">${r.cbs}</td><td class="center" style="font-weight:700;color:${r.pct_cb>1?'var(--red)':r.pct_cb>0.5?'var(--orange)':'var(--t2)'}">${fmt(r.pct_cb,1)}%</td>
+    <td class="right" style="color:${r.valor_cb>500?'var(--red)':'var(--t2)'}">$${fmt(r.valor_cb)}</td><td class="center">${statusPill(r.status_visa)}</td><td style="font-size:10px;color:var(--t3)">${r.acao}</td></tr>`).join('');
+}
+
+function renderImpacto(rows) {
+  const max = Math.max(...rows.map(r => +r.perda_7d||0), 1);
+  if($('impact-bars')) $('impact-bars').innerHTML = rows.map(r => {
+    const pct = Math.round((+r.perda_7d||0)/max*100);
+    const col = pct>80?'var(--red)':pct>50?'var(--orange)':pct>30?'var(--yellow)':'var(--blue)';
+    return `<div class="impact-row"><div class="impact-name">${r.afiliado}</div><div class="impact-track"><div class="impact-fill" data-pct="${pct}" style="background:${col}"></div></div>
+      <div class="impact-val" style="color:${col}">$${fmt(r.perda_7d)} <span style="font-size:9px;color:var(--t4)">→ $${fmt(r.projecao_anual/1000)}K/ano</span></div></div>`;
+  }).join('');
+}
+
+function renderCS(rows) {
+  if (!rows || rows.length === 0) {
+    if($('ag-grid')) $('ag-grid').innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--t4);">Nenhum ticket registrado neste período.</div>';
+    if($('tbl-cs')) $('tbl-cs').innerHTML = '<tr><td colspan="10" class="center">Sem dados</td></tr>';
+    ['cs-total','cs-kpi-ret-qtd','cs-kpi-ret-val','cs-kpi-best-val','cs-kpi-active-tick','cs-kpi-taxa'].forEach(id => { if($(id)) $(id).textContent = '0'; });
+    return;
+  }
+
+  let tTickets = 0, tRetQtd = 0, tParcQtd = 0, tRetVal = 0, tParcVal = 0, tPropostas = 0, tGateway = 0;
+  let bestAg = { nome: '—', val: 0, ret: 0 }, activeAg = { nome: '—', tick: 0, prop: 0 };
+
+  rows.forEach(r => {
+    tTickets += (+r.tickets_tab||0); tRetQtd += (+r.retidos_qtd||0); tParcQtd += (+r.parcial_compl_qtd||0);
+    tRetVal += (+r.retido_reembolso_valor||0); tParcVal += (+r.parcial_valor||0); tPropostas += (+r.propostas_env||0); tGateway += (+r.gateway_hg||0);
+    const totV = (+r.retido_reembolso_valor||0) + (+r.parcial_valor||0);
+    if (totV > bestAg.val) { bestAg = { nome: r.agente, val: totV, ret: (+r.retidos_qtd||0) + (+r.parcial_compl_qtd||0) }; }
+    if ((+r.tickets_tab||0) > activeAg.tick) { activeAg = { nome: r.agente, tick: (+r.tickets_tab||0), prop: (+r.propostas_env||0) }; }
+  });
+
+  const totalQtd = tRetQtd + tParcQtd;
+  const totalVal = tRetVal + tParcVal;
+
+  if($('cs-total')) $('cs-total').textContent = tTickets;
+  if($('cs-kpi-ret-qtd')) $('cs-kpi-ret-qtd').textContent = totalQtd;
+  if($('cs-kpi-ret-sub')) $('cs-kpi-ret-sub').textContent = `${tRetQtd} diretas + ${tParcQtd} parc.→ret.`;
+  if($('cs-kpi-ret-val')) $('cs-kpi-ret-val').textContent = '$' + fmt(totalVal/1000, 1) + 'K';
+  if($('cs-kpi-ret-val-sub')) $('cs-kpi-ret-val-sub').textContent = `$${fmt(tRetVal)} direto + $${fmt(tParcVal)} reclassif.`;
+  if($('cs-kpi-best-val')) $('cs-kpi-best-val').textContent = bestAg.val > 0 ? '$' + fmt(bestAg.val/1000, 1) + 'K' : '$0';
+  if($('cs-kpi-best-ag')) $('cs-kpi-best-ag').textContent = `${bestAg.nome} — ${bestAg.ret} ret. totais`;
+  if($('cs-kpi-active-tick')) $('cs-kpi-active-tick').textContent = activeAg.tick;
+  if($('cs-kpi-active-ag')) $('cs-kpi-active-ag').textContent = `${activeAg.nome} — ${activeAg.prop} propostas`;
+  if($('cs-kpi-taxa')) $('cs-kpi-taxa').textContent = tTickets > 0 ? fmt((totalQtd / tTickets) * 100, 1) + '%' : '0%';
+  if($('k-to-ret')) $('k-to-ret').textContent = '$' + fmt(totalVal/1000, 1) + 'K';
+
+  const perfCol = {EXCELENTE:'var(--green)', BOM:'var(--blue)', 'EM DESENVOLVIMENTO':'var(--yellow)', 'MONIT.':'var(--t4)'};
+  if($('ag-grid')) $('ag-grid').innerHTML = rows.map(r => {
+    const perf = (r.performance || 'MONIT.').toUpperCase();
+    const c = perfCol[perf] || 'var(--t4)';
+    return `<div class="ag-card" style="border-top-color:${c}">
+      <div class="ag-top"><div><div class="ag-name">${r.agente}</div><div class="ag-role">CS Tiger Offers</div></div>${statusPill(perf)}</div>
+      <div class="ag-stats">
+        <div><div class="as-lbl">Tickets</div><div class="as-val c-bl">${r.tickets_tab||0}</div></div>
+        <div><div class="as-lbl">Retido ($)</div><div class="as-val c-gn">$${fmt((r.retido_reembolso_valor||0)/1000,1)}K</div></div>
+        <div><div class="as-lbl">Ret. Total</div><div class="as-val c-or">${r.retidos_qtd||0}</div></div>
+        <div><div class="as-lbl">Parc.→Ret.</div><div class="as-val c-yl">${r.parcial_compl_qtd||0}</div></div>
+        <div><div class="as-lbl">Gateway</div><div class="as-val c-mu">${r.gateway_hg||0}</div></div>
+        <div><div class="as-lbl">Total ($)</div><div class="as-val c-gn">$${fmt(((+r.total_retido)||0)/1000,1)}K</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  if($('tbl-cs')) {
+    $('tbl-cs').innerHTML = rows.map(r => `<tr><td class="bold" style="color:${perfCol[(r.performance||'MONIT.').toUpperCase()]||'var(--t4)'}">${r.agente}</td><td class="center">${r.tickets_tab||0}</td>
+        <td class="right ok">$${fmt(r.retido_reembolso_valor||0)}</td><td class="center" style="color:var(--orange);font-weight:700">${r.retidos_qtd||0}</td>
+        <td class="center warn">${r.parcial_compl_qtd||0}</td><td class="right warn">$${fmt(r.parcial_valor||0)}</td><td class="center" style="color:var(--t4)">${r.gateway_hg||0}</td>
+        <td class="center" style="color:var(--orange)">${r.propostas_env||0}</td><td class="right ok bold">$${fmt(r.total_retido||0)}</td><td class="center">${statusPill((r.performance||'MONIT.').toUpperCase())}</td></tr>`).join('') + 
+      `<tr style="background:var(--surface2);font-weight:700"><td>TOTAL</td><td class="center bl">${tTickets}</td><td class="right ok">$${fmt(tRetVal)}</td>
+      <td class="center" style="color:var(--orange)">${tRetQtd}</td><td class="center warn">${tParcQtd}</td><td class="right warn">$${fmt(tParcVal)}</td>
+      <td class="center">${tGateway}</td><td class="center" style="color:var(--orange)">${tPropostas}</td><td class="right ok bold">$${fmt(totalVal)}</td><td>—</td></tr>`;
+  }
+}
+
+function fetchTodayCS() {
+  if($('cs-hoje-tickets') && $('cs-total')) $('cs-hoje-tickets').textContent = $('cs-total').textContent || '0';
+  if($('cs-hoje-retido') && $('cs-kpi-ret-val')) $('cs-hoje-retido').textContent = $('cs-kpi-ret-val').textContent || '$0';
+  if($('cs-hoje-taxa') && $('cs-kpi-taxa')) $('cs-hoje-taxa').textContent = $('cs-kpi-taxa').textContent || '0%';
+}
+
+// ─── LOAD DATA (Acesso Único) ──────────
+async function loadData() {
+  // Preenche dados de fallback temporários
+  renderIntervalBars('reimb-interval-bars', FB.intervalos_reimb, 'reimb');
+  renderScores(FB.afiliados); renderDiag(FB.afiliados); renderAfilTable(FB.afiliados); renderVamp(FB.vamp); renderImpacto(FB.impacto);
+
+  try {
+    const r = await fetch(APPS_SCRIPT_URL + "?_=" + Date.now(), { redirect: 'follow' });
+    if (!r.ok) throw new Error("Erro HTTP");
+    
+    const data = await r.json();
+    window.dadosScript = data; 
+    
+    if($('err-banner')) $('err-banner').style.display = 'none';
+    if (data.config && data.config.length) {
+      const dataAtualizacao = data.config.find(c => c.chave === 'data_atualizacao');
+      if (dataAtualizacao) {
+        $('hdr-data').textContent = "Atualizado em " + dataAtualizacao.valor;
+        if ($('cs-hoje-data')) $('cs-hoje-data').textContent = dataAtualizacao.valor;
+      }
+    }
+    
+    // HelpGrid Retido (Lido da Aba HelpGrid_Raw)
+    if (data.helpgrid_raw && data.helpgrid_raw.length) {
+      let hgTotal = 0;
+      data.helpgrid_raw.forEach(row => {
+         const vStr = getVal(row, ['total refunded']);
+         hgTotal += parseFloat(String(vStr).replace(/[^0-9.-]/g, '')) || 0;
+      });
+      if($('k-hg-ret')) $('k-hg-ret').textContent = hgTotal > 0 ? '$' + fmtM(hgTotal) : '⏳';
+    }
+
+    applyPeriod(currentPeriod); 
+
+  } catch(e) {
+    console.error("Erro ao puxar dados do Apps Script:", e);
+    if($('err-banner')) $('err-banner').style.display = 'flex';
+  }
+}
+
+// ─── TEMA E INICIALIZAÇÃO ────────────────────────────
 function toggleTheme() {
-  const isL = document.documentElement.getAttribute('data-theme') === 'light';
-  const newT = isL ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', newT);
-  $('theme-ico').textContent = isL ? '🌙' : '☀️';
-  $('theme-lbl').textContent = isL ? 'Modo Escuro' : 'Modo Claro';
-  localStorage.setItem('tiger-theme', newT);
+  const root = document.documentElement;
+  const isLight = root.getAttribute('data-theme') === 'light';
+  if (isLight) {
+    root.removeAttribute('data-theme');
+    localStorage.setItem('tiger-theme', 'dark');
+    document.getElementById('theme-ico').textContent = '🌙';
+    document.getElementById('theme-lbl').textContent = 'Modo Escuro';
+  } else {
+    root.setAttribute('data-theme', 'light');
+    localStorage.setItem('tiger-theme', 'light');
+    document.getElementById('theme-ico').textContent = '☀️';
+    document.getElementById('theme-lbl').textContent = 'Modo Claro';
+  }
+}
+
+function applyStoredTheme() {
+  const saved = localStorage.getItem('tiger-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.getElementById('theme-ico').textContent = '☀️';
+    document.getElementById('theme-lbl').textContent = 'Modo Claro';
+  }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  if(localStorage.getItem('tiger-theme') === 'light') toggleTheme();
-  loadData();
+  applyStoredTheme();
+  $('global-period-badge').textContent = '📅 Semana 5 — 27 a 30/04';
+  
+  loadData().finally(() => {
+    setTimeout(() => { $('loading').classList.add('hidden'); animateBars(); }, 600);
+  });
 });
 </script>
 </body>
