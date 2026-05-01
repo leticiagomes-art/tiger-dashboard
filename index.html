@@ -554,7 +554,10 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
   <div class="card gfull"><div style="overflow-x:auto"><table>
     <thead><tr><th>Afiliado</th><th class="center">Reimb.</th><th class="center">CBs</th><th class="right">Valor ($)</th><th class="center">Med. Dias</th><th class="center">0-3d %</th><th class="center">Veredicto</th><th class="center">Status</th><th>Ação</th></tr></thead>
     <tbody id="tbl-afil"></tbody>
-  </table></div></div>
+  <table></div></div>
+
+  <!-- LIVE section — preenchida pelo computeAndRender -->
+  <div id="afil-live-section"></div>
 
   <div class="divider"></div>
   <div class="sec-ttl">🚨 Risco Bandeira — Visa VAMP / Mastercard MATCH</div>
@@ -632,7 +635,7 @@ footer{border-top:1px solid var(--border);padding:11px 32px;background:var(--sur
   <div class="card gfull">
     <div class="card-hdr"><div class="card-ttl">📋 Desempenho Consolidado — Time CS Tiger</div><span class="bdg bdg-gn">RET. TOTAL (TIGER) = SEM PARCIAL AO CLIENTE</span></div>
     <div style="overflow-x:auto"><table>
-      <thead><tr><th>Agente</th><th class="center">Tickets</th><th class="right">Retido Direto ($)</th><th class="center">Ret. Total (qtd)</th><th class="center">Parc.→Ret. Total</th><th class="right">Val. Parc. ($)</th><th class="center">Gateway HG</th><th class="center">Propostas</th><th class="right">Total Retido ($)</th><th class="center">Performance</th></tr></thead>
+      <thead><tr><th>Agente</th><th class="center">Tickets</th><th class="center">Ret. Total</th><th class="center">Parc.→Ret.</th><th class="center">Gateway HG</th><th class="center">Reembolso</th><th class="center">Taxa Ret.</th><th class="center">Performance</th></tr></thead>
       <tbody id="tbl-cs"></tbody>
     </table></div>
     <div style="font-size:9px;color:var(--t4);margin-top:8px">* "Ret. Total (Tiger = Retenção Total)" é o indicador real — Tiger não oferta reembolso parcial ao cliente. Parciais = retidos e reclassificados como completos.</div>
@@ -1211,23 +1214,20 @@ function rpRender(key) {
 }
 
 // ─── APPS SCRIPT CONFIG ─────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYOUR_DEPLOYMENT_ID/exec'; // ← substitua pelo URL do doGet
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYOUR_DEPLOYMENT_ID/exec';
 const SHEET_ID = '1u8dhtbT8NODgdbzOJfJTwE04vFLE79K3hP-zm9nfT7Y';
 const BASE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
 
-// Raw data cache from Apps Script
-let RAW = { respostas: [], helpgrid: [], config: [], loaded: false, lastSync: null };
+// ─── RAW DATA CACHE ──────────────────────────────
+let RAW = { respostas: [], helpgrid: [], loaded: false, lastSync: null };
+let currentDR = 'hoje';
 
-// Current CS date range key
-let currentDR = 'hoje'; // 'hoje','ontem','7d','15d','30d','60d'
-
-// ─── DATE RANGE UTILS ───────────────────────────
+// ─── DATE UTILS ──────────────────────────────────
 function getDRDates(key) {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const pad = n => String(n).padStart(2,'0');
   const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-
   if (key === 'hoje') {
     return { from: iso(today), to: iso(today), label: 'Hoje — ' + today.toLocaleDateString('pt-BR') };
   }
@@ -1235,49 +1235,56 @@ function getDRDates(key) {
     const y = new Date(today); y.setDate(y.getDate()-1);
     return { from: iso(y), to: iso(y), label: 'Ontem — ' + y.toLocaleDateString('pt-BR') };
   }
-  const days = {  '7d':7, '15d':15, '30d':30, '60d':60 }[key] || 7;
-  const from = new Date(today); from.setDate(from.getDate() - (days-1));
+  const days = {'7d':7,'15d':15,'30d':30,'60d':60}[key] || 7;
+  const from = new Date(today); from.setDate(from.getDate()-(days-1));
   return { from: iso(from), to: iso(today), label: `Últimos ${days} dias` };
 }
 
-function parseDate(str) {
-  // handles 'M/D/YYYY HH:MM:SS', 'DD/MM/YYYY HH:MM:SS', ISO
+// Converte qualquer string de data do Sheets para Date
+// Formato Sheets: "4/29/2026 17:35:50" ou "29/04/2026 17:35:50"
+function parseSheetDate(str) {
   if (!str) return null;
-  // Google Sheets Timestamp format: "4/29/2026 17:35:50"
-  const m1 = String(str).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (m1) return new Date(+m1[3], +m1[1]-1, +m1[2]);
+  str = String(str).trim();
+  // M/D/YYYY HH:MM:SS  (americano — padrão Google Sheets)
+  let m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return new Date(+m[3], +m[1]-1, +m[2]);
+  // DD/MM/YYYY
+  m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m) return new Date(+m[3], +m[2]-1, +m[1]);
   // ISO
   const d = new Date(str);
-  if (!isNaN(d)) return d;
-  return null;
+  return isNaN(d) ? null : d;
+}
+
+function isoDate(d) {
+  if (!d) return '';
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
 
 function inRange(dateStr, from, to) {
-  const d = parseDate(dateStr);
+  const d = parseSheetDate(dateStr);
   if (!d) return false;
-  const iso = dt => dt.toISOString().slice(0,10);
-  return iso(d) >= from && iso(d) <= to;
+  const s = isoDate(d);
+  return s >= from && s <= to;
 }
 
-// ─── PARSE CSV ───────────────────────────────────
+// ─── CSV PARSER ──────────────────────────────────
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim());
+  const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
   return lines.slice(1).map(line => {
     const vals = [];
     let cur = '', inQ = false;
-    for (let c of line) {
-      if (c==='"') inQ=!inQ;
-      else if (c===',' && !inQ) { vals.push(cur.trim()); cur=''; }
-      else cur+=c;
+    for (const c of line) {
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { vals.push(cur); cur = ''; }
+      else cur += c;
     }
-    vals.push(cur.trim());
+    vals.push(cur);
     const obj = {};
-    headers.forEach((h,i) => {
-      const v = (vals[i]||'').replace(/"/g,'').trim();
-      obj[h] = v;
-    });
+    headers.forEach((h, i) => { obj[h] = (vals[i] || '').replace(/^"|"$/g,'').trim(); });
     return obj;
   });
 }
@@ -1288,30 +1295,27 @@ async function fetchSheet(name) {
   return parseCSV(await r.text());
 }
 
-// ─── SYNC APPS SCRIPT ────────────────────────────
+// ─── SYNC ────────────────────────────────────────
 async function syncAppsScript() {
   const btn = $('sync-btn');
   if (btn) { btn.textContent = '⏳ Sincronizando…'; btn.disabled = true; }
 
   try {
-    // Try Apps Script doGet first (needs CORS)
     let data = null;
-    try {
-      const resp = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now());
-      if (resp.ok) {
-        data = await resp.json();
-      }
-    } catch(e) { /* fallback to direct Sheets */ }
+    // Tenta Apps Script doGet
+    if (!APPS_SCRIPT_URL.includes('YOUR_DEPLOYMENT')) {
+      try {
+        const resp = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now());
+        if (resp.ok) data = await resp.json();
+      } catch(e) {}
+    }
 
     if (data && data.respostas_brutas) {
       RAW.respostas = data.respostas_brutas || [];
       RAW.helpgrid  = data.helpgrid_raw    || [];
-      RAW.config    = data.config          || [];
       RAW.loaded    = true;
-      RAW.lastSync  = new Date();
-      console.log('✅ Apps Script sync OK:', RAW.respostas.length, 'respostas,', RAW.helpgrid.length, 'HG rows');
     } else {
-      // Fallback: fetch sheets directly
+      // Fallback: fetch direto nas abas
       const [resp, hg] = await Promise.all([
         fetchSheet('Form Responses 1').catch(() => []),
         fetchSheet('HelpGrid_Raw').catch(() => [])
@@ -1319,338 +1323,537 @@ async function syncAppsScript() {
       RAW.respostas = resp;
       RAW.helpgrid  = hg;
       RAW.loaded    = true;
-      RAW.lastSync  = new Date();
-      console.log('✅ Direct Sheets sync:', RAW.respostas.length, 'respostas,', RAW.helpgrid.length, 'HG rows');
     }
 
-    if (btn) { btn.textContent = '✅ Sincronizado'; btn.style.color = 'var(--green)'; }
+    RAW.lastSync = new Date();
     $('hdr-data').textContent = RAW.lastSync.toLocaleString('pt-BR');
     $('err-banner').style.display = 'none';
 
-    // Re-render with live data
-    renderLiveRetention();
+    if (btn) { btn.textContent = '✅ ' + RAW.respostas.length + ' resp · ' + RAW.helpgrid.length + ' HG'; btn.style.color = 'var(--green)'; }
+
+    // Re-renderiza tudo com novos dados
+    renderAllFromRaw();
 
   } catch(e) {
     console.error('Sync error:', e);
-    if (btn) { btn.textContent = '❌ Erro — retry'; btn.style.color = 'var(--red)'; }
+    if (btn) { btn.textContent = '❌ Erro'; btn.style.color = 'var(--red)'; }
     $('err-banner').style.display = 'flex';
-    $('err-msg').textContent = 'Erro ao sincronizar. Verifique a URL do Apps Script e permissões CORS.';
+    $('err-msg').textContent = 'Erro ao sincronizar. Dados estáticos sendo usados.';
   } finally {
-    if (btn) { btn.disabled = false; }
-    setTimeout(() => {
-      if (btn) { btn.textContent = '🔄 Sincronizar'; btn.style.color = ''; }
-    }, 4000);
+    if (btn) btn.disabled = false;
+    setTimeout(() => { if (btn) { btn.textContent = '🔄 Sincronizar'; btn.style.color = ''; } }, 5000);
   }
 }
 
-// ─── DATE RANGE SELECTOR ─────────────────────────
-function selectDateRange(key, btn) {
-  // Sync all dr-btn elements across every tab period bar
-  document.querySelectorAll('.dr-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.dr === key);
-  });
-  currentDR = key;
+// ════════════════════════════════════════════════════
+// MOTOR CENTRAL: computa TUDO a partir dos dados brutos
+// e re-renderiza CS, Afiliados, HG, Tiger por período
+// ════════════════════════════════════════════════════
+function computeAndRender(from, to) {
 
-  const dr = getDRDates(key);
-  $('global-period-badge').textContent = '📅 ' + dr.label;
-  $('hdr-semana').textContent = dr.label;
-  $('footer-periodo').textContent = dr.label;
+  // ── Colunas Form Responses 1 (conforme print) ──
+  // Timestamp | Email Address | Atendente | Produto | E-mail do Cliente
+  // Número do Pedido | Responsável | Frequência de contato
+  // Data da Compra | Data do Recebimento do E-mail | [status ✅❌]
 
-  // Show/hide live CS panel
-  const isToday = (key === 'hoje');
-  const csPanel = $('cs-hoje-panel');
-  if (csPanel) csPanel.classList.toggle('visible', isToday);
-  if (isToday) { $('cs-hoje-data').textContent = new Date().toLocaleDateString('pt-BR'); }
+  const COL_TS       = 'Timestamp';
+  const COL_AGENT    = 'Atendente';
+  const COL_PRODUTO  = 'Produto';
+  const COL_RESP     = 'Responsável';
+  const COL_FREQ     = 'Frequência de contato';  // "Primeiro contato", "Já em andamento/Em n..."
+  // Status da retenção — última coluna com ✅ ou ❌ ou texto de desfecho
+  // Tentamos detectar dinamicamente
+  const COL_STATUS_CANDIDATES = ['Status', 'Resultado', 'Desfecho', 'Retido', 'Retenção'];
 
-  renderLiveRetention();
-  setTimeout(animateBars, 100);
-}
+  // Filtra por período
+  const rows = RAW.respostas.filter(r => inRange(r[COL_TS] || r['timestamp'] || r['Timestamp'], from, to));
 
-// ─── RENDER LIVE RETENTION COMPARISON ────────────
-function renderLiveRetention() {
-  const dr = getDRDates(currentDR);
-  const { from, to } = dr;
+  // Detecta coluna de status/resultado
+  const sample = rows[0] || RAW.respostas[0] || {};
+  const allCols = Object.keys(sample);
+  const statusCol = allCols.find(k => COL_STATUS_CANDIDATES.some(c => k.toLowerCase().includes(c.toLowerCase())))
+    || allCols.find(k => /status|result|retid|desfech/i.test(k))
+    || ''; // última coluna pode ser o status visual ✅❌
 
-  // ── TIGER: from Form Responses 1 ──
-  const tigerRows = RAW.respostas.filter(r => {
-    const ts = r['Timestamp'] || r['timestamp'] || '';
-    return inRange(ts, from, to);
-  });
+  // Função que classifica uma linha como retida/parcial/reembolso/gateway
+  function classify(r) {
+    // Junta todos os valores da linha num texto pesquisável
+    const full = Object.values(r).join(' ').toLowerCase();
+    const statusVal = statusCol ? (r[statusCol] || '').toLowerCase() : '';
+    const freqVal   = (r[COL_FREQ] || '').toLowerCase();
 
-  // Column names (based on screenshot)
-  const COL_FREQ = 'Frequência de contato' || 'Frequência de cont';
-  const COL_RESP = 'Responsável';
-
-  // Count outcomes
-  let tigerTickets = tigerRows.length;
-
-  // Retention outcomes from "Frequência de contato" / status col
-  // Typically: "Já em andamento/Em negociação..." = em andamento, "Retido" etc.
-  // We look for key words in any column that indicate retention
-  const retKeywords = ['retido', 'retenção', 'retencao', 'aceitou', 'manteve', 'saved'];
-  const parcKeywords = ['parcial', 'desconto parcial'];
-  const reimKeywords = ['reembolso', 'reembolsado', 'refund', 'full refund'];
-
-  let tigerRet = 0, tigerParc = 0, tigerReimb = 0, tigerValorRet = 0;
-
-  // Try to count from "Frequência de contato" or similar outcome column
-  const outCols = Object.keys(tigerRows[0] || {}).filter(k =>
-    /frequência|resultado|retido|status|outcome|desfecho/i.test(k));
-
-  tigerRows.forEach(r => {
-    // Find any outcome column
-    let outcome = '';
-    if (outCols.length > 0) {
-      outcome = (r[outCols[0]] || '').toLowerCase();
-    } else {
-      // fallback: search all values
-      outcome = Object.values(r).join(' ').toLowerCase();
-    }
-
-    const isRet  = retKeywords.some(k => outcome.includes(k));
-    const isParc = parcKeywords.some(k => outcome.includes(k));
-    const isReim = reimKeywords.some(k => outcome.includes(k));
-
-    if (isParc) tigerParc++;
-    else if (isRet) tigerRet++;
-    else if (isReim) tigerReimb++;
-
-    // Try to get monetary value
-    const valCols = Object.keys(r).filter(k => /valor|value|amount|\$/i.test(k));
-    if ((isRet || isParc) && valCols.length > 0) {
-      const v = parseFloat((r[valCols[0]]||'').replace(',','.')) || 0;
-      tigerValorRet += v;
-    }
-  });
-
-  // If we got 0 retention from raw data, use FB fallback
-  const usesFallback = tigerTickets === 0;
-  if (usesFallback) {
-    tigerTickets = FB.cs.reduce((s,a) => s+(+a.tickets_tab||0), 0);
-    tigerRet     = FB.cs.reduce((s,a) => s+(+a.retidos_qtd||0), 0);
-    tigerParc    = FB.cs.reduce((s,a) => s+(+a.parcial_compl_qtd||0), 0);
-    tigerReimb   = 3; // from FB
-    tigerValorRet= FB.cs.reduce((s,a) => s+(+a.total_retido||0), 0);
+    // Reembolso total
+    if (/reembol|refund/i.test(full)) return 'reimb';
+    // Gateway HG (encaminhado para HelpGrid)
+    if (/gateway|helpgrid|hg|encaminh/i.test(full)) return 'gateway';
+    // Parcial → reclassificado como retenção total pela Tiger
+    if (/parcial|partial|desconto parcial/i.test(full)) return 'parcial';
+    // Retenção total — checklist positivo
+    if (/✅/.test(Object.values(r).join(' '))) return 'retido';
+    if (/retid|aceitou usar|manteve|saved|retenc/i.test(full)) return 'retido';
+    // Negativa
+    if (/❌/.test(Object.values(r).join(' '))) return 'nao_retido';
+    // Frequência "Em andamento" = ainda aberto, não conclusivo
+    if (/andamento|negociação|em contato/i.test(freqVal)) return 'andamento';
+    return 'outros';
   }
 
-  const tigerTotalRet = tigerRet + tigerParc;
-  const tigerTaxa = tigerTickets > 0 ? (tigerTotalRet / tigerTickets * 100) : 0;
+  // ─── CS por Agente ─────────────────────────────
+  const agentMap = {};
+  rows.forEach(r => {
+    const agent = (r[COL_AGENT] || r['Atendente'] || '').trim();
+    if (!agent) return;
+    if (!agentMap[agent]) agentMap[agent] = {
+      agente: agent, tickets: 0, retidos: 0, parcial: 0, gateway: 0, reimb: 0,
+      andamento: 0, outros: 0, valorRet: 0
+    };
+    const ag = agentMap[agent];
+    ag.tickets++;
+    const cls = classify(r);
+    ag[cls === 'retido' ? 'retidos' : cls === 'parcial' ? 'parcial' : cls === 'gateway' ? 'gateway' : cls === 'reimb' ? 'reimb' : cls === 'andamento' ? 'andamento' : 'outros']++;
+    // Valor monetário se existir
+    const valCols = Object.keys(r).filter(k => /valor|value|amount|sale/i.test(k));
+    if (cls === 'retido' || cls === 'parcial') {
+      valCols.forEach(vc => { ag.valorRet += parseFloat((r[vc]||'').replace(/[^0-9.]/g,'')) || 0; });
+    }
+  });
 
-  // ── HELPGRID: from HelpGrid_Raw ──
+  const agentes = Object.values(agentMap).sort((a,b) => b.tickets - a.tickets);
+
+  // Performance label
+  agentes.forEach(ag => {
+    const totalRet = ag.retidos + ag.parcial;
+    const taxa = ag.tickets > 0 ? totalRet/ag.tickets*100 : 0;
+    ag.taxaRet = taxa;
+    ag.totalRet = totalRet;
+    ag.performance = taxa >= 20 ? 'EXCELENTE' : taxa >= 10 ? 'BOM' : ag.tickets >= 30 ? 'EM_RAMP' : 'BOM';
+  });
+
+  // ─── Afiliados (Responsável no Form) ──────────
+  const afilMap = {};
+  rows.forEach(r => {
+    const afil = (r[COL_RESP] || r['Responsável'] || '').trim();
+    if (!afil) return;
+    if (!afilMap[afil]) afilMap[afil] = {
+      afiliado: afil, tickets: 0, retidos: 0, parcial: 0, reimb: 0, gateway: 0, outros: 0
+    };
+    const a = afilMap[afil];
+    a.tickets++;
+    const cls = classify(r);
+    a[cls === 'retido' ? 'retidos' : cls === 'parcial' ? 'parcial' : cls === 'reimb' ? 'reimb' : cls === 'gateway' ? 'gateway' : 'outros']++;
+  });
+
+  const afilList = Object.values(afilMap)
+    .filter(a => a.tickets > 0)
+    .sort((a,b) => b.tickets - a.tickets);
+
+  // ─── HG por Produto (HelpGrid_Raw) ─────────────
+  // Colunas HG esperadas: Date/Timestamp, Product/Produto, Outcome/Result,
+  // Saved Sale/Completo, Partial/Parcial, Full Refund/Reembolso
   const hgRows = RAW.helpgrid.filter(r => {
-    // Try various date columns
-    const dateStr = r['Date'] || r['date'] || r['Timestamp'] || r['timestamp'] || r['Data'] || '';
-    if (!dateStr) return true; // include if no date (use all)
+    const dateStr = r['Date'] || r['Timestamp'] || r['Data'] || r['date'] || '';
+    if (!dateStr) return true; // sem data → inclui sempre (dados globais)
     return inRange(dateStr, from, to);
   });
 
-  // HG columns: look for "Saved Sales" and "Full Refund" columns
-  const hgSample = hgRows[0] || {};
-  const savedCol  = Object.keys(hgSample).find(k => /saved.?sale|retid|save/i.test(k)) || '';
-  const refundCol = Object.keys(hgSample).find(k => /full.?refund|reemb.*full|refund.full/i.test(k)) || '';
-  const parcHGCol = Object.keys(hgSample).find(k => /partial|parcial/i.test(k)) || '';
-  const totalCol  = Object.keys(hgSample).find(k => /total.*call|liga|ticket|atend/i.test(k)) || '';
-  const valueCol  = Object.keys(hgSample).find(k => /value|valor|amount/i.test(k)) || '';
+  const hgProdMap = {};
+  const hgSample = hgRows[0] || RAW.helpgrid[0] || {};
+  const hgCols = Object.keys(hgSample);
 
-  let hgTotal = 0, hgSaved = 0, hgParcial = 0, hgFullRef = 0, hgValor = 0;
+  // Detecta colunas HG
+  const hgProdCol  = hgCols.find(k => /product|produto|prod\b/i.test(k)) || '';
+  const hgSavedCol = hgCols.find(k => /saved.?sale|save|completo|saved/i.test(k)) || '';
+  const hgParcCol  = hgCols.find(k => /partial|parcial/i.test(k)) || '';
+  const hgFullCol  = hgCols.find(k => /full.?ref|reembol|refund/i.test(k)) || '';
+  const hgCallCol  = hgCols.find(k => /call|liga|ticket|total/i.test(k)) || '';
+  const hgValCol   = hgCols.find(k => /value|valor|amount|sale.amount/i.test(k)) || '';
 
-  if (hgRows.length > 0) {
-    hgRows.forEach(r => {
-      hgTotal   += savedCol  ? 0 : 1; // count rows as tickets if no total col
-      hgSaved   += +(r[savedCol]||'').replace(',','.') || 0;
-      hgParcial += +(r[parcHGCol]||'').replace(',','.') || 0;
-      hgFullRef += +(r[refundCol]||'').replace(',','.') || 0;
-      hgValor   += +(r[valueCol]||'').replace(',','.') || 0;
-    });
-    if (totalCol) {
-      hgTotal = hgRows.reduce((s,r) => s+(+(r[totalCol]||'').replace(',','.')||0), 0);
+  hgRows.forEach(r => {
+    const prod = (r[hgProdCol] || r['Product'] || r['Produto'] || 'Outros').trim();
+    if (!hgProdMap[prod]) hgProdMap[prod] = { produto: prod, ligacoes: 0, escritos: 0, parcial: 0, completo: 0, fullRef: 0, valor: 0 };
+    const p = hgProdMap[prod];
+
+    // Conta ligações/calls
+    if (hgCallCol) p.ligacoes += parseFloat(r[hgCallCol]) || 0;
+    else p.ligacoes++;
+
+    // Conta resultados
+    const savedN = parseFloat(r[hgSavedCol] || 0) || 0;
+    const parcN  = parseFloat(r[hgParcCol]  || 0) || 0;
+    const fullN  = parseFloat(r[hgFullCol]  || 0) || 0;
+    const valN   = parseFloat((r[hgValCol]  || '').replace(/[^0-9.]/g,'')) || 0;
+
+    // Se as colunas tiverem valores numéricos (1 por linha = 1 caso)
+    if (hgSavedCol && (savedN > 0 || parcN > 0 || fullN > 0)) {
+      p.completo += savedN;
+      p.parcial  += parcN;
+      p.fullRef  += fullN;
+      p.valor    += valN;
     } else {
-      // sum saved + parcial + fullref as total
-      hgTotal = hgRows.length;
+      // Classificação por texto
+      const txt = Object.values(r).join(' ').toLowerCase();
+      if (/saved|retid|completo|sale.?saved/i.test(txt)) { p.completo++; p.valor += valN; }
+      else if (/partial|parcial/i.test(txt)) p.parcial++;
+      else if (/refund|reembol|full/i.test(txt)) p.fullRef++;
+    }
+    // escritos (enviou e-mail/mensagem)
+    const hasEscrito = hgCols.find(k => /escrit|email.?sent|wrote/i.test(k));
+    if (hasEscrito) p.escritos += parseFloat(r[hasEscrito]||0)||0;
+  });
+
+  // Se não detectou ligações por coluna, usa contagem de linhas
+  const hgProdList = Object.values(hgProdMap);
+  if (hgProdList.length === 0 || hgProdList.every(p => p.ligacoes === 0)) {
+    // Usa fallback FB se HG vazio
+    renderHGProd(FB.hg_produtos);
+  } else {
+    renderHGProd(hgProdList);
+  }
+
+  // Totais HG
+  const hgTotal   = hgRows.length || hgProdList.reduce((s,p) => s+p.ligacoes, 0);
+  const hgSaved   = hgProdList.reduce((s,p) => s+p.completo, 0);
+  const hgParcial = hgProdList.reduce((s,p) => s+p.parcial, 0);
+  const hgFullRef = hgProdList.reduce((s,p) => s+p.fullRef, 0);
+  const hgValor   = hgProdList.reduce((s,p) => s+p.valor, 0);
+  const hgTaxa    = hgTotal > 0 ? hgSaved/hgTotal*100 : 0;
+
+  // ─── Tiger por Produto (Form Responses) ────────
+  const tigerProdMap = {};
+  rows.forEach(r => {
+    const prod = (r[COL_PRODUTO] || r['Produto'] || 'Outros').trim();
+    if (!prod) return;
+    if (!tigerProdMap[prod]) tigerProdMap[prod] = { produto: prod, escritos: 0, retencao_compl: 0, retido_valor: 0 };
+    const p = tigerProdMap[prod];
+    p.escritos++;
+    const cls = classify(r);
+    if (cls === 'retido' || cls === 'parcial') {
+      p.retencao_compl++;
+      const valCols = Object.keys(r).filter(k => /valor|value|amount/i.test(k));
+      valCols.forEach(vc => { p.retido_valor += parseFloat((r[vc]||'').replace(/[^0-9.]/g,''))||0; });
+    }
+  });
+  const tigerProdList = Object.values(tigerProdMap).sort((a,b) => b.escritos - a.escritos);
+  if (tigerProdList.length > 0) renderTOProd(tigerProdList);
+
+  // ─── Tiger totais ──────────────────────────────
+  const tigerTickets  = rows.length;
+  const tigerRetidos  = agentes.reduce((s,a) => s+a.retidos, 0);
+  const tigerParcial  = agentes.reduce((s,a) => s+a.parcial, 0);
+  const tigerGateway  = agentes.reduce((s,a) => s+a.gateway, 0);
+  const tigerReimb    = agentes.reduce((s,a) => s+a.reimb, 0);
+  const tigerTotalRet = tigerRetidos + tigerParcial;
+  const tigerValor    = agentes.reduce((s,a) => s+a.valorRet, 0);
+  const tigerTaxa     = tigerTickets > 0 ? tigerTotalRet/tigerTickets*100 : 0;
+
+  // ─── Renderiza CS ──────────────────────────────
+  if (agentes.length > 0) {
+    renderCSFromRaw(agentes);
+  } else {
+    renderCS(FB.cs); // fallback
+  }
+
+  // ─── Renderiza Afiliados (Responsável) ─────────
+  if (afilList.length > 0) {
+    renderAfilFromRaw(afilList, from, to);
+  }
+  // Ranking e diagrama usam FB (BuyGoods, não Sheets) — mantém
+  // mas com nota do período
+
+  // ─── Retenção bars (Tiger) ──────────────────────
+  if (tigerTickets > 0) {
+    const retRows = [
+      { resultado: 'Tickets no período', qtd: tigerTickets, pct: 100, cor: 'orange' },
+      { resultado: 'Ret. Total — Aceitou usar', qtd: tigerRetidos, pct: Math.round(tigerRetidos/tigerTickets*100), cor: 'green' },
+      { resultado: 'Parc.→Ret. Total (reclassif.)', qtd: tigerParcial, pct: Math.round(tigerParcial/tigerTickets*100), cor: 'lightgreen' },
+      { resultado: 'Gateway HG', qtd: tigerGateway, pct: Math.round(tigerGateway/tigerTickets*100), cor: 'blue' },
+      { resultado: 'Reembolso Total Tiger', qtd: tigerReimb, pct: Math.round(tigerReimb/tigerTickets*100), cor: 'red' },
+      { resultado: 'Em andamento / Outros', qtd: tigerTickets-tigerRetidos-tigerParcial-tigerGateway-tigerReimb, pct: 100-Math.round(tigerTotalRet/tigerTickets*100), cor: 'gray' },
+    ].filter(r => r.qtd >= 0);
+    renderRetencao(retRows);
+  }
+
+  // ─── KPIs CS tab ───────────────────────────────
+  $('cs-total').textContent = tigerTickets || (agentes.length > 0 ? agentes.reduce((s,a)=>s+a.tickets,0) : '—');
+
+  // ─── Comparativo de Retenção Tiger vs HG ────────
+  renderRetencaoComparativo({
+    tigerTickets, tigerTotalRet, tigerTaxa, tigerValor, tigerReimb,
+    tigerRetidos, tigerParcial,
+    hgTotal, hgSaved, hgTaxa, hgValor, hgFullRef, hgParcial,
+    label: getDRDates(currentDR).label,
+    usingRaw: tigerTickets > 0
+  });
+}
+
+// ─── RENDER CS FROM RAW ──────────────────────────
+function renderCSFromRaw(agentes) {
+  const perfCol = { EXCELENTE:'var(--green)', BOM:'var(--blue)', EM_RAMP:'var(--yellow)' };
+
+  $('ag-grid').innerHTML = agentes.map(ag => {
+    const c = perfCol[ag.performance] || 'var(--t4)';
+    const taxaStr = fmt(ag.taxaRet,1) + '%';
+    return `<div class="ag-card" style="border-top-color:${c}">
+      <div class="ag-top"><div><div class="ag-name">${ag.agente}</div><div class="ag-role">CS Tiger Offers</div></div>${statusPill(ag.performance)}</div>
+      <div class="ag-stats">
+        <div><div class="as-lbl">Tickets</div><div class="as-val c-bl">${ag.tickets}</div></div>
+        <div><div class="as-lbl">Taxa Ret.</div><div class="as-val" style="color:${c}">${taxaStr}</div></div>
+        <div><div class="as-lbl">Ret. Total</div><div class="as-val c-or">${ag.retidos}</div></div>
+        <div><div class="as-lbl">Parc.→Ret.</div><div class="as-val c-yl">${ag.parcial}</div></div>
+        <div><div class="as-lbl">Gateway HG</div><div class="as-val c-mu">${ag.gateway}</div></div>
+        <div><div class="as-lbl">Reembolso</div><div class="as-val c-rd">${ag.reimb}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const T = agentes.reduce((a,ag) => ({
+    tick:a.tick+ag.tickets, ret:a.ret+ag.retidos, parc:a.parc+ag.parcial,
+    gw:a.gw+ag.gateway, reimb:a.reimb+ag.reimb, val:a.val+ag.valorRet
+  }), {tick:0,ret:0,parc:0,gw:0,reimb:0,val:0});
+  const taxaTotal = T.tick > 0 ? (T.ret+T.parc)/T.tick*100 : 0;
+
+  const tRows = agentes.map(ag => {
+    const c = perfCol[ag.performance] || 'var(--t4)';
+    return `<tr>
+      <td class="bold" style="color:${c}">${ag.agente}</td>
+      <td class="center bl">${ag.tickets}</td>
+      <td class="center ok">${ag.retidos}</td>
+      <td class="center warn">${ag.parcial}</td>
+      <td class="center" style="color:var(--t4)">${ag.gateway}</td>
+      <td class="center crit">${ag.reimb}</td>
+      <td class="center" style="color:${c};font-weight:700">${fmt(ag.taxaRet,1)}%</td>
+      <td class="center">${statusPill(ag.performance)}</td>
+    </tr>`;
+  });
+
+  $('tbl-cs').innerHTML = tRows.join('') + `<tr style="background:var(--surface2);font-weight:700">
+    <td>TOTAL</td>
+    <td class="center bl">${T.tick}</td>
+    <td class="center ok">${T.ret}</td>
+    <td class="center warn">${T.parc}</td>
+    <td class="center">${T.gw}</td>
+    <td class="center crit">${T.reimb}</td>
+    <td class="center" style="color:var(--green)">${fmt(taxaTotal,1)}%</td>
+    <td>—</td>
+  </tr>`;
+}
+
+// ─── RENDER AFILIADOS FROM RAW ───────────────────
+function renderAfilFromRaw(afilList, from, to) {
+  // Atualiza KPIs da aba Afiliados
+  const totalTickets = afilList.reduce((s,a) => s+a.tickets, 0);
+  const totalRet     = afilList.reduce((s,a) => s+a.retidos+a.parcial, 0);
+  const totalReim    = afilList.reduce((s,a) => s+a.reimb, 0);
+  const taxa         = totalTickets > 0 ? totalRet/totalTickets*100 : 0;
+
+  // Atualiza apenas o card de afiliados vindo do Sheets (tabela de responsáveis)
+  // Os dados de afiliados BuyGoods (Walife, Rodrigo…) são fixos (vem do BG)
+  // Aqui mostramos os "Responsáveis" = campo Responsável do form CS
+  const tbl = $('tbl-afil');
+  if (tbl && afilList.length > 0) {
+    // Nota: o campo "Responsável" pode ser o afiliado ou "Tiger Offers"
+    // Mostramos como insight adicional abaixo da tabela estática
+    // Preferimos não sobrescrever a tabela BG — adicionamos uma nova section live
+    const liveDiv = $('afil-live-section');
+    if (liveDiv) {
+      const rows = afilList.slice(0,15).map(a => {
+        const t = a.retidos + a.parcial;
+        const tx = a.tickets > 0 ? t/a.tickets*100 : 0;
+        return `<tr>
+          <td class="bold">${a.afiliado}</td>
+          <td class="center bl">${a.tickets}</td>
+          <td class="center ok">${a.retidos}</td>
+          <td class="center warn">${a.parcial}</td>
+          <td class="center" style="color:var(--t4)">${a.gateway}</td>
+          <td class="center crit">${a.reimb}</td>
+          <td class="center" style="color:${tx>=15?'var(--green)':tx>=8?'var(--orange)':'var(--red)'};font-weight:700">${fmt(tx,1)}%</td>
+        </tr>`;
+      }).join('');
+      liveDiv.innerHTML = `
+        <div class="card gfull" style="margin-top:14px;border-color:rgba(61,142,255,.3)">
+          <div class="card-hdr">
+            <div class="card-ttl" style="color:var(--blue)">📊 Responsáveis por Ticket — ${getDRDates(currentDR).label} <span class="bdg bdg-bl" style="margin-left:6px">LIVE · Form Responses</span></div>
+            <span class="bdg bdg-mu">${totalTickets} tickets · Taxa Ret: ${fmt(taxa,1)}%</span>
+          </div>
+          <div style="overflow-x:auto"><table>
+            <thead><tr><th>Responsável</th><th class="center">Tickets</th><th class="center">Retidos</th><th class="center">Parc.→Ret.</th><th class="center">Gateway HG</th><th class="center">Reimb.</th><th class="center">Taxa Ret.</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table></div>
+        </div>`;
     }
   }
+}
 
-  // Fallback HG data if no rows
-  const usesFallbackHG = hgRows.length === 0;
-  if (usesFallbackHG) {
-    const hgProd = FB.hg_produtos;
-    hgTotal   = hgProd.reduce((s,p) => s+(+p.ligacoes||0), 0);
-    hgSaved   = hgProd.reduce((s,p) => s+(+p.completo||0), 0);
-    hgParcial = hgProd.reduce((s,p) => s+(+p.parcial||0), 0);
-    hgFullRef = 64; // from static data
-    hgValor   = 31865;
-  }
+// ─── RENDER RETENÇÃO COMPARATIVO ─────────────────
+function renderRetencaoComparativo(d) {
+  const { tigerTickets, tigerTotalRet, tigerTaxa, tigerValor, tigerReimb,
+          tigerRetidos, tigerParcial, hgTotal, hgSaved, hgTaxa, hgValor,
+          hgFullRef, hgParcial, label, usingRaw } = d;
 
-  const hgTaxa = hgTotal > 0 ? (hgSaved / hgTotal * 100) : 0;
+  // Badge de período
+  $('ret-cmp-period-lbl').textContent = label;
+  $('cmp-efic-period').textContent    = label;
 
-  // ── UPDATE UI ──
-  const pLabel = dr.label;
-  $('ret-cmp-period-lbl').textContent = pLabel;
-  $('cmp-efic-period').textContent = pLabel;
-
-  // Tiger metrics
+  // Tiger side
   $('live-tiger-pct').textContent     = fmt(tigerTaxa, 1) + '%';
-  $('live-tiger-sub').textContent     = fmt(tigerTickets) + ' tickets · ' + fmt(tigerTotalRet) + ' retidos';
-  $('live-tiger-tickets').textContent = fmt(tigerTickets) + (usesFallback?' (FB)':'');
-  $('live-tiger-ret').textContent     = fmt(tigerRet);
-  $('live-tiger-parc').textContent    = fmt(tigerParc);
+  $('live-tiger-sub').textContent     = fmt(tigerTickets) + ' tickets · ' + fmt(tigerTotalRet) + ' retidos' + (usingRaw ? '' : ' (FB)');
+  $('live-tiger-tickets').textContent = fmt(tigerTickets);
+  $('live-tiger-ret').textContent     = fmt(tigerRetidos);
+  $('live-tiger-parc').textContent    = fmt(tigerParcial);
   $('live-tiger-reimb').textContent   = fmt(tigerReimb);
-  $('live-tiger-valor').textContent   = fmtM(tigerValorRet);
+  $('live-tiger-valor').textContent   = fmtM(tigerValor);
 
-  // HG metrics
+  // HG side
   $('live-hg-pct').textContent     = fmt(hgTaxa, 1) + '%';
   $('live-hg-sub').textContent     = fmt(hgTotal) + ' atend. · ' + fmt(hgSaved) + ' salvos';
-  $('live-hg-tickets').textContent = fmt(hgTotal) + (usesFallbackHG?' (FB)':'');
+  $('live-hg-tickets').textContent = fmt(hgTotal);
   $('live-hg-saved').textContent   = fmt(hgSaved);
   $('live-hg-parc').textContent    = fmt(hgParcial);
   $('live-hg-fullref').textContent = fmt(hgFullRef);
   $('live-hg-valor').textContent   = fmtM(hgValor);
 
-  // Winner logic
+  // Winner
   const tigerWins = tigerTaxa >= hgTaxa;
   const diff = Math.abs(tigerTaxa - hgTaxa).toFixed(1);
-  const winnerBox = $('ret-winner-box');
+  const winnerBox   = $('ret-winner-box');
   const winnerBadge = $('ret-winner-badge');
   if (tigerWins) {
-    winnerBox.style.background = 'var(--green-l)';
-    winnerBox.style.border = '1px solid rgba(34,197,94,.25)';
+    winnerBox.style.cssText   = 'margin-top:12px;padding:10px 14px;border-radius:8px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:8px;background:var(--green-l);border:1px solid rgba(34,197,94,.25)';
     $('ret-winner-ico').textContent = '✅';
-    $('ret-winner-txt').textContent = `Tiger CS supera HelpGrid: ${fmt(tigerTaxa,1)}% vs ${fmt(hgTaxa,1)}% (+${diff}pp). Parciais reclassificados como retenções totais.`;
+    $('ret-winner-txt').textContent = `Tiger CS supera HelpGrid: ${fmt(tigerTaxa,1)}% vs ${fmt(hgTaxa,1)}% (+${diff}pp).`;
     winnerBadge.textContent = '🐯 TIGER VENCE';
-    winnerBadge.className = 'bdg bdg-gn';
+    winnerBadge.className   = 'bdg bdg-gn';
     $('ret-tiger-summary-box').style.background = 'var(--green-l)';
     $('ret-tiger-summary-title').textContent = `✅ Tiger ${fmt(tigerTaxa,1)}% > HelpGrid ${fmt(hgTaxa,1)}%`;
-    $('ret-tiger-summary-txt').textContent = `Com reclassificação de parciais, Tiger supera HG em ${diff}pp neste período.`;
+    $('ret-tiger-summary-txt').textContent   = `Tiger supera HG em ${diff}pp neste período. Parciais reclassificados como retenções totais.`;
   } else {
-    winnerBox.style.background = 'var(--yellow-l)';
-    winnerBox.style.border = '1px solid rgba(245,158,11,.25)';
+    winnerBox.style.cssText   = 'margin-top:12px;padding:10px 14px;border-radius:8px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:8px;background:var(--yellow-l);border:1px solid rgba(245,158,11,.25)';
     $('ret-winner-ico').textContent = '⚠️';
-    $('ret-winner-txt').textContent = `HelpGrid ${fmt(hgTaxa,1)}% > Tiger ${fmt(tigerTaxa,1)}% (-${diff}pp). Atenção: verificar tabulação do período.`;
+    $('ret-winner-txt').textContent = `HelpGrid ${fmt(hgTaxa,1)}% > Tiger ${fmt(tigerTaxa,1)}% (-${diff}pp). Verificar tabulações.`;
     winnerBadge.textContent = '⚠️ HG À FRENTE';
-    winnerBadge.className = 'bdg bdg-yl';
+    winnerBadge.className   = 'bdg bdg-yl';
     $('ret-tiger-summary-box').style.background = 'var(--yellow-l)';
     $('ret-tiger-summary-title').textContent = `⚠️ HelpGrid ${fmt(hgTaxa,1)}% > Tiger ${fmt(tigerTaxa,1)}%`;
-    $('ret-tiger-summary-txt').textContent = `Neste período Tiger está abaixo da HG. Revisar tabulações e propostas enviadas.`;
+    $('ret-tiger-summary-txt').textContent   = `Tiger abaixo da HG neste período. Revisar propostas e tabulações.`;
   }
 
-  // Efficiency card bars
+  // Barras comparativas
   const maxTaxa = Math.max(tigerTaxa, hgTaxa, 1);
-  const maxVal  = Math.max(tigerValorRet, hgValor, 1);
+  const maxVal  = Math.max(tigerValor, hgValor, 1);
   const maxRef  = Math.max(tigerReimb, hgFullRef, 1);
-
   $('cmp-tiger-taxa-bar').dataset.pct = (tigerTaxa/maxTaxa*100).toFixed(0);
   $('cmp-hg-taxa-bar').dataset.pct    = (hgTaxa/maxTaxa*100).toFixed(0);
-  $('cmp-tiger-val-bar').dataset.pct  = (tigerValorRet/maxVal*100).toFixed(0);
+  $('cmp-tiger-val-bar').dataset.pct  = (tigerValor/maxVal*100).toFixed(0);
   $('cmp-hg-val-bar').dataset.pct     = (hgValor/maxVal*100).toFixed(0);
   $('cmp-tiger-ref-bar').dataset.pct  = (tigerReimb/maxRef*100).toFixed(0);
   $('cmp-hg-ref-bar').dataset.pct     = (hgFullRef/maxRef*100).toFixed(0);
-
   $('cmp-tiger-taxa-val').textContent = fmt(tigerTaxa,1)+'%';
   $('cmp-hg-taxa-val').textContent    = fmt(hgTaxa,1)+'%';
-  $('cmp-tiger-val-val').textContent  = fmtM(tigerValorRet);
+  $('cmp-tiger-val-val').textContent  = fmtM(tigerValor);
   $('cmp-hg-val-val').textContent     = fmtM(hgValor);
   $('cmp-tiger-ref-val').textContent  = fmt(tigerReimb)+' casos';
   $('cmp-hg-ref-val').textContent     = fmt(hgFullRef)+' casos';
 
-  // HG alert box
-  if (hgFullRef > 10) {
-    $('hg-alerta-ttl').textContent = `HG: ${fmt(hgFullRef)} Full Refunds no período → impactam taxa BuyGoods diretamente`;
-  } else {
-    $('hg-alerta-ttl').textContent = `HG: Full Refunds → impactam taxa BuyGoods diretamente`;
-  }
-
-  // Also update KPI in CS tab
-  const el = $('cs-taxa-kpi');
-  if (el) el.textContent = fmt(tigerTaxa,1)+'%';
+  // Alerta HG
+  $('hg-alerta-ttl').textContent = hgFullRef > 0
+    ? `HG: ${fmt(hgFullRef)} Full Refunds no período → impactam taxa BuyGoods`
+    : `HG: Nenhum Full Refund registrado no período ✅`;
 
   setTimeout(animateBars, 80);
 }
 
-// ─── FETCH TODAY CS ──────────────────────────
-async function fetchTodayCS() {
-  try {
-    const rows = await fetchSheet('cs_hoje');
-    if (rows && rows.length) {
-      const tot  = rows.reduce((s,r) => s+(+(r.tickets||r.Tickets)||0), 0);
-      const retV = rows.reduce((s,r) => s+(+(r.retido_valor||r.Retido_Valor)||0), 0);
-      const retQ = rows.reduce((s,r) => s+(+(r.retidos_qtd||r.Retidos_Qtd)||0), 0);
-      const taxa = tot>0 ? retQ/tot*100 : 0;
-      $('cs-hoje-tickets').textContent = tot;
-      $('cs-hoje-retido').textContent  = fmtM(retV);
-      $('cs-hoje-taxa').textContent    = fmt(taxa,1)+'%';
-    }
-  } catch(e) { /* keep defaults */ }
+// ─── PONTO DE ENTRADA: re-renderiza TUDO ─────────
+function renderAllFromRaw() {
+  const dr = getDRDates(currentDR);
+  computeAndRender(dr.from, dr.to);
 }
 
-// ─── LOAD DATA ────────────────────────────────────
+// ─── DATE RANGE SELECTOR ─────────────────────────
+function selectDateRange(key, btn) {
+  document.querySelectorAll('.dr-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.dr === key);
+  });
+  currentDR = key;
+  const dr = getDRDates(key);
+  $('global-period-badge').textContent = '📅 ' + dr.label;
+  if ($('hdr-semana')) $('hdr-semana').textContent = dr.label;
+  if ($('footer-periodo')) $('footer-periodo').textContent = dr.label;
+
+  const isToday = key === 'hoje';
+  const csPanel = $('cs-hoje-panel');
+  if (csPanel) csPanel.classList.toggle('visible', isToday);
+  if (isToday && $('cs-hoje-data')) $('cs-hoje-data').textContent = new Date().toLocaleDateString('pt-BR');
+
+  // Re-renderiza CS + Afiliados + HG + Tiger com o novo período
+  if (RAW.loaded) renderAllFromRaw();
+  setTimeout(animateBars, 100);
+}
+
+// ─── THEME ───────────────────────────────────────
+function toggleTheme() {
+  const root = document.documentElement;
+  const isLight = root.getAttribute('data-theme') === 'light';
+  if (isLight) {
+    root.removeAttribute('data-theme');
+    localStorage.setItem('tiger-theme','dark');
+    document.getElementById('theme-ico').textContent = '🌙';
+    document.getElementById('theme-lbl').textContent = 'Modo Escuro';
+  } else {
+    root.setAttribute('data-theme','light');
+    localStorage.setItem('tiger-theme','light');
+    document.getElementById('theme-ico').textContent = '☀️';
+    document.getElementById('theme-lbl').textContent = 'Modo Claro';
+  }
+}
+function applyStoredTheme() {
+  const saved = localStorage.getItem('tiger-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme','light');
+    document.getElementById('theme-ico').textContent = '☀️';
+    document.getElementById('theme-lbl').textContent = 'Modo Claro';
+  }
+}
+
+// ─── LOAD DATA (primeira carga) ──────────────────
 async function loadData() {
-  // Render static fallback immediately
+  // Render FB estático imediato (dados globais BuyGoods / estáticos)
   renderIntervalBars('reimb-interval-bars', FB.intervalos_reimb, 'reimb');
-  renderIntervalBars('cb-interval-bars', FB.intervalos_cb, 'cb');
+  renderIntervalBars('cb-interval-bars',    FB.intervalos_cb,    'cb');
   renderScores(FB.afiliados);
   renderDiag(FB.afiliados);
   renderAfilTable(FB.afiliados);
   renderVamp(FB.vamp);
   renderReincidentes(FB.reincidentes);
   renderImpacto(FB.impacto);
-  renderCS(FB.cs);
+  renderCS(FB.cs);         // placeholder enquanto carrega
   renderRetencao(FB.retencao);
   renderHGProd(FB.hg_produtos);
   renderTOProd(FB.tiger_produtos);
 
-  // Render fallback retention comparison first
-  renderLiveRetention();
+  // Começa comparativo com FB
+  renderRetencaoComparativo({
+    tigerTickets:  FB.cs.reduce((s,a)=>s+(+a.tickets_tab||0),0),
+    tigerTotalRet: FB.cs.reduce((s,a)=>s+(+a.retidos_qtd||0)+(+a.parcial_compl_qtd||0),0),
+    tigerTaxa: 16.8, tigerValor: 32993, tigerReimb: 3,
+    tigerRetidos: 196, tigerParcial: 54,
+    hgTotal: 440, hgSaved: FB.hg_produtos.reduce((s,p)=>s+p.completo,0),
+    hgTaxa: 13.3, hgValor: 31865, hgFullRef: 64, hgParcial: 38,
+    label: getDRDates(currentDR).label, usingRaw: false
+  });
 
-  // Try to sync live data
-  try {
-    await syncAppsScript();
-  } catch(e) {
-    $('err-banner').style.display = 'flex';
-    $('hdr-data').textContent = new Date().toLocaleString('pt-BR') + ' (offline)';
-  }
+  // Sincroniza dados reais
+  await syncAppsScript();
 }
 
-// ─── THEME TOGGLE ────────────────────────────
-function toggleTheme() {
-  const root = document.documentElement;
-  const isLight = root.getAttribute('data-theme') === 'light';
-  if (isLight) {
-    root.removeAttribute('data-theme');
-    localStorage.setItem('tiger-theme', 'dark');
-    document.getElementById('theme-ico').textContent = '🌙';
-    document.getElementById('theme-lbl').textContent = 'Modo Escuro';
-  } else {
-    root.setAttribute('data-theme', 'light');
-    localStorage.setItem('tiger-theme', 'light');
-    document.getElementById('theme-ico').textContent = '☀️';
-    document.getElementById('theme-lbl').textContent = 'Modo Claro';
-  }
-}
-
-function applyStoredTheme() {
-  const saved = localStorage.getItem('tiger-theme');
-  if (saved === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-    document.getElementById('theme-ico').textContent = '☀️';
-    document.getElementById('theme-lbl').textContent = 'Modo Claro';
-  }
-}
-
-// ─── INIT ─────────────────────────────────────────
+// ─── INIT ────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   applyStoredTheme();
-
-  // Initial period — Today active
   selectDateRange('hoje', document.querySelector('[data-dr="hoje"]'));
-  rpRender('S5'); // BuyGoods default
-  $('hdr-semana').textContent = 'Hoje — ' + new Date().toLocaleDateString('pt-BR');
-  $('footer-periodo').textContent = 'Hoje — ' + new Date().toLocaleDateString('pt-BR');
+  rpRender('S5');
+  if ($('footer-periodo')) $('footer-periodo').textContent = 'Hoje — ' + new Date().toLocaleDateString('pt-BR');
 
   loadData().finally(() => {
-    setTimeout(() => {
-      $('loading').classList.add('hidden');
-      animateBars();
-    }, 600);
+    setTimeout(() => { $('loading').classList.add('hidden'); animateBars(); }, 600);
   });
 });
 </script>
