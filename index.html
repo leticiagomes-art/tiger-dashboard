@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tiger Offers — Dashboard Backend</title>
@@ -1252,52 +1255,81 @@ function isoD(d) { const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear
 function inRange(v, from, to) { const d=parseDt(v); if(!d) return false; const s=isoD(d); return s>=from&&s<=to; }
 
 // ═══════════════════════════════════════════════════════════════
-//  SINCRONIZAÇÃO — Apps Script doGet
 // ═══════════════════════════════════════════════════════════════
-async function syncData() {
-  if (!AS_URL) { showBanner('warn','⚠️ Cole o URL do seu Apps Script e clique em Sincronizar.'); return; }
+//  SINCRONIZAÇÃO — JSONP (sem CORS, funciona de qualquer domínio)
+//  O Apps Script precisa suportar ?callback=nome (ver Code.gs)
+// ═══════════════════════════════════════════════════════════════
 
+// Callback global chamado pelo Apps Script via JSONP
+window._tigerCB = function(data) {
   const btn = $('sync-btn');
-  if (btn) { btn.textContent='⏳ Buscando…'; btn.disabled=true; }
-  showBanner('info','🔄 Conectando ao Apps Script…');
-
   try {
-    const url = AS_URL.trim() + (AS_URL.includes('?')?'&':'?') + 'ts=' + Date.now();
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const data = await resp.json();
-
-    // Apps Script retorna: { respostas_brutas:[], helpgrid_raw:[], timestamp:'' }
     RAW.form = (data.respostas_brutas || []).map(normalizeRow);
     RAW.hg   = (data.helpgrid_raw    || []).map(normalizeRow);
     RAW.ok   = true;
     RAW.at   = new Date();
-
     $('hdr-data').textContent = RAW.at.toLocaleString('pt-BR');
-
-    // Debug: mostra colunas no console
-    if (RAW.form[0]) console.log('[Form] cols:', Object.keys(RAW.form[0]).join(' | '));
-    if (RAW.hg[0])   console.log('[HG] cols:',   Object.keys(RAW.hg[0]).join(' | '));
-
-    const msg = `✅ ${RAW.form.length} tickets · ${RAW.hg.length} linhas HG`;
-    showBanner('ok', msg);
-    if (btn) { btn.textContent='✅ Sincronizado'; btn.style.color='var(--green)'; }
-
+    if (RAW.form[0]) console.log('[Form]', Object.keys(RAW.form[0]).slice(0,6).join(' | '));
+    if (RAW.hg[0])   console.log('[HG]',   Object.keys(RAW.hg[0]).slice(0,6).join(' | '));
+    showBanner('ok', `✅ ${RAW.form.length} tickets · ${RAW.hg.length} linhas HG`);
+    if (btn) { btn.textContent = '✅ ' + RAW.form.length + ' tickets'; btn.style.color = 'var(--green)'; }
     renderAll();
-
-  } catch(err) {
-    console.error('Sync error:', err);
-    const hint = err.message.includes('fetch') 
-      ? ' Verifique: 1) URL correto 2) Deploy como "Qualquer pessoa" 3) Planilha compartilhada'
-      : '';
-    showBanner('err','❌ ' + err.message + hint);
-    if (btn) { btn.textContent='❌ Erro'; btn.style.color='var(--red)'; }
-    renderAll(); // mostra dados estáticos mesmo com erro
+  } catch(e) {
+    console.error('CB error:', e);
+    showBanner('err', '❌ Erro ao processar: ' + e.message);
+    renderAll();
   } finally {
-    if (btn) btn.disabled=false;
-    setTimeout(()=>{ if(btn){btn.textContent='🔄 Sincronizar';btn.style.color='';} },6000);
+    if (btn) btn.disabled = false;
+    setTimeout(() => { if(btn){ btn.textContent='🔄 Sincronizar'; btn.style.color=''; } }, 6000);
+    const s = document.getElementById('_tjsonp'); if(s) s.remove();
   }
+};
+
+function syncData() {
+  if (!AS_URL) {
+    showBanner('warn', '⚠️ Cole o URL do Apps Script em ⚙️ URL → Salvar.');
+    return;
+  }
+  const btn = $('sync-btn');
+  if (btn) { btn.textContent = '⏳ Buscando…'; btn.disabled = true; }
+  showBanner('info', '🔄 Conectando ao Apps Script…');
+
+  // Remove script anterior
+  const old = document.getElementById('_tjsonp'); if (old) old.remove();
+
+  // Timeout de 20s
+  const timer = setTimeout(() => {
+    showBanner('err', '❌ Timeout 20s — verifique o URL e o deploy do Apps Script.');
+    if (btn) { btn.textContent = '❌ Timeout'; btn.style.color = 'var(--red)'; btn.disabled = false; }
+    setTimeout(() => { if(btn){ btn.textContent='🔄 Sincronizar'; btn.style.color=''; } }, 6000);
+    renderAll();
+  }, 20000);
+
+  // Wraps callback to clear timer
+  const _orig = window._tigerCB;
+  window._tigerCB = function(data) {
+    clearTimeout(timer);
+    window._tigerCB = _orig;
+    _orig(data);
+  };
+
+  // Injeta <script> JSONP — bypassa CORS completamente
+  const url = AS_URL.trim().replace(/\/$/, '')
+    + (AS_URL.includes('?') ? '&' : '?')
+    + 'callback=_tigerCB&ts=' + Date.now();
+
+  const s = document.createElement('script');
+  s.id = '_tjsonp'; s.src = url;
+  s.onerror = () => {
+    clearTimeout(timer);
+    showBanner('err', '❌ Falha ao carregar Apps Script. URL correto? Deploy = "Qualquer pessoa"?');
+    if (btn) { btn.textContent = '❌ Erro'; btn.style.color = 'var(--red)'; btn.disabled = false; }
+    setTimeout(() => { if(btn){ btn.textContent='🔄 Sincronizar'; btn.style.color=''; } }, 6000);
+    renderAll();
+  };
+  document.head.appendChild(s);
 }
+
 
 // Normaliza chaves: remove espaços extras, trata Date objects do Apps Script
 function normalizeRow(r) {
@@ -1363,6 +1395,7 @@ function classify(r, cols) {
 //  RENDER ALL — chamado a cada mudança de período
 // ═══════════════════════════════════════════════════════════════
 function renderAll() {
+  try {
   const dr = getDR(DR);
 
   // Sincroniza botões ativos em TODAS as abas
@@ -1406,6 +1439,12 @@ function renderAll() {
     </div>`;
   }
   setTimeout(animateBars, 80);
+  } catch(e) {
+    console.error('renderAll error:', e);
+    // Fallback de emergência — escreve direto no DOM
+    const g = $('ag-grid');
+    if (g) g.innerHTML = `<div style="padding:20px;color:red;font-weight:bold">Erro JS: ${e.message}</div>`;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
